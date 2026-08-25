@@ -140,3 +140,9 @@ Thumbs.db
 # 本地测试编排（由负责人单独分发，不入库）
 测试总册.md
 测试说明-*.md
+
+# nested git / runtime in router workspace
+.openclaw-hr/workspace-router/.git/
+.openclaw-hr/workspace-router/memory/
+.openclaw-hr/workspace-router/.openclaw/
+.openclaw-hr/workspace-router/*.png
