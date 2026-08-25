@@ -1,0 +1,318 @@
+{
+  "subject": "张磊",
+  "subject_role": "支付平台研发组 后端开发工程师",
+  "period": "2026-H1",
+  "total_feedback_count": 7,
+  "perspectives": {
+    "manager": {
+      "label": "上级（直接主管）",
+      "count": 1,
+      "reviewers": [
+        {
+          "alias": "王建华（研发组组长，直接主管）",
+          "file": "manager.json"
+        }
+      ],
+      "dimensions": {
+        "goal_achievement": {
+          "scores": [
+            4
+          ],
+          "count": 1,
+          "average": 4.0,
+          "min": 4,
+          "max": 4
+        },
+        "professional_skill": {
+          "scores": [
+            5
+          ],
+          "count": 1,
+          "average": 5.0,
+          "min": 5,
+          "max": 5
+        },
+        "collaboration": {
+          "scores": [
+            3
+          ],
+          "count": 1,
+          "average": 3.0,
+          "min": 3,
+          "max": 3
+        },
+        "responsibility": {
+          "scores": [
+            4
+          ],
+          "count": 1,
+          "average": 4.0,
+          "min": 4,
+          "max": 4
+        },
+        "growth": {
+          "scores": [
+            3
+          ],
+          "count": 1,
+          "average": 3.0,
+          "min": 3,
+          "max": 3
+        }
+      }
+    },
+    "peer": {
+      "label": "平级",
+      "count": 3,
+      "reviewers": [
+        {
+          "alias": "陈思远（同组后端工程师）",
+          "file": "peer-01.json"
+        },
+        {
+          "alias": "刘婷（风控组工程师，跨组接口对接）",
+          "file": "peer-02.json"
+        },
+        {
+          "alias": "赵宇（前端组工程师，接口联调对接）",
+          "file": "peer-03.json"
+        }
+      ],
+      "dimensions": {
+        "goal_achievement": {
+          "scores": [
+            4,
+            4,
+            4
+          ],
+          "count": 3,
+          "average": 4.0,
+          "min": 4,
+          "max": 4
+        },
+        "professional_skill": {
+          "scores": [
+            5,
+            5,
+            4
+          ],
+          "count": 3,
+          "average": 4.67,
+          "min": 4,
+          "max": 5
+        },
+        "collaboration": {
+          "scores": [
+            4,
+            2,
+            3
+          ],
+          "count": 3,
+          "average": 3.0,
+          "min": 2,
+          "max": 4
+        },
+        "responsibility": {
+          "scores": [
+            5,
+            4,
+            4
+          ],
+          "count": 3,
+          "average": 4.33,
+          "min": 4,
+          "max": 5
+        },
+        "growth": {
+          "scores": [
+            4,
+            3,
+            3
+          ],
+          "count": 3,
+          "average": 3.33,
+          "min": 3,
+          "max": 4
+        }
+      }
+    },
+    "report": {
+      "label": "下属",
+      "count": 2,
+      "reviewers": [
+        {
+          "alias": "孙浩（应届新人，张磊的带教对象）",
+          "file": "report-01.json"
+        },
+        {
+          "alias": "周琳（实习生，张磊的带教对象）",
+          "file": "report-02.json"
+        }
+      ],
+      "dimensions": {
+        "goal_achievement": {
+          "scores": [
+            4,
+            4
+          ],
+          "count": 2,
+          "average": 4.0,
+          "min": 4,
+          "max": 4
+        },
+        "professional_skill": {
+          "scores": [
+            5,
+            5
+          ],
+          "count": 2,
+          "average": 5.0,
+          "min": 5,
+          "max": 5
+        },
+        "collaboration": {
+          "scores": [
+            5,
+            4
+          ],
+          "count": 2,
+          "average": 4.5,
+          "min": 4,
+          "max": 5
+        },
+        "responsibility": {
+          "scores": [
+            5,
+            5
+          ],
+          "count": 2,
+          "average": 5.0,
+          "min": 5,
+          "max": 5
+        },
+        "growth": {
+          "scores": [
+            4,
+            5
+          ],
+          "count": 2,
+          "average": 4.5,
+          "min": 4,
+          "max": 5
+        }
+      }
+    },
+    "self": {
+      "label": "自评",
+      "count": 1,
+      "reviewers": [
+        {
+          "alias": "张磊（本人自评）",
+          "file": "self.json"
+        }
+      ],
+      "dimensions": {
+        "goal_achievement": {
+          "scores": [
+            4
+          ],
+          "count": 1,
+          "average": 4.0,
+          "min": 4,
+          "max": 4
+        },
+        "professional_skill": {
+          "scores": [
+            5
+          ],
+          "count": 1,
+          "average": 5.0,
+          "min": 5,
+          "max": 5
+        },
+        "collaboration": {
+          "scores": [
+            4
+          ],
+          "count": 1,
+          "average": 4.0,
+          "min": 4,
+          "max": 4
+        },
+        "responsibility": {
+          "scores": [
+            5
+          ],
+          "count": 1,
+          "average": 5.0,
+          "min": 5,
+          "max": 5
+        },
+        "growth": {
+          "scores": [
+            5
+          ],
+          "count": 1,
+          "average": 5.0,
+          "min": 5,
+          "max": 5
+        }
+      }
+    }
+  },
+  "overall": {
+    "goal_achievement": {
+      "average": 4.0,
+      "min": 4,
+      "max": 4,
+      "range": 0
+    },
+    "professional_skill": {
+      "average": 4.86,
+      "min": 4,
+      "max": 5,
+      "range": 1
+    },
+    "collaboration": {
+      "average": 3.57,
+      "min": 2,
+      "max": 5,
+      "range": 3
+    },
+    "responsibility": {
+      "average": 4.57,
+      "min": 4,
+      "max": 5,
+      "range": 1
+    },
+    "growth": {
+      "average": 3.86,
+      "min": 3,
+      "max": 5,
+      "range": 2
+    }
+  },
+  "divergence": {
+    "goal_achievement": {
+      "perspective_range": 0.0,
+      "suspected_split": false
+    },
+    "professional_skill": {
+      "perspective_range": 0.33,
+      "suspected_split": false
+    },
+    "collaboration": {
+      "perspective_range": 1.5,
+      "suspected_split": true
+    },
+    "responsibility": {
+      "perspective_range": 1.0,
+      "suspected_split": true
+    },
+    "growth": {
+      "perspective_range": 2.0,
+      "suspected_split": true
+    }
+  },
+  "split_threshold": 1.0
+}

@@ -188,7 +188,7 @@
   "channels": {
     "feishu": {
       "enabled": true,
-      "appId": "cli_aa9b279fea38dcba",
+      "appId": "cli_aadf585d2ffc9cc4",
       "appSecret": {
         "source": "env",
         "provider": "default",
@@ -453,7 +453,7 @@
         "outputDimensionality": 1024
       },
       "model": {
-        "primary": "deepseek/deepseek-v4-flash",
+        "primary": "xiaomi/mimo-v2.5-pro",
         "fallbacks": [
           "deepseek/deepseek-v4-pro",
           "qwen/qwen-max"

@@ -1,62 +1,142 @@
-# OpenClaw HR Project .gitignore
+# OpenClaw HR · .gitignore
+# 给组员 clone 用：保留 Skill/配置/HCM 源码；排除密钥、运行时、大文件
 
-# 敏感信息
+# ========== 密钥与身份（禁止入库）==========
 .openclaw-hr/env.sh
+.openclaw-hr/.env
+**/.env
+**/.env.*
+!.env.example
+!.env.*.example
 .openclaw-hr/credentials/
 .openclaw-hr/settings/
+.openclaw-hr/identity/
+.openclaw-hr/devices/
 *.key
 *.pem
-*.env
+*.p12
+*secret*
+*credentials*
 
-# 运行时文件
+# ========== 依赖 ==========
+**/node_modules/
+.openclaw-hr/node_modules/
+.openclaw-hr/npm/
+.openclaw-hr/install/node_modules/
+.openclaw-hr/install.polluted_*/
+package-lock.json
+**/package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ========== 运行时 / 会话 / 日志 ==========
 .openclaw-hr/logs/
 .openclaw-hr/sessions/
-.openclaw-hr/agents/*/sessions/
+.openclaw-hr/agents/**/sessions/
 .openclaw-hr/state/
 .openclaw-hr/cache/
 .openclaw-hr/tmp/
 .openclaw-hr/session-delivery-queue/
 .openclaw-hr/update-check.json
+.openclaw-hr/tui/
+.openclaw-hr/subagents/
+.openclaw-hr/browser/
+.openclaw-hr/flows/
+.openclaw-hr/tasks/
+.openclaw-hr/exec-approvals.json
+.openclaw-hr/feishu/
+.openclaw-hr/nginx/logs/
+.openclaw-hr/nginx/temp_*/
+.openclaw-hr/cron/runs/
+.openclaw-hr/cron/jobs-state.json
+.openclaw-hr/cron/*.migrated
+.openclaw-hr/cron/*.migrated.*
 
-# 依赖目录
-.openclaw-hr/node_modules/
-.openclaw-hr/npm/
+# ========== 数据库 / 记忆 ==========
+*.sqlite
+*.sqlite-*
+*.sqlite.*
+*.db
+*.db-shm
+*.db-wal
+.openclaw-hr/memory/
+.openclaw-hr/hcm/hcm.db
 
-# 备份和临时文件
-.openclaw-hr/install.polluted_20260729_150656/
+# ========== 大媒体 / ASR 模型（本轮测试也不需要）==========
+.openclaw-hr/media/
+.openclaw-hr/workspace-recruitment/models/
+**/snapshots/
+**/*.onnx
+**/*.pt
+**/*.pth
+**/*.bin
+**/*.safetensors
+**/*.wasm
+*.wav
+*.mp3
+*.mp4
+*.zip
+*.pdf
+*.docx
+*.woff
+*.woff2
+*.ttf
+*.otf
+**/fonts/
+
+# ========== 工作区：只忽略数据，保留 skills 与脚本 ==========
+# （原 blanket workspace-*/ 已去掉，否则组员拿不到 Skill）
+.openclaw-hr/workspace-recruitment/inbox/
+.openclaw-hr/workspace-recruitment/parsed/
+.openclaw-hr/workspace-recruitment/results/
+.openclaw-hr/workspace-recruitment/profiles/
+.openclaw-hr/workspace-recruitment/interview/
+.openclaw-hr/workspace-recruitment/audited/
+.openclaw-hr/workspace-recruitment/memory/
+.openclaw-hr/workspace-recruitment/.trash/
+.openclaw-hr/workspace-*/memory/
+.openclaw-hr/workspace-*/.trash/
+.openclaw-hr/workspace-*/.openclaw/
+.openclaw-hr/workspace-*/.clawhub/
+.openclaw-hr/workspace-er-admin/report-output/
+.openclaw-hr/workspace-performance/feedback-360/source_feedback/
+.openclaw-hr/workspace-performance/feedback-360/raw/
+.openclaw-hr/workspace/skills/ima-skills.old.*/
+.openclaw-hr/workspace/skills/__MACOSX/
+.openclaw-hr/workspace/skills/*.zip
+
+# ========== 构建产物 ==========
+**/dist/
+**/build/
+**/*.map
+.openclaw-hr/hcm/frontend/dist/
+.openclaw-hr/hcm/frontend/node_modules/
+
+# ========== 备份与垃圾 ==========
 *.bak
+*.bak.*
+.openclaw-hr/config/*.bak.*
 *.tmp
 *.swp
 *.swo
-
-# 工作空间数据（可能包含大型文件或嵌套Git仓库）
-.openclaw-hr/workspace-*/
-
-# 系统文件
+*.log
+*.migrated
+*.migrated.*
 .DS_Store
 Thumbs.db
-*.log
+**/__pycache__/
+**/*.py[cod]
+**/__MACOSX/
+**/*.old.*/
 
-# Node.js
-node_modules/
-npm-debug.log*
-yarn-error.log*
+# ========== CLI 补全（可选，体积不大但与业务无关）==========
+.openclaw-hr/completions/
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-
-# IDE
+# ========== 系统 / IDE ==========
 .vscode/
 .idea/
-*.swp
-*.swo
 *~
+
+# 本地测试编排（由负责人单独分发，不入库）
+测试总册.md
+测试说明-*.md

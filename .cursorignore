@@ -1,0 +1,39 @@
+# OpenClaw HR · .cursorignore
+# 只放「Agent 也不许读」的路径。Cursor 会自动应用，不必 @ 本文件。
+#
+# 需要改会话 / Skill 数据 / canvas / 模型旁边的脚本时：那些在
+# .cursorindexingignore 里，搜索不到，但你 @ 路径或 Agent 按绝对路径读取仍然可以。
+#
+# 改完后：Command Palette → “Cursor: Resync Index”
+
+# -----------------------------------------------------------------------------
+# 密钥与身份（明文 Key、配对、设备登录态）
+# -----------------------------------------------------------------------------
+.openclaw-hr/env.sh
+.openclaw-hr/.env
+**/.env
+**/.env.*
+!.env.example
+!.env.*.example
+
+.openclaw-hr/credentials/
+.openclaw-hr/settings/
+.openclaw-hr/identity/
+.openclaw-hr/devices/
+
+*.key
+*.pem
+*.p12
+*secret*
+*credentials*
+
+# Chromium 画像里可能有 Cookie / Local Storage，默认不让模型读
+.openclaw-hr/browser/
+
+# -----------------------------------------------------------------------------
+# 覆盖 .gitignore 的 `.openclaw-hr/workspace-*/`
+# 否则招聘/入职/绩效/行政 Skill 对索引和 Agent 都等于不存在。
+# 工作区里的大文件、样本数据改由 .cursorindexingignore 降权。
+# -----------------------------------------------------------------------------
+!.openclaw-hr/workspace-*/
+!.openclaw-hr/workspace-*/**

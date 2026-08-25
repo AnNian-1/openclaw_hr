@@ -1,0 +1,15 @@
+{
+  "candidate": "张三",
+  "pinyin": "zhangsan",
+  "day": 7,
+  "focus": "完成公司级 Onboarding;导师启动带教;融入团队",
+  "reviewedAt": "2026-08-25 16:23",
+  "status": "已跟进",
+  "prep_nodes": {
+    "contract": "in_progress",
+    "account": "pending",
+    "device": "pending",
+    "buddy": "pending",
+    "training": "pending"
+  }
+}

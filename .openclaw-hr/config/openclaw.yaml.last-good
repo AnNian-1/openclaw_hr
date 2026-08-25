@@ -179,13 +179,16 @@
       },
       "qwen": {
         "enabled": true
+      },
+      "xiaomi": {
+        "enabled": true
       }
     }
   },
   "channels": {
     "feishu": {
       "enabled": true,
-      "appId": "cli_aa9b279fea38dcba",
+      "appId": "cli_aadf585d2ffc9cc4",
       "appSecret": {
         "source": "env",
         "provider": "default",
@@ -450,7 +453,7 @@
         "outputDimensionality": 1024
       },
       "model": {
-        "primary": "deepseek/deepseek-v4-flash",
+        "primary": "xiaomi/mimo-v2.5-pro",
         "fallbacks": [
           "deepseek/deepseek-v4-pro",
           "qwen/qwen-max"
@@ -541,6 +544,27 @@
               "text"
             ],
             "contextWindow": 131072
+          }
+        ]
+      },
+      "xiaomi": {
+        "baseUrl": "https://token-plan-cn.xiaomimimo.com/v1",
+        "apiKey": {
+          "source": "env",
+          "provider": "default",
+          "id": "XIAOMI_API_KEY"
+        },
+        "models": [
+          {
+            "id": "mimo-v2.5-pro",
+            "name": "Xiaomi MiMo V2.5 Pro",
+            "api": "openai-completions",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 1048576,
+            "maxTokens": 32000
           }
         ]
       }

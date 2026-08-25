@@ -1,0 +1,164 @@
+# OpenClaw HR · .cursorindexingignore
+# 只从「代码库搜索 / 自动索引」里拿掉，Agent 需要时仍可按路径读取，你也可以 @。
+# Cursor 会自动应用，不必 @ 本文件。
+# 密钥不要写在这里，写在 .cursorignore。
+#
+# 改完后：Command Palette → “Cursor: Resync Index”
+
+# =============================================================================
+# 1. 依赖与包管理器缓存
+# =============================================================================
+**/node_modules/
+.openclaw-hr/npm/
+.openclaw-hr/install/node_modules/
+.openclaw-hr/hcm/frontend/node_modules/
+
+.openclaw-hr/install.polluted_*/
+
+package-lock.json
+**/package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# =============================================================================
+# 2. OpenClaw 运行时（日志、会话、缓存、队列）
+#     排障时 Agent 仍可打开某一份 log / session
+# =============================================================================
+.openclaw-hr/logs/
+.openclaw-hr/sessions/
+.openclaw-hr/cache/
+.openclaw-hr/tmp/
+.openclaw-hr/state/
+.openclaw-hr/session-delivery-queue/
+.openclaw-hr/update-check.json
+
+.openclaw-hr/agents/**/sessions/
+.openclaw-hr/tui/
+
+.openclaw-hr/cron/runs/
+.openclaw-hr/cron/jobs-state.json
+.openclaw-hr/cron/*.migrated
+.openclaw-hr/cron/*.migrated.*
+
+.openclaw-hr/flows/
+.openclaw-hr/tasks/
+.openclaw-hr/subagents/
+.openclaw-hr/exec-approvals.json
+
+.openclaw-hr/nginx/logs/
+.openclaw-hr/nginx/temp_*/
+.openclaw-hr/nginx/temp_client_body/
+.openclaw-hr/nginx/temp_fastcgi/
+.openclaw-hr/nginx/temp_proxy/
+.openclaw-hr/nginx/temp_scgi/
+.openclaw-hr/nginx/temp_uwsgi/
+
+# =============================================================================
+# 3. 数据库、WAL、Agent 记忆库
+# =============================================================================
+*.sqlite
+*.sqlite-*
+*.sqlite.*
+*.db
+*.db-shm
+*.db-wal
+
+.openclaw-hr/memory/
+.openclaw-hr/hcm/hcm.db
+
+# =============================================================================
+# 4. 本地 ML / ASR 权重（约 1.3GB；转写脚本本身仍在索引里）
+# =============================================================================
+.openclaw-hr/workspace-recruitment/models/
+**/snapshots/
+**/*.onnx
+**/*.pt
+**/*.pth
+**/*.bin
+**/*.safetensors
+**/*.wasm
+
+# =============================================================================
+# 5. 媒体、简历原件、360 原始反馈、字体
+#     改评测用例或看板时可以 @ 具体文件
+# =============================================================================
+.openclaw-hr/media/
+.openclaw-hr/workspace-recruitment/inbox/
+.openclaw-hr/workspace-performance/feedback-360/source_feedback/
+.openclaw-hr/workspace-performance/feedback-360/raw/
+
+*.pdf
+*.docx
+*.doc
+*.xlsx
+*.pptx
+*.zip
+*.wav
+*.mp3
+*.mp4
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.woff
+*.woff2
+*.ttf
+*.otf
+
+**/fonts/
+
+# =============================================================================
+# 6. 构建产物
+# =============================================================================
+**/dist/
+**/build/
+**/*.map
+.openclaw-hr/hcm/frontend/dist/
+
+# =============================================================================
+# 7. 备份、迁移残留、系统垃圾、旧 Skill
+# =============================================================================
+*.bak
+*.bak.*
+*.tmp
+*.swp
+*.swo
+*.log
+*.migrated
+*.migrated.*
+.DS_Store
+Thumbs.db
+**/__pycache__/
+**/*.py[cod]
+**/__MACOSX/
+
+**/*.old.*/
+.openclaw-hr/workspace/skills/ima-skills.old.*/
+.openclaw-hr/workspace/skills/__MACOSX/
+
+.openclaw-hr/completions/
+
+**/.trash/
+**/.openclaw/
+**/.clawhub/
+
+# =============================================================================
+# 8. 工作区数据目录（Skill 源码不在这里，仍会被索引）
+# =============================================================================
+.openclaw-hr/workspace-recruitment/.trash/
+.openclaw-hr/workspace-recruitment/parsed/
+.openclaw-hr/workspace-recruitment/results/
+.openclaw-hr/workspace-recruitment/profiles/
+.openclaw-hr/workspace-recruitment/interview/
+.openclaw-hr/workspace-recruitment/audited/
+.openclaw-hr/workspace-recruitment/memory/
+.openclaw-hr/workspace-er-admin/memory/
+.openclaw-hr/workspace-er-admin/report-output/
+.openclaw-hr/workspace-onboarding/memory/
+.openclaw-hr/workspace-performance/memory/
+.openclaw-hr/workspace-training/memory/
+.openclaw-hr/workspace-router/memory/
+.openclaw-hr/workspace/memory/
+
+.openclaw-hr/workspace-recruitment/skills/office-to-md-v2/office-to-md/node_modules/

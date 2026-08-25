@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>星桥科技 · 新员工入职进度看板</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:#f4f6fa; color:#1f2733; padding:38px 40px;
+  }
+  .page-head {
+    max-width:1500px; margin:0 auto 28px; display:flex;
+    align-items:flex-end; justify-content:space-between;
+  }
+  .page-head h1 { font-size:30px; font-weight:700; color:#1a2233; }
+  .page-head .sub { font-size:15px; color:#7a869a; margin-top:8px; }
+  .page-head .meta { font-size:15px; color:#7a869a; text-align:right; }
+  .page-head .meta b { color:#2f6df6; font-size:24px; }
+  .grid {
+    max-width:1500px; margin:0 auto;
+    display:grid; grid-template-columns:repeat(3,1fr); gap:26px;
+  }
+  .card {
+    background:#fff; border-radius:16px; padding:28px;
+    box-shadow:0 2px 16px rgba(31,39,51,.08);
+  }
+  .card-head {
+    display:flex; justify-content:space-between; align-items:flex-start;
+    padding-bottom:16px; border-bottom:1px solid #eef1f6;
+  }
+  .who .name { font-size:23px; font-weight:700; }
+  .who .role {
+    font-size:13px; color:#5b6b85; background:#eef3ff;
+    padding:3px 10px; border-radius:6px; margin-left:9px;
+  }
+  .join { font-size:13px; color:#9aa4b6; }
+  .progress-row {
+    display:flex; align-items:center; gap:12px; margin:20px 0 6px;
+  }
+  .progress-label { font-size:14px; color:#5b6b85; white-space:nowrap; }
+  .progress-track {
+    flex:1; height:13px; background:#eef1f6; border-radius:7px; overflow:hidden;
+  }
+  .progress-fill { height:100%; border-radius:7px; }
+  .bar-high { background:linear-gradient(90deg,#22c081,#15a06a); }
+  .bar-mid  { background:linear-gradient(90deg,#f5b13d,#f59331); }
+  .bar-low  { background:linear-gradient(90deg,#f1707a,#e44a57); }
+  .progress-pct { font-size:19px; font-weight:700; color:#2f3a4d; }
+  .stage { margin-top:22px; }
+  .stage-title {
+    font-size:15px; font-weight:600; color:#2f3a4d; margin-bottom:16px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .stage-count { font-size:12px; font-weight:500; color:#9aa4b6; }
+  .timeline {
+    display:flex; gap:4px;
+  }
+  .node {
+    flex:1; text-align:center; position:relative; padding-top:16px;
+  }
+  .node::before {
+    content:""; position:absolute; top:6px; left:50%; right:-50%;
+    height:2px; background:#e3e7ef;
+  }
+  .node:last-child::before { display:none; }
+  .node-dot {
+    width:14px; height:14px; border-radius:50%; margin:0 auto;
+    position:relative; z-index:1; border:2px solid #fff;
+  }
+  .node-label { font-size:12.5px; color:#3a4659; margin-top:9px; font-weight:600; }
+  .node-status { font-size:11px; margin-top:4px; line-height:1.4; }
+  .node.done    .node-dot { background:#22c081; box-shadow:0 0 0 3px #d3f3e6; }
+  .node.done    .node-status { color:#15a06a; }
+  .node.progress .node-dot { background:#f5b13d; box-shadow:0 0 0 3px #fdeccf; }
+  .node.progress .node-status { color:#d8841a; }
+  .node.pending .node-dot { background:#c2cad6; box-shadow:0 0 0 3px #eef1f6; }
+  .node.pending .node-status { color:#98a2b3; }
+  .legend {
+    max-width:1500px; margin:30px auto 0; display:flex; gap:28px;
+    font-size:14px; color:#5b6b85; justify-content:center;
+  }
+  .legend span { display:flex; align-items:center; gap:7px; }
+  .dot { width:13px; height:13px; border-radius:50%; }
+  .dot.done { background:#22c081; }
+  .dot.progress { background:#f5b13d; }
+  .dot.pending { background:#c2cad6; }
+  .foot {
+    max-width:1500px; margin:20px auto 0; font-size:12.5px;
+    color:#aab2c0; text-align:center;
+  }
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <div>
+      <h1>星桥科技 · 新员工入职进度看板</h1>
+      <div class="sub">入职准备 5 节点 + 试用期跟进 4 节点 · 数据来自入职工作流与 Cron 定时 review</div>
+    </div>
+    <div class="meta">
+      在入职新员工 <b>4</b> 人 · 平均进度 <b>53%</b><br>
+      生成时间 2026-07-15 15:26
+    </div>
+  </div>
+  <div class="grid">
+    <section class="card">
+      <header class="card-head">
+        <div class="who">
+          <span class="name">张磊</span>
+          <span class="role">后端工程师</span>
+        </div>
+        <div class="join">入职日 2026-07-15</div>
+      </header>
+      <div class="progress-row">
+        <div class="progress-label">整体入职进度</div>
+        <div class="progress-track">
+          <div class="progress-fill bar-mid" style="width:78%"></div>
+        </div>
+        <div class="progress-pct">78%</div>
+      </div>
+      <div class="stage">
+        <div class="stage-title">入职准备 · 5 节点
+          <span class="stage-count">3/5 完成</span></div>
+        <div class="timeline">
+        <div class="node pending">
+          <div class="node-dot"></div>
+          <div class="node-label">合同签署</div>
+          <div class="node-status">待审批</div>
+        </div>
+        <div class="node pending">
+          <div class="node-dot"></div>
+          <div class="node-label">IT 账号</div>
+          <div class="node-status">待审批</div>
+        </div>
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">行政设备</div>
+          <div class="node-status">已配齐</div>
+        </div>
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">Buddy 匹配</div>
+          <div class="node-status">已匹配</div>
+        </div>
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">入职培训</div>
+          <div class="node-status">已排期</div>
+        </div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-title">试用期跟进 · 4 个 review 节点
+          <span class="stage-count">4/4 已 review</span></div>
+        <div class="timeline">
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">第 7 天</div>
+          <div class="node-status">已 review</div>
+        </div>
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">第 30 天</div>
+          <div class="node-status">已 review</div>
+        </div>
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">第 60 天</div>
+          <div class="node-status">已 review</div>
+        </div>
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">第 90 天</div>
+          <div class="node-status">已 review</div>
+        </div>
+        </div>
+      </div>
+    </section>
+    <section class="card">
+      <header class="card-head">
+        <div class="who">
+          <span class="name">周敏</span>
+          <span class="role">数据分析师</span>
+        </div>
+        <div class="join">入职日 </div>
+      </header>
+      <div class="progress-row">
+        <div class="progress-label">整体入职进度</div>
+        <div class="progress-track">
+          <div class="progress-fill bar-low" style="width:22%"></div>
+        </div>
+        <div class="progress-pct">22%</div>
+      </div>
+      <div class="stage">
+        <div class="stage-title">入职准备 · 5 节点
+          <span class="stage-count">1/5 完成</span></div>
+        <div class="timeline">
+        <div class="node progress">
+          <div class="node-dot"></div>
+          <div class="node-label">合同签署</div>
+          <div class="node-status">进行中</div>
+        </div>
+        <div class="node pending">
+          <div class="node-dot"></div>
+          <div class="node-label">IT 账号</div>
+          <div class="node-status">待办</div>
+        </div>
+        <div class="node progress">
+          <div class="node-dot"></div>
+          <div class="node-label">行政设备</div>
+          <div class="node-status">进行中</div>
+        </div>
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">Buddy 匹配</div>
+          <div class="node-status">已匹配</div>
+        </div>
+        <div class="node pending">
+          <div class="node-dot"></div>
+          <div class="node-label">入职培训</div>
+          <div class="node-status">待办</div>
+        </div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-title">试用期跟进 · 4 个 review 节点
+          <span class="stage-count">1/4 已 review</span></div>
+        <div class="timeline">
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">第 7 天</div>
+          <div class="node-status">已 review</div>
+        </div>
+        <div class="node pending">
+          <div class="node-dot"></div>
+          <div class="node-label">第 30 天</div>
+          <div class="node-status">待触发</div>
+        </div>
+        <div class="node pending">
+          <div class="node-dot"></div>
+          <div class="node-label">第 60 天</div>
+          <div class="node-status">待触发</div>
+        </div>
+        <div class="node pending">
+          <div class="node-dot"></div>
+          <div class="node-label">第 90 天</div>
+          <div class="node-status">待触发</div>
+        </div>
+        </div>
+      </div>
+    </section>
+    <section class="card">
+      <header class="card-head">
+        <div class="who">
+          <span class="name">陈静</span>
+          <span class="role">产品经理</span>
+        </div>
+        <div class="join">入职日 </div>
+      </header>
+      <div class="progress-row">
+        <div class="progress-label">整体入职进度</div>
+        <div class="progress-track">
+          <div class="progress-fill bar-mid" style="width:78%"></div>
+        </div>
+        <div class="progress-pct">78%</div>
+      </div>
+      <div class="stage">
+        <div class="stage-title">入职准备 · 5 节点
+          <span class="stage-count">5/5 完成</span></div>
+        <div class="timeline">
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">合同签署</div>
+          <div class="node-status">已审批</div>
+        </div>
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">IT 账号</div>
+          <div class="node-status">已开通</div>
+        </div>
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">行政设备</div>
+          <div class="node-status">已配齐</div>
+        </div>
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">Buddy 匹配</div>
+          <div class="node-status">已匹配</div>
+        </div>
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">入职培训</div>
+          <div class="node-status">已完成</div>
+        </div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-title">试用期跟进 · 4 个 review 节点
+          <span class="stage-count">2/4 已 review</span></div>
+        <div class="timeline">
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">第 7 天</div>
+          <div class="node-status">已 review</div>
+        </div>
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">第 30 天</div>
+          <div class="node-status">已 review</div>
+        </div>
+        <div class="node pending">
+          <div class="node-dot"></div>
+          <div class="node-label">第 60 天</div>
+          <div class="node-status">待触发</div>
+        </div>
+        <div class="node pending">
+          <div class="node-dot"></div>
+          <div class="node-label">第 90 天</div>
+          <div class="node-status">待触发</div>
+        </div>
+        </div>
+      </div>
+    </section>
+    <section class="card">
+      <header class="card-head">
+        <div class="who">
+          <span class="name">张三</span>
+          <span class="role">高级前端工程师</span>
+        </div>
+        <div class="join">入职日 </div>
+      </header>
+      <div class="progress-row">
+        <div class="progress-label">整体入职进度</div>
+        <div class="progress-track">
+          <div class="progress-fill bar-low" style="width:33%"></div>
+        </div>
+        <div class="progress-pct">33%</div>
+      </div>
+      <div class="stage">
+        <div class="stage-title">入职准备 · 5 节点
+          <span class="stage-count">3/5 完成</span></div>
+        <div class="timeline">
+        <div class="node pending">
+          <div class="node-dot"></div>
+          <div class="node-label">合同签署</div>
+          <div class="node-status">待审批</div>
+        </div>
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">IT 账号</div>
+          <div class="node-status">已开通</div>
+        </div>
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">行政设备</div>
+          <div class="node-status">已配齐</div>
+        </div>
+        <div class="node progress">
+          <div class="node-dot"></div>
+          <div class="node-label">Buddy 匹配</div>
+          <div class="node-status">未就绪</div>
+        </div>
+        <div class="node done">
+          <div class="node-dot"></div>
+          <div class="node-label">入职培训</div>
+          <div class="node-status">已排期</div>
+        </div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-title">试用期跟进 · 4 个 review 节点
+          <span class="stage-count">0/4 已 review</span></div>
+        <div class="timeline">
+        <div class="node pending">
+          <div class="node-dot"></div>
+          <div class="node-label">第 7 天</div>
+          <div class="node-status">待触发</div>
+        </div>
+        <div class="node pending">
+          <div class="node-dot"></div>
+          <div class="node-label">第 30 天</div>
+          <div class="node-status">待触发</div>
+        </div>
+        <div class="node pending">
+          <div class="node-dot"></div>
+          <div class="node-label">第 60 天</div>
+          <div class="node-status">待触发</div>
+        </div>
+        <div class="node pending">
+          <div class="node-dot"></div>
+          <div class="node-label">第 90 天</div>
+          <div class="node-status">待触发</div>
+        </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="legend">
+    <span><i class="dot done"></i>已完成</span>
+    <span><i class="dot progress"></i>进行中</span>
+    <span><i class="dot pending"></i>待办 / 待触发</span>
+  </div>
+  <div class="foot">
+    准备节点状态读自 workspace-onboarding/stub-state*（入职工作流产出）·
+    review 节点状态读自 workspace-onboarding/review-state（Cron 定时 review 落盘）
+  </div>
+</body>
+</html>
