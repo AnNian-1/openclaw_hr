@@ -1,0 +1,62 @@
+# OpenClaw HR Project .gitignore
+
+# 敏感信息
+.openclaw-hr/env.sh
+.openclaw-hr/credentials/
+.openclaw-hr/settings/
+*.key
+*.pem
+*.env
+
+# 运行时文件
+.openclaw-hr/logs/
+.openclaw-hr/sessions/
+.openclaw-hr/agents/*/sessions/
+.openclaw-hr/state/
+.openclaw-hr/cache/
+.openclaw-hr/tmp/
+.openclaw-hr/session-delivery-queue/
+.openclaw-hr/update-check.json
+
+# 依赖目录
+.openclaw-hr/node_modules/
+.openclaw-hr/npm/
+
+# 备份和临时文件
+.openclaw-hr/install.polluted_20260729_150656/
+*.bak
+*.tmp
+*.swp
+*.swo
+
+# 工作空间数据（可能包含大型文件或嵌套Git仓库）
+.openclaw-hr/workspace-*/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.log
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

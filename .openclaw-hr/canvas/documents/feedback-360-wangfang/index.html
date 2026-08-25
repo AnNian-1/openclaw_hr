@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>王芳 360 反馈 —— 半程分析看板</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"PingFang SC","Songti SC",sans-serif; background:#f4f5f7; color:#1f2937; line-height:1.7; }
+  .wrap { max-width:980px; margin:0 auto; padding:32px 28px 56px; }
+  h1 { font-size:24px; margin-bottom:6px; }
+  .sub { color:#6b7280; font-size:14px; margin-bottom:24px; }
+  .banner-warn { background:#fef3c7; border:1px solid #fbbf24; border-radius:8px; padding:14px 18px; margin-bottom:24px; font-size:14px; color:#92400e; }
+  .banner-warn b { color:#b45309; }
+  .meta { display:flex; flex-wrap:wrap; gap:10px 24px; background:#fff; border-radius:8px; padding:16px 20px; margin-bottom:24px; font-size:14px; }
+  section { background:#fff; border-radius:8px; padding:22px 24px; margin-bottom:22px; }
+  h2 { font-size:17px; margin-bottom:14px; padding-left:10px; border-left:4px solid #2563eb; }
+  .dim-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .card { border-radius:8px; padding:14px 16px; font-size:13.5px; }
+  .card h3 { font-size:15px; margin-bottom:8px; }
+  .consensus { background:#ecfdf5; border:1px solid #a7f3d0; }
+  .consensus h3 { color:#065f46; }
+  .split { background:#fef3c7; border:1px solid #fde68a; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th,td { padding:9px 8px; text-align:center; border-bottom:1px solid #eef0f2; }
+  th { background:#f8fafc; color:#475569; font-weight:600; }
+  td.dim { text-align:left; font-weight:600; }
+  .tag { font-size:12px; padding:2px 9px; border-radius:10px; color:#fff; }
+  .tag.consensus { background:#059669; }
+  .tag.warn { background:#d97706; }
+  .note { color:#6b7280; font-size:13px; margin-top:12px; border-left:3px solid #d1d5db; padding-left:12px; }
+  .comment-block { background:#f8fafc; border-radius:6px; padding:10px 14px; margin:6px 0; font-size:13px; }
+  .comment-block p { margin:4px 0; }
+  .comment-block .src { color:#9ca3af; font-size:12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>王芳 · 360 反馈半程分析</h1>
+<p class="sub">风控引擎组 后端开发工程师 · 2026-H1</p>
+
+<div class="banner-warn">
+  <b>⚠️ 视角覆盖不完整</b> —— 本批次仅回收上级(1份) + 平级(3份)，<b>缺下属(2份)和自评(1份)</b>。下方评分仅反映已有视角，不构成完整环评。面谈时请注意补充回收。
+</div>
+
+<div class="meta">
+  <span>📄 反馈份数：<b>4/7</b></span>
+  <span>👤 上级：王建华（研发组组长）</span>
+  <span>👥 平级：刘婷（风控）/ 赵宇（前端）/ 陈思远（同组）</span>
+  <span>❌ 缺失：下属反馈 + 自评</span>
+</div>
+
+<section>
+<h2>一、评分对照表</h2>
+<table>
+  <thead><tr><th>维度</th><th>上级</th><th>平级</th><th>极差</th><th>判定</th></tr></thead>
+  <tbody>
+    <tr><td class="dim">目标达成</td><td>4.00</td><td>4.00</td><td>0.00</td><td><span class="tag consensus">共识</span></td></tr>
+    <tr><td class="dim">专业能力</td><td>5.00</td><td>4.67</td><td>0.33</td><td><span class="tag consensus">共识</span></td></tr>
+    <tr><td class="dim">协作沟通</td><td>3.00</td><td>3.00</td><td>0.00</td><td><span class="tag consensus">共识（不完整）</span></td></tr>
+    <tr><td class="dim">责任心</td><td>4.00</td><td>4.33</td><td>0.33</td><td><span class="tag consensus">共识</span></td></tr>
+    <tr><td class="dim">学习成长</td><td>3.00</td><td>3.33</td><td>0.33</td><td><span class="tag consensus">共识（不完整）</span></td></tr>
+  </tbody>
+</table>
+<p class="note">⚠️ 所有维度极差均 < 1.0，机械无分歧。但「协作沟通」和「学习成长」在完整案例中（含下属/自评）经被判定为分歧——此处共识是缺少两个高分视角的假象。</p>
+</section>
+
+<section>
+<h2>二、维度概览</h2>
+<div class="dim-grid">
+
+<div class="card consensus">
+<h3>🎯 目标达成 · 共识</h3>
+<p>上级和平级一致认为交付稳定，P99 延迟从 320ms 降至 180ms。</p>
+<div class="comment-block">
+<p class="src">主管王建华：</p><p>"支付网关重构和对账系统稳定性优化都按时交付，是这个组上半年最拿得出手的产出。"</p>
+<p class="src">平级赵宇（前端）：</p><p>"接口交付节奏稳定，没拖过我们进度。"</p>
+</div>
+</div>
+
+<div class="card consensus">
+<h3>🔧 专业能力 · 共识</h3>
+<p>压倒性强项，全视角高度统一。限流熔断方案独立设计，扛住大促。</p>
+<div class="comment-block">
+<p class="src">同组陈思远：</p><p>"组里技术最强的人，没有之一。我卡住的时候问他，他能很快说到点子上。"</p>
+</div>
+</div>
+
+<div class="card consensus">
+<h3>🤝 协作沟通 · 不完整共识</h3>
+<p>上级和跨组视角一致评价偏低（刘婷评2分），但同组陈思远评4分——对内对外是两回事。</p>
+<div class="comment-block">
+<p class="src">平级刘婷（风控）：</p><p>"每次评审王芳都很坚持自己的设计，几会都开得有点僵。"</p>
+<p class="src">同组陈思远：</p><p>"对组内同事很好，同组配合很顺。他还主动把限流方案分享给我们。"</p>
+</div>
+</div>
+
+<div class="card consensus">
+<h3>💪 责任心 · 共识</h3>
+<p>所有人一致认可——线上响应快、大促主动盯夜、交付零掉链子。<p>
+<div class="comment-block">
+<p class="src">同组陈思远：</p><p>"特别靠谱。说了几点上线就几点上线，从不掉链子。大促那两天他主动盯夜。"</p>
+</div>
+</div>
+
+</div>
+
+<div class="card consensus" style="margin-top:14px;">
+<h3>📚 学习成长 · 不完整共识</h3>
+<p>上级和跨组视角认为成长偏慢——"更多是把手头事做深"、"沟通方式没太大变化"。但同组陈思远看到明显的技术进步。此维度在完整案例中因下属和自评给出高分而被判定为分歧（组织视角 vs 技术成长视角的不同参照系）。</p>
+</div>
+
+</section>
+
+<section>
+<h2>三、评语对照</h2>
+<table>
+  <thead><tr><th>维度</th><th>主管王建华</th><th>风控刘婷（跨组）</th><th>前端赵宇（跨组）</th><th>同组陈思远</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="dim">目标达成</td>
+      <td>✅ 按时交付，网关重构是该组上半年最好产出</td>
+      <td>✅ 交付不错，新接口更稳定</td>
+      <td>✅ 接口交付节奏稳定</td>
+      <td>✅ 网关重构质量高，review 挑不出毛病</td>
+    </tr>
+    <tr>
+      <td class="dim">专业能力</td>
+      <td>⭐ 组里最扎实之一，定位问题快</td>
+      <td>⭐ 能力毫无疑问</td>
+      <td>✅ 后端很强，能快速定位</td>
+      <td>⭐⭐ 组里最强，门儿清</td>
+    </tr>
+    <tr>
+      <td class="dim">协作沟通</td>
+      <td>⚠️ 跨组评审推进不太顺</td>
+      <td>⚠️ 太坚持己见，僵持</td>
+      <td>⚠️ 先质疑必要性，不算顺</td>
+      <td>✅ 对组内同事很好，同组配合顺</td>
+    </tr>
+    <tr>
+      <td class="dim">责任心</td>
+      <td>✅ 大促盯通宵</td>
+      <td>✅ 对自己模块负责</td>
+      <td>✅ 该配合都配合</td>
+      <td>⭐ 特别靠谱，从不掉链子</td>
+    </tr>
+    <tr>
+      <td class="dim">学习成长</td>
+      <td>⚠️ 偏被动，希望跳出纯执行</td>
+      <td>➡️ 技术在长，沟通没变化</td>
+      <td>➡️ 稳定输出，没明显变化</td>
+      <td>✅ 技术又上一个台阶</td>
+    </tr>
+  </tbody>
+</table>
+</section>
+
+<section>
+<h2>四、发展建议汇总</h2>
+<div style="background:#f8fafc; border-radius:6px; padding:14px 18px;">
+<ul style="margin-left:20px; font-size:14px; line-height:2;">
+  <li><b>主管王建华</b>：跨组沟通再柔软一些；从"把活干好"往"带着别人把活干好"转</li>
+  <li><b>平级刘婷（风控）</b>：少一点"我的方案就是对的"的姿态，协作上更有弹性</li>
+  <li><b>平级赵宇（前端）</b>：对非技术诉求多一点同理心，不用每个改动都先论证必要性</li>
+  <li><b>同组陈思远</b>：多在组会上把思考讲出来，懂的东西可以影响更多人</li>
+</ul>
+</div>
+</section>
+
+<section>
+<h2>五、数据质量</h2>
+<table>
+  <thead><tr><th>指标</th><th>状态</th></tr></thead>
+  <tbody>
+    <tr><td>反馈回收</td><td>4/7（57%）—— 缺下属×2 + 自评×1</td></tr>
+    <tr><td>视角覆盖</td><td>manager(1) + peer(3)，缺 report + self</td></tr>
+    <tr><td>评分完整性</td><td>已有数据全部合法</td></tr>
+    <tr><td>评语质量</td><td>含具体事例（网关重构 P99、大促盯夜、评审冲突等）</td></tr>
+  </tbody>
+</table>
+<p class="note">⚠️ 建议补充回收王芳的自评和其所带成员的反馈，补全四视角后再出完整环评。</p>
+</section>
+
+</div>
+</body>
+</html>

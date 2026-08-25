@@ -1,0 +1,17 @@
+# OpenClaw AI HR 数字员工「小慧」· Skill 脚本 Python 依赖
+# 安装：  python3 -m pip install -r requirements.txt
+# 版本为课程实验环境的实测版本，如装不上可改用兼容版本。
+#
+# numpy / pandas / matplotlib —— 评分、人才库、绩效聚合、月报、培训配图等 Skill 用
+# faster-whisper             —— 面试纪要的录音转写用（ctranslate2 会随它自动安装）
+# imap-tools / pdfminer.six / python-docx / rarfile
+#                            —— fetching-resumes-by-mail：IMAP 收简历 + PDF/DOCX 抽正文 + RAR 解压
+
+numpy==2.0.2
+pandas==2.3.3
+matplotlib==3.9.4
+faster-whisper==1.2.1
+imap-tools==1.13.0
+pdfminer.six==20251230
+python-docx==1.2.0
+rarfile==4.3

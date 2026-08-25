@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "dbd8ef33-38dc-4b9d-a52b-2034bc64da1d",
+      "agentId": "onboarding",
+      "name": "onboard-review-lixin-day30",
+      "description": "李鑫入职第30天试用期跟进 review",
+      "enabled": true,
+      "deleteAfterRun": true,
+      "createdAtMs": 1785726958683,
+      "schedule": {
+        "kind": "at",
+        "at": "2026-09-02T01:00:00.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行命令并把完整输出返回：bash /root/.openclaw-hr/workspace-onboarding/skills/running-onboarding-review/scripts/onboarding-review.sh 李鑫 30 lixin",
+        "timeoutSeconds": 120,
+        "toolsAllow": [
+          "exec"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {}
+    },
+    {
+      "id": "1d0997da-4eee-4708-ab3f-c7f3f0d01725",
+      "agentId": "onboarding",
+      "name": "onboard-review-lixin-day60",
+      "description": "李鑫入职第60天试用期跟进 review",
+      "enabled": true,
+      "deleteAfterRun": true,
+      "createdAtMs": 1785726962030,
+      "schedule": {
+        "kind": "at",
+        "at": "2026-10-02T01:00:00.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行命令并把完整输出返回：bash /root/.openclaw-hr/workspace-onboarding/skills/running-onboarding-review/scripts/onboarding-review.sh 李鑫 60 lixin",
+        "timeoutSeconds": 120,
+        "toolsAllow": [
+          "exec"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {}
+    },
+    {
+      "id": "c1156f36-7635-4803-a0e7-438e75b703aa",
+      "agentId": "onboarding",
+      "name": "onboard-review-lixin-day90",
+      "description": "李鑫入职第90天试用期跟进 review",
+      "enabled": true,
+      "deleteAfterRun": true,
+      "createdAtMs": 1785726965208,
+      "schedule": {
+        "kind": "at",
+        "at": "2026-11-01T01:00:00.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行命令并把完整输出返回：bash /root/.openclaw-hr/workspace-onboarding/skills/running-onboarding-review/scripts/onboarding-review.sh 李鑫 90 lixin",
+        "timeoutSeconds": 120,
+        "toolsAllow": [
+          "exec"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {}
+    }
+  ]
+}

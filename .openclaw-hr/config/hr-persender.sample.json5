@@ -1,0 +1,34 @@
+// =============================================================================
+// 飞书 → er-admin · 群聊/私聊仅可查 IMA 知识库（不可问月报）
+// =============================================================================
+{
+  channels: {
+    feishu: {
+      enabled: true,
+      connectionMode: "websocket",
+      domain: "feishu",
+      dmPolicy: "pairing",
+      groupPolicy: "allowlist",
+      requireMention: true,
+      // groupAllowFrom / groups 按实际群 oc_xxx 填写
+    }
+  },
+  bindings: [
+    { agentId: "er-admin", match: { channel: "feishu", accountId: "*" } },
+    { agentId: "router", match: { channel: "webchat", accountId: "*" } }
+  ],
+  tools: {
+    toolsBySender: {
+      // 飞书直绑 er-admin：无需 sessions_spawn；仅 exec+read 跑 IMA
+      "id:ou_REPLACE_EMPLOYEE": {
+        allow: ["exec", "read"],
+        deny:  ["write", "edit", "apply_patch", "browser", "cron", "group:fs", "sessions_spawn", "sessions_yield"]
+      },
+      // 群内其它已准入发送者：同样仅知识库工具面（月报靠 SOUL 拒绝）
+      "*": {
+        allow: ["exec", "read"],
+        deny:  ["write", "edit", "apply_patch", "browser", "cron", "group:fs", "sessions_spawn", "sessions_yield"]
+      }
+    }
+  }
+}

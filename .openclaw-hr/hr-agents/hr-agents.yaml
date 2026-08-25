@@ -1,0 +1,79 @@
+# ============================================================
+# HR 数字员工 "小慧" — 多 Agent 常驻骨架 Manifest
+# ============================================================
+# 单一事实来源：登记 6 个常驻子 Agent 的 id / 显示名 / emoji / HR 领域 /
+# workspace / agentDir。借鉴 shenhao-stu/openclaw-agents 的 manifest 驱动思路，
+# 裁剪为 HR 6 Agent；每个 agent 显式独立 agentDir（铁律：绝不 reuse）。
+# ============================================================
+
+project:
+  name: "openclaw-ai-hr"
+  description: "HR 数字员工小慧的多 Agent 常驻服务架构（阶段 A.7 骨架）"
+  profile: "~/.openclaw-hr"
+
+# ── 6 个常驻子 Agent ─────────────────────────────────────────
+# 每个 agent：
+#   id         openclaw 命令里用的唯一标识
+#   name       聊天里的显示名
+#   emoji      视觉标识
+#   domain     负责的 HR 业务领域
+#   workspace  独立工作目录（隔离）
+#   agent_dir  独立状态目录（会话/记忆/身份 · 绝不 reuse）
+agents:
+  - id: "recruitment"
+    name: "招聘小慧"
+    emoji: "📋"
+    domain: "招聘"
+    duty: "简历批量解析评分、人才库语义检索、面试纪要、JD 文案生成"
+    workspace: "~/.openclaw-hr/workspace-recruitment"
+    agent_dir: "~/.openclaw-hr/agent-dirs/recruitment"
+
+  - id: "onboarding"
+    name: "入职小慧"
+    emoji: "🎒"
+    domain: "入职"
+    duty: "Lobster 入职审批工作流、设备账号申请跟进、30/60/90 天 review"
+    workspace: "~/.openclaw-hr/workspace-onboarding"
+    agent_dir: "~/.openclaw-hr/agent-dirs/onboarding"
+
+  - id: "training"
+    name: "培训小慧"
+    emoji: "📚"
+    domain: "培训"
+    duty: "一键生成培训物料：PPT 大纲、讲师手册、学员手册、课后测试题"
+    workspace: "~/.openclaw-hr/workspace-training"
+    agent_dir: "~/.openclaw-hr/agent-dirs/training"
+
+  - id: "performance"
+    name: "绩效小慧"
+    emoji: "📈"
+    domain: "绩效"
+    duty: "360 反馈聚合、季度绩效 Cron 调度、绩效数据可视化"
+    workspace: "~/.openclaw-hr/workspace-performance"
+    agent_dir: "~/.openclaw-hr/agent-dirs/performance"
+
+  - id: "er-admin"
+    name: "行政小慧"
+    emoji: "🗂️"
+    domain: "行政员工关系"
+    duty: "HR Helpdesk 政策问答 RAG、会议纪要、HR 月报"
+    workspace: "~/.openclaw-hr/workspace-er-admin"
+    agent_dir: "~/.openclaw-hr/agent-dirs/er-admin"
+
+  - id: "router"
+    name: "总控小慧"
+    emoji: "🧭"
+    domain: "总控"
+    duty: "接收用户请求、判断业务领域、路由到对应子 Agent、按身份分级"
+    workspace: "~/.openclaw-hr/workspace-router"
+    agent_dir: "~/.openclaw-hr/agent-dirs/router"
+
+# ── Multi-Agent Routing（本集 Local Workflow Mode）─────────────
+# 本集无飞书 channel，采用 openclaw-agents 的 Local Workflow Mode：
+# 路由不靠 channel binding，靠 router 通过 agentToAgent 工具把请求转给子 Agent。
+# agentToAgent allow 规则：router 可达所有子 Agent，子 Agent 回报 router。
+routing:
+  mode: "local"
+  agent_to_agent:
+    - { from: "router", to: "*" }
+    - { from: "*", to: "router" }

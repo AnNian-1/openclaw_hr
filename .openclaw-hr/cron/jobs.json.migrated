@@ -1,0 +1,199 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "0fa897a0-c952-4b79-b16c-b825221604cf",
+      "agentId": "onboarding",
+      "name": "onboard-review-zhanglei-day7",
+      "description": "张磊入职第7天试用期跟进 review",
+      "enabled": true,
+      "deleteAfterRun": true,
+      "createdAtMs": 1778909796326,
+      "schedule": {
+        "kind": "at",
+        "at": "2026-05-23T02:00:00.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行命令并把完整输出返回：bash /root/.openclaw-hr/workspace-onboarding/review-system/onboarding-review.sh 张磊 7",
+        "timeoutSeconds": 120,
+        "toolsAllow": [
+          "exec"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {}
+    },
+    {
+      "id": "a21266c9-9dbd-46ad-a553-ab3b44ceecea",
+      "agentId": "onboarding",
+      "name": "onboard-review-zhanglei-day30",
+      "description": "张磊入职第30天试用期跟进 review",
+      "enabled": true,
+      "deleteAfterRun": true,
+      "createdAtMs": 1778909797278,
+      "schedule": {
+        "kind": "at",
+        "at": "2026-06-15T02:00:00.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行命令并把完整输出返回：bash /root/.openclaw-hr/workspace-onboarding/review-system/onboarding-review.sh 张磊 30",
+        "timeoutSeconds": 120,
+        "toolsAllow": [
+          "exec"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {}
+    },
+    {
+      "id": "47daa4eb-9de4-4b77-94a0-9bd93331be24",
+      "agentId": "onboarding",
+      "name": "onboard-review-zhanglei-day60",
+      "description": "张磊入职第60天试用期跟进 review",
+      "enabled": true,
+      "deleteAfterRun": true,
+      "createdAtMs": 1778909798230,
+      "schedule": {
+        "kind": "at",
+        "at": "2026-07-15T02:00:00.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行命令并把完整输出返回：bash /root/.openclaw-hr/workspace-onboarding/review-system/onboarding-review.sh 张磊 60",
+        "timeoutSeconds": 120,
+        "toolsAllow": [
+          "exec"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {}
+    },
+    {
+      "id": "940483a5-5875-4018-bd43-e409b549c928",
+      "agentId": "onboarding",
+      "name": "onboard-review-zhanglei-day90",
+      "description": "张磊入职第90天试用期跟进 review",
+      "enabled": true,
+      "deleteAfterRun": true,
+      "createdAtMs": 1778909799188,
+      "schedule": {
+        "kind": "at",
+        "at": "2026-08-14T02:00:00.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行命令并把完整输出返回：bash /root/.openclaw-hr/workspace-onboarding/review-system/onboarding-review.sh 张磊 90",
+        "timeoutSeconds": 120,
+        "toolsAllow": [
+          "exec"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {}
+    },
+    {
+      "id": "f67a1ec8-4d72-47f0-87c0-1017e5b854a2",
+      "agentId": "er-admin",
+      "name": "hr-monthly-report",
+      "description": "HR 月报自动生成 - 每月末由行政子 Agent 小慧执行,月末守卫确保仅月末跑一次",
+      "enabled": true,
+      "createdAtMs": 1778921569165,
+      "schedule": {
+        "kind": "cron",
+        "expr": "59 23 28-31 * *",
+        "tz": "Asia/Shanghai"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行命令并把完整输出返回：bash /root/.openclaw-hr/workspace-er-admin/report-system/run_monthly_report.sh",
+        "timeoutSeconds": 180,
+        "toolsAllow": [
+          "exec"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {}
+    },
+    {
+      "id": "48e76591-5346-4deb-a042-b069afa0fcf5",
+      "agentId": "recruitment",
+      "name": "weekly-recruitment-summary",
+      "description": "每周一上午招聘进度汇总 - 由招聘子 Agent 小慧盘点本周在招岗位与候选人进展",
+      "enabled": true,
+      "createdAtMs": 1778921579706,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 9 * * 1",
+        "tz": "Asia/Shanghai"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请盘点当前招聘进度：统计 inbox 待处理简历数量、已评分候选人数量、人才库规模,生成一段本周招聘进度简报。用 read 工具查看 ~/.openclaw-hr/workspace-recruitment 下 inbox/scoring/talent-pool 目录。",
+        "timeoutSeconds": 600,
+        "toolsAllow": [
+          "read",
+          "exec"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {}
+    },
+    {
+      "id": "fbbb7680-c4b0-4342-971a-e1e26fd7df8f",
+      "agentId": "performance",
+      "name": "monthly-payroll-reminder",
+      "description": "每月 25 日薪资核算提醒 - 由绩效子 Agent 小慧提醒 HR 启动当月薪资核算与绩效结算",
+      "enabled": true,
+      "createdAtMs": 1778921590586,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 10 25 * *",
+        "tz": "Asia/Shanghai"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "今天是每月薪资核算提醒日。请生成一条提醒：本月薪资核算与绩效结算工作即将开始,提示 HR 团队核对考勤数据、确认绩效结果、准备薪资发放。",
+        "timeoutSeconds": 120
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {}
+    }
+  ]
+}

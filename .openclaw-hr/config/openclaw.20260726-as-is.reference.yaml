@@ -1,0 +1,492 @@
+{
+  "gateway": {
+    "port": 18790,
+    "mode": "local",
+    "auth": {
+      "token": {
+        "source": "env",
+        "provider": "default",
+        "id": "OPENCLAW_GATEWAY_TOKEN"
+      },
+      "mode": "token"
+    }
+  },
+  "meta": {
+    "lastTouchedVersion": "2026.5.12",
+    "lastTouchedAt": "2026-07-26T07:27:47.246Z"
+  },
+  "skills": {
+    "entries": {
+      "1password": {
+        "enabled": false
+      },
+      "apple-notes": {
+        "enabled": false
+      },
+      "apple-reminders": {
+        "enabled": false
+      },
+      "bear-notes": {
+        "enabled": false
+      },
+      "blogwatcher": {
+        "enabled": false
+      },
+      "blucli": {
+        "enabled": false
+      },
+      "camsnap": {
+        "enabled": false
+      },
+      "capability-evolver": {
+        "enabled": false
+      },
+      "clawhub": {
+        "enabled": false
+      },
+      "coding-agent": {
+        "enabled": false
+      },
+      "discord": {
+        "enabled": false
+      },
+      "eightctl": {
+        "enabled": false
+      },
+      "gemini": {
+        "enabled": false
+      },
+      "gifgrep": {
+        "enabled": false
+      },
+      "gog": {
+        "enabled": false
+      },
+      "goplaces": {
+        "enabled": false
+      },
+      "himalaya": {
+        "enabled": false
+      },
+      "imsg": {
+        "enabled": false
+      },
+      "mcporter": {
+        "enabled": false
+      },
+      "model-usage": {
+        "enabled": false
+      },
+      "nano-pdf": {
+        "enabled": false
+      },
+      "notion": {
+        "enabled": false
+      },
+      "obsidian": {
+        "enabled": false
+      },
+      "openai-whisper": {
+        "enabled": false
+      },
+      "openhue": {
+        "enabled": false
+      },
+      "oracle": {
+        "enabled": false
+      },
+      "ordercli": {
+        "enabled": false
+      },
+      "peekaboo": {
+        "enabled": false
+      },
+      "sag": {
+        "enabled": false
+      },
+      "sherpa-onnx-tts": {
+        "enabled": false
+      },
+      "slack": {
+        "enabled": false
+      },
+      "songsee": {
+        "enabled": false
+      },
+      "sonoscli": {
+        "enabled": false
+      },
+      "spotify-player": {
+        "enabled": false
+      },
+      "things-mac": {
+        "enabled": false
+      },
+      "trello": {
+        "enabled": false
+      },
+      "voice-call": {
+        "enabled": false
+      },
+      "wacli": {
+        "enabled": false
+      },
+      "xurl": {
+        "enabled": false
+      }
+    }
+  },
+  "wizard": {
+    "lastRunAt": "2026-05-15T09:53:52.538Z",
+    "lastRunVersion": "2026.4.15",
+    "lastRunCommand": "doctor",
+    "lastRunMode": "local"
+  },
+  "plugins": {
+    "entries": {
+      "diagnostics-otel": {
+        "enabled": true
+      },
+      "lobster": {
+        "enabled": true
+      },
+      "llm-task": {
+        "enabled": true
+      },
+      "feishu": {
+        "enabled": true
+      }
+    }
+  },
+  "channels": {
+    "feishu": {
+      "enabled": true,
+      "appId": "cli_aa9b279fea38dcba",
+      "appSecret": {
+        "source": "env",
+        "provider": "default",
+        "id": "FEISHU_APP_SECRET"
+      },
+      "connectionMode": "websocket",
+      "domain": "feishu",
+      "groupPolicy": "allowlist",
+      "dmPolicy": "pairing",
+      "groupAllowFrom": [
+        "oc_b0a9477b74b9476f876c1a1e29635a57"
+      ]
+    }
+  },
+  "commands": {
+    "ownerAllowFrom": [
+      "feishu:ou_a8cf75f38e774b2c1a5c79117004d965"
+    ]
+  },
+  "diagnostics": {
+    "enabled": true,
+    "otel": {
+      "enabled": true,
+      "endpoint": "http://127.0.0.1:4318",
+      "protocol": "http/protobuf",
+      "serviceName": "openclaw-hr",
+      "sampleRate": 1,
+      "flushIntervalMs": 10000
+    }
+  },
+  "tools": {
+    "alsoAllow": [
+      "lobster",
+      "llm-task"
+    ],
+    "agentToAgent": {
+      "enabled": true,
+      "allow": [
+        "recruitment",
+        "onboarding",
+        "training",
+        "performance",
+        "er-admin",
+        "router"
+      ]
+    },
+    "toolsBySender": {
+      "id:ou_a8cf75f38e774b2c1a5c79117004d965": {
+        "allow": [
+          "sessions_spawn",
+          "sessions_yield",
+          "exec",
+          "read"
+        ],
+        "deny": [
+          "write",
+          "edit",
+          "apply_patch",
+          "browser",
+          "cron",
+          "group:fs"
+        ]
+      },
+      "*": {
+        "deny": [
+          "*"
+        ]
+      }
+    }
+  },
+  "bindings": [
+    {
+      "agentId": "router",
+      "match": {
+        "channel": "feishu",
+        "accountId": "*"
+      }
+    },
+    {
+      "agentId": "router",
+      "match": {
+        "channel": "webchat",
+        "accountId": "*"
+      }
+    }
+  ],
+  "agents": {
+    "list": [
+      {
+        "id": "main",
+        "subagents": {
+          "allowAgents": []
+        }
+      },
+      {
+        "id": "recruitment",
+        "name": "recruitment",
+        "workspace": "/root/.openclaw-hr/workspace-recruitment",
+        "agentDir": "/root/.openclaw-hr/agent-dirs/recruitment",
+        "tools": {
+          "allow": [
+            "group:memory",
+            "group:web",
+            "group:fs",
+            "group:sessions",
+            "group:media",
+            "group:runtime"
+          ]
+        },
+        "subagents": {
+          "allowAgents": []
+        }
+      },
+      {
+        "id": "onboarding",
+        "name": "onboarding",
+        "workspace": "/root/.openclaw-hr/workspace-onboarding",
+        "agentDir": "/root/.openclaw-hr/agent-dirs/onboarding",
+        "subagents": {
+          "allowAgents": []
+        }
+      },
+      {
+        "id": "training",
+        "name": "training",
+        "workspace": "/root/.openclaw-hr/workspace-training",
+        "agentDir": "/root/.openclaw-hr/agent-dirs/training",
+        "tools": {
+          "allow": [
+            "group:memory",
+            "group:web",
+            "group:fs",
+            "group:sessions",
+            "group:media",
+            "group:runtime"
+          ]
+        },
+        "subagents": {
+          "allowAgents": []
+        }
+      },
+      {
+        "id": "performance",
+        "name": "performance",
+        "workspace": "/root/.openclaw-hr/workspace-performance",
+        "agentDir": "/root/.openclaw-hr/agent-dirs/performance",
+        "tools": {
+          "allow": [
+            "group:memory",
+            "group:web",
+            "group:fs",
+            "group:sessions",
+            "group:media",
+            "group:runtime"
+          ]
+        },
+        "subagents": {
+          "allowAgents": []
+        }
+      },
+      {
+        "id": "er-admin",
+        "name": "er-admin",
+        "workspace": "/root/.openclaw-hr/workspace-er-admin",
+        "agentDir": "/root/.openclaw-hr/agent-dirs/er-admin",
+        "tools": {
+          "deny": [
+            "write",
+            "edit",
+            "apply_patch",
+            "browser"
+          ]
+        },
+        "subagents": {
+          "allowAgents": []
+        }
+      },
+      {
+        "id": "router",
+        "name": "router",
+        "workspace": "/root/.openclaw-hr/workspace-router",
+        "agentDir": "/root/.openclaw-hr/agent-dirs/router",
+        "tools": {
+          "allow": [
+            "*"
+          ]
+        },
+        "subagents": {
+          "delegationMode": "prefer",
+          "allowAgents": [
+            "recruitment",
+            "onboarding",
+            "training",
+            "performance",
+            "er-admin"
+          ]
+        }
+      }
+    ],
+    "defaults": {
+      "memorySearch": {
+        "enabled": true,
+        "provider": "openai",
+        "model": "text-embedding-v3",
+        "remote": {
+          "baseUrl": "https://llm-5ipvwnjovosmatzx.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
+          "apiKey": {
+            "source": "env",
+            "provider": "default",
+            "id": "DASHSCOPE_API_KEY"
+          }
+        },
+        "outputDimensionality": 1024
+      },
+      "model": {
+        "primary": "deepseek/deepseek-v4-flash",
+        "fallbacks": [
+          "deepseek/deepseek-v4-pro",
+          "qwen/qwen-max"
+        ]
+      },
+      "subagents": {
+        "allowAgents": [],
+        "requireAgentId": true
+      }
+    }
+  },
+  "hooks": {
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "command-logger": {
+          "enabled": true
+        },
+        "boot-md": {
+          "enabled": true
+        },
+        "bootstrap-extra-files": {
+          "enabled": true
+        },
+        "compaction-notifier": {
+          "enabled": true
+        },
+        "session-memory": {
+          "enabled": true
+        }
+      }
+    }
+  },
+  "models": {
+    "providers": {
+      "deepseek": {
+        "baseUrl": "https://api.deepseek.com",
+        "apiKey": {
+          "source": "env",
+          "provider": "default",
+          "id": "DEEPSEEK_API_KEY"
+        },
+        "models": [
+          {
+            "id": "deepseek-v4-pro",
+            "name": "DeepSeek V4 Pro",
+            "api": "openai-completions",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 1000000
+          },
+          {
+            "id": "deepseek-v4-flash",
+            "name": "DeepSeek V4 Flash",
+            "api": "openai-completions",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 1000000
+          }
+        ]
+      },
+      "qwen": {
+        "baseUrl": "https://llm-5ipvwnjovosmatzx.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
+        "apiKey": {
+          "source": "env",
+          "provider": "default",
+          "id": "DASHSCOPE_API_KEY"
+        },
+        "models": [
+          {
+            "id": "qwen-max",
+            "name": "通义千问 Max",
+            "api": "openai-completions",
+            "input": [
+              "text"
+            ],
+            "contextWindow": 32768
+          },
+          {
+            "id": "qwen-plus",
+            "name": "通义千问 Plus",
+            "api": "openai-completions",
+            "input": [
+              "text"
+            ],
+            "contextWindow": 131072
+          }
+        ]
+      }
+    }
+  },
+  "messages": {
+    "tts": {
+      "providers": {
+        "tts-local-cli": {
+          "command": "/root/.openclaw-hr/workspace-recruitment/interview/scripts/tts-say.sh",
+          "args": [
+            "{{Text}}",
+            "{{OutputPath}}"
+          ],
+          "outputFormat": "wav",
+          "timeoutMs": 120000
+        }
+      },
+      "provider": "tts-local-cli"
+    }
+  }
+}
