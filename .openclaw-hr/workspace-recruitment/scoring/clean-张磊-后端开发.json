@@ -7,38 +7,38 @@
   "expected_city": "上海",
   "available_date": "一个月内（需办理工作交接）",
   "education": {
-    "school": "上海交通大学",
+    "school": "上海交通大学（在职）",
     "major": "软件工程",
     "degree": "硕士",
     "graduation_year": "2018"
   },
   "work_experience": [
     {
-      "company": "某头部电商集团",
+      "company": "某头部电商集团 · 交易中台",
       "position": "后端技术专家（P7→P8）",
-      "start_date": "2018.04",
+      "start_date": "2018-04",
       "end_date": "至今",
-      "industry": "电子商务",
+      "industry": "电商",
       "industry_inferred": true
     },
     {
-      "company": "某 O2O 生活服务平台",
+      "company": "某 O2O 生活服务平台 · 基础架构部",
       "position": "高级后端工程师 / 后端 Team Leader",
-      "start_date": "2014.07",
-      "end_date": "2018.03",
-      "industry": "本地生活服务",
+      "start_date": "2014-07",
+      "end_date": "2018-03",
+      "industry": "O2O 生活服务",
       "industry_inferred": true
     },
     {
       "company": "某互联网金融公司",
       "position": "后端开发工程师",
-      "start_date": "2011.07",
-      "end_date": "2014.06",
+      "start_date": "2011-07",
+      "end_date": "2014-06",
       "industry": "互联网金融",
       "industry_inferred": true
     }
   ],
-  "total_experience_years": 14.8,
+  "total_experience_years": 15,
   "job_count": 3,
   "skills": [
     "Java（精通，13 年）",

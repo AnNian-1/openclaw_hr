@@ -10,8 +10,7 @@ hcm_api.py — HCM 系统 API 客户端（只读 + 节点更新）
 
 原则：
   · GET 读取候选人数据（小慧只读）
-  · PUT 更新 prep node 状态/数据（模拟部门在系统里填写进度）
-  · 不调 POST（不创建候选人）/ 不调 DELETE
+  · 不调 POST / PUT / DELETE —— 部门节点由各部门在 HCM 维护
 """
 import json
 import os
@@ -87,28 +86,6 @@ def get_prep_node_data(pinyin, node_type):
     if node:
         return node.get("data", {})
     return {}
-
-
-def update_prep_node(pinyin, node_type, status=None, data=None):
-    """PUT /api/candidates/{id}/prep/{node_type} → 更新节点状态/数据。
-
-    data 是合并更新：传入的字段会覆盖已有字段，未传的字段保留。
-    """
-    candidate = get_candidate_by_pinyin(pinyin)
-    if not candidate:
-        sys.stderr.write(f"[hcm_api] 找不到候选人: {pinyin}\n")
-        return None
-    candidate_id = candidate["id"]
-    body = {}
-    if status is not None:
-        body["status"] = status
-    if data is not None:
-        body["data"] = data
-    code, resp = _request("PUT", f"/api/candidates/{candidate_id}/prep/{node_type}", body)
-    if code == 200:
-        return resp
-    sys.stderr.write(f"[hcm_api] update_prep_node({pinyin}, {node_type}) 失败: HTTP {code}\n")
-    return None
 
 
 def get_candidate_info(pinyin):

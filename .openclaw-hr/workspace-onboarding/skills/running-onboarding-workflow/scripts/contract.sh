@@ -60,10 +60,7 @@ result = {
     "updated_at": now,
 }
 
-# 通过 HCM API 更新节点状态
-if pinyin:
-    hcm_api.update_prep_node(pinyin, "contract", status=status, data=result)
-
+# 不向 HCM 写入——部门节点由各部门在 HCM 维护
 print(json.dumps(result, ensure_ascii=False))
 PY
 )"

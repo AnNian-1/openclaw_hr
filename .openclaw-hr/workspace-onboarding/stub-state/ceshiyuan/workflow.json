@@ -1,0 +1,46 @@
+{
+  "candidate": "测试员",
+  "pinyin": "ceshiyuan",
+  "role": "后端",
+  "salary": "20K",
+  "status": "halted",
+  "current_step": "account_gate",
+  "started_at": "2026-08-27T01:59:45+08:00",
+  "updated_at": "2026-08-27T01:59:48+08:00",
+  "halted_at": "2026-08-27T01:59:47+08:00",
+  "completed_at": null,
+  "approval_id": null,
+  "resume_token": null,
+  "events": [
+    {
+      "at": "2026-08-27T01:59:45+08:00",
+      "step": "prep",
+      "action": "started",
+      "note": "入职流程启动：测试员（后端, 20K）"
+    },
+    {
+      "at": "2026-08-27T01:59:46+08:00",
+      "step": "prep",
+      "action": "completed",
+      "note": "4 路并行准备全部完成"
+    },
+    {
+      "at": "2026-08-27T01:59:46+08:00",
+      "step": "contract_gate",
+      "action": "halted",
+      "note": "等待 HR 主管审批合同"
+    },
+    {
+      "at": "2026-08-27T01:59:47+08:00",
+      "step": "contract_gate",
+      "action": "approved",
+      "note": "合同审批已通过"
+    },
+    {
+      "at": "2026-08-27T01:59:47+08:00",
+      "step": "account_gate",
+      "action": "halted",
+      "note": "等待 IT 安全审批账号"
+    }
+  ]
+}

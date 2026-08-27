@@ -10,8 +10,7 @@ hcm_api.py — HCM 系统 API 客户端（只读 + 节点更新）
 
 原则：
   · GET 读取候选人数据（小慧只读）
-  · PUT 更新 prep node 状态/数据（模拟部门在系统里填写进度）
-  · 不调 POST（不创建候选人）/ 不调 DELETE
+  · 不调 POST / PUT / DELETE —— 部门节点由各部门在 HCM 维护
 """
 import json
 import os
@@ -45,13 +44,37 @@ def _request(method, path, body=None):
         return 0, {"error": str(e.reason)}
 
 
-def list_candidates():
-    """GET /api/candidates → 候选人列表（含 nodes + reviews）。"""
+def fetch_candidates():
+    """GET /api/candidates。成功返回 (True, list)；连不上或非 200 返回 (False, detail)。
+
+    空花名册是 (True, [])，与「HCM 不可用」分开，避免把故障当成没人。
+    """
     code, data = _request("GET", "/api/candidates")
-    if code == 200:
+    if code == 200 and isinstance(data, list):
+        return True, data
+    return False, {"http_status": code, "body": data}
+
+
+def list_candidates():
+    """GET /api/candidates → 候选人列表（含 nodes + reviews）。失败时返回 []。"""
+    ok, data = fetch_candidates()
+    if ok:
         return data
-    sys.stderr.write(f"[hcm_api] list_candidates 失败: HTTP {code}\n")
+    sys.stderr.write(f"[hcm_api] list_candidates 失败: {data}\n")
     return []
+
+
+def find_candidates(*, name=None, pinyin=None):
+    """按姓名和/或拼音过滤花名册。返回 (hcm_ok, matches, error_detail)。"""
+    ok, data = fetch_candidates()
+    if not ok:
+        return False, [], data
+    matches = list(data)
+    if pinyin:
+        matches = [c for c in matches if c.get("pinyin") == pinyin]
+    if name:
+        matches = [c for c in matches if c.get("name") == name]
+    return True, matches, None
 
 
 def get_candidate_by_pinyin(pinyin):
@@ -87,28 +110,6 @@ def get_prep_node_data(pinyin, node_type):
     if node:
         return node.get("data", {})
     return {}
-
-
-def update_prep_node(pinyin, node_type, status=None, data=None):
-    """PUT /api/candidates/{id}/prep/{node_type} → 更新节点状态/数据。
-
-    data 是合并更新：传入的字段会覆盖已有字段，未传的字段保留。
-    """
-    candidate = get_candidate_by_pinyin(pinyin)
-    if not candidate:
-        sys.stderr.write(f"[hcm_api] 找不到候选人: {pinyin}\n")
-        return None
-    candidate_id = candidate["id"]
-    body = {}
-    if status is not None:
-        body["status"] = status
-    if data is not None:
-        body["data"] = data
-    code, resp = _request("PUT", f"/api/candidates/{candidate_id}/prep/{node_type}", body)
-    if code == 200:
-        return resp
-    sys.stderr.write(f"[hcm_api] update_prep_node({pinyin}, {node_type}) 失败: HTTP {code}\n")
-    return None
 
 
 def get_candidate_info(pinyin):

@@ -1,0 +1,128 @@
+{
+  "details": [
+    {
+      "parsed": {
+        "name": "张磊",
+        "phone": "138**6021",
+        "email": "zh**lei@example.com",
+        "target_position": "后端技术专家 / 后端架构师",
+        "expected_salary": "60K-75K（月薪），可议年包",
+        "expected_city": "上海",
+        "available_date": "一个月内（需办理工作交接）",
+        "education": {
+          "school": "上海交通大学",
+          "major": "软件工程",
+          "degree": "硕士",
+          "graduation_year": "2018"
+        },
+        "work_experience": [
+          {
+            "company": "某头部电商集团",
+            "position": "后端技术专家（P7→P8）",
+            "start_date": "2018.04",
+            "end_date": "至今",
+            "industry": "电子商务",
+            "industry_inferred": true
+          },
+          {
+            "company": "某 O2O 生活服务平台",
+            "position": "高级后端工程师 / 后端 Team Leader",
+            "start_date": "2014.07",
+            "end_date": "2018.03",
+            "industry": "本地生活服务",
+            "industry_inferred": true
+          },
+          {
+            "company": "某互联网金融公司",
+            "position": "后端开发工程师",
+            "start_date": "2011.07",
+            "end_date": "2014.06",
+            "industry": "互联网金融",
+            "industry_inferred": true
+          }
+        ],
+        "total_experience_years": 14.8,
+        "job_count": 3,
+        "skills": [
+          "Java（精通，13 年）",
+          "Go（熟练）",
+          "Python（脚本能力）",
+          "Shell",
+          "Spring Boot / Spring Cloud",
+          "Dubbo",
+          "MyBatis",
+          "Netty",
+          "MySQL（精通，含分库分表、索引优化、慢查询治理）",
+          "Redis（精通）",
+          "Elasticsearch",
+          "HBase",
+          "Kafka",
+          "RocketMQ（精通，含顺序消息、事务消息、堆积治理）",
+          "微服务架构",
+          "领域驱动设计",
+          "高并发系统设计",
+          "分布式事务",
+          "服务治理",
+          "全链路压测",
+          "容量规划",
+          "JVM 调优",
+          "故障演练（混沌工程）",
+          "Docker",
+          "Kubernetes",
+          "CI/CD",
+          "Maven",
+          "Git",
+          "Prometheus",
+          "Grafana",
+          "SkyWalking",
+          "ELK"
+        ]
+      },
+      "score": {
+        "candidate_name": "张磊",
+        "dimension_scores": {
+          "专业技能": 5,
+          "经验匹配": 5,
+          "逻辑能力": 4,
+          "学习力": 4,
+          "沟通能力": 4,
+          "协作能力": 4,
+          "抗压能力": 5,
+          "价值观": 4
+        },
+        "dimension_reasons": {
+          "专业技能": "候选人精通Java（13年），熟练Go，掌握Spring Boot/Spring Cloud、Dubbo、MySQL（含分库分表、索引优化）、Redis、RocketMQ（含顺序消息、事务消息）等，与岗位要求高度吻合。",
+          "经验匹配": "候选人拥有14.8年后端经验，其中在头部电商集团任后端技术专家（P7→P8），核心交易链路经验丰富，与JD要求的电商交易、订单履约方向完全对口，但年限远超3-6年要求，存在overqualified。",
+          "逻辑能力": "简历中展示了对复杂系统（高并发、分布式事务、服务治理）的深入理解和实践，推断逻辑清晰，但缺乏直接面试证据，给4分。",
+          "学习力": "技能栈涵盖K8s、Service Mesh、可观测性等新技术，且从早期金融到O2O再到电商，持续拓展，展现较强学习能力。",
+          "沟通能力": "作为技术专家和Team Leader，应有跨团队���通能力，但简历未具体体现，给4分。",
+          "协作能力": "有带领团队和跨部门协作经历（如Team Leader），但缺乏具体项目协作案例，给4分。",
+          "抗压能力": "有电商大促峰值保障经验（如双十一），能应对高压场景，给5分。",
+          "价值观": "无直接负面信息，但简历未体现价值观相关描述，给4分。"
+        },
+        "jd_match_score": 75,
+        "overall_rating": "B(推荐)",
+        "score_reasoning": "候选人技能与经验高度匹配岗位核心需求，尤其在电商交易链路、高并发架构方面有深度实战。但其14.8年经验远超岗位要求的3-6年，期望薪资（60-75K）远超带宽（25-45K），且期望城市上海与杭州不符，综合匹配度有所降低，适合作为资深专家参考。",
+        "highlights": [
+          "头部电商集团后端技术专家，核心交易链路经验丰富",
+          "精通Java，熟练Go，技术栈全面覆盖岗位要求",
+          "有大型电商大促保障和全链路压测实战经历"
+        ],
+        "concerns": [
+          "期望薪资60-75K，远超岗位带宽25-45K，需确认薪资意愿",
+          "期望城市上海，岗位地点杭州",
+          "总经验14.8年，远超岗位要求的3-6年，存在overqualified风险，可能对中级/高级岗位缺乏长期兴趣"
+        ],
+        "hard_issues": []
+      }
+    }
+  ],
+  "ranking": [
+    {
+      "name": "张磊",
+      "jd_match_score": 75,
+      "overall_rating": "B(推荐)",
+      "suggested_action": "推荐进入技术面试（需确认薪资意愿和城市意向）"
+    }
+  ]
+}

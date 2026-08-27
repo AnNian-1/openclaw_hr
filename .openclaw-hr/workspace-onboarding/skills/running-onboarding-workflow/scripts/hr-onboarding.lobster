@@ -111,11 +111,8 @@ steps:
             "$WORKSPACE/pending-approvals/${pinyin}-account.json"
       echo "[归档] 已清理 pending-approvals/${pinyin}-* 审批快照"
       python3 "$STUB/update-workflow.py" event "${pinyin}" complete completed "入职审批工作流完成"
-      # 完成钩子：按入职日注册 4 个一次性 review Cron（失败不阻断归档，只告警）
-      if bash "$WORKSPACE/skills/running-onboarding-review/scripts/schedule-onboarding-reviews.sh" \
-            "${name}" "${pinyin}"; then
-        echo "[归档] 已注册 7/30/60/90 天入职跟进 Cron"
-      else
-        echo "[归档] 警告：Cron 注册未完全成功，请稍后用 schedule-onboarding-reviews.sh 补挂" >&2
-      fi
+      # 完成钩子：按入职日注册 4 个一次性 review Cron；失败则归档失败（勿吞掉）
+      bash "$WORKSPACE/skills/running-onboarding-review/scripts/schedule-onboarding-reviews.sh" \
+            "${name}" "${pinyin}"
+      echo "[归档] 已注册 7/30/60/90 天入职跟进 Cron"
     when: $contract_gate.approved && $account_gate.approved

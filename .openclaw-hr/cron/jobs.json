@@ -17,7 +17,7 @@
       "wakeMode": "now",
       "payload": {
         "kind": "agentTurn",
-        "message": "请执行命令并把完整输出返回：bash /root/.openclaw-hr/workspace-onboarding/skills/running-onboarding-review/scripts/onboarding-review.sh 李鑫 30 lixin",
+        "message": "请执行命令并把完整输出返回：bash /home/yhwz/openclaw-hr/.openclaw-hr/workspace-onboarding/skills/running-onboarding-review/scripts/onboarding-review.sh 李鑫 30 lixin",
         "timeoutSeconds": 120,
         "toolsAllow": [
           "exec"
@@ -45,7 +45,7 @@
       "wakeMode": "now",
       "payload": {
         "kind": "agentTurn",
-        "message": "请执行命令并把完整输出返回：bash /root/.openclaw-hr/workspace-onboarding/skills/running-onboarding-review/scripts/onboarding-review.sh 李鑫 60 lixin",
+        "message": "请执行命令并把完整输出返回：bash /home/yhwz/openclaw-hr/.openclaw-hr/workspace-onboarding/skills/running-onboarding-review/scripts/onboarding-review.sh 李鑫 60 lixin",
         "timeoutSeconds": 120,
         "toolsAllow": [
           "exec"
@@ -73,7 +73,7 @@
       "wakeMode": "now",
       "payload": {
         "kind": "agentTurn",
-        "message": "请执行命令并把完整输出返回：bash /root/.openclaw-hr/workspace-onboarding/skills/running-onboarding-review/scripts/onboarding-review.sh 李鑫 90 lixin",
+        "message": "请执行命令并把完整输出返回：bash /home/yhwz/openclaw-hr/.openclaw-hr/workspace-onboarding/skills/running-onboarding-review/scripts/onboarding-review.sh 李鑫 90 lixin",
         "timeoutSeconds": 120,
         "toolsAllow": [
           "exec"

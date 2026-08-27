@@ -54,5 +54,5 @@ python3 skills/ingesting-talent-pool/scripts/ingest_talent_pool.py all
 
 - 入库产物固定落 `talent-pool/talent-pool.json`，下游检索 Skill 直接读它。
 - parse 阶段每抽完一份立即落盘，进程挂了重跑会自动续——不要因为「上次没跑完」就从头重抽。
-- 这个 Skill 依赖 `DEEPSEEK_API_KEY`（抽取）和 `DASHSCOPE_API_KEY`（embedding）两个环境变量，运行前确认已 `source ~/.openclaw-hr/env.sh`。
+- 这个 Skill 依赖 `DEEPSEEK_API_KEY`（抽取）和 `SILICONFLOW_API_KEY`（embedding，硅基流动 `BAAI/bge-large-zh-v1.5`）两个环境变量，运行前确认已 `source ~/.openclaw-hr/env.sh`。
 - 入库只是建库。检索和解释是 `searching-talent-pool`、`explaining-similarity` 两个独立 Skill。

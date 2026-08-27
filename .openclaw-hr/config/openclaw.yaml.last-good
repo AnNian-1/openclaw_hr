@@ -441,16 +441,15 @@
       "memorySearch": {
         "enabled": true,
         "provider": "openai",
-        "model": "text-embedding-v3",
+        "model": "BAAI/bge-large-zh-v1.5",
         "remote": {
-          "baseUrl": "https://llm-5ipvwnjovosmatzx.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
+          "baseUrl": "https://api.siliconflow.cn/v1",
           "apiKey": {
             "source": "env",
             "provider": "default",
-            "id": "DASHSCOPE_API_KEY"
+            "id": "SILICONFLOW_API_KEY"
           }
-        },
-        "outputDimensionality": 1024
+        }
       },
       "model": {
         "primary": "xiaomi/mimo-v2.5-pro",
@@ -564,6 +563,25 @@
               "text"
             ],
             "contextWindow": 1048576,
+            "maxTokens": 32000
+          }
+        ]
+      },
+      "volcengine": {
+        "baseUrl": "https://ark.cn-beijing.volces.com/api/plan/v3",
+        "apiKey": {
+          "source": "env",
+          "provider": "default",
+          "id": "VOLCANO_DEEPSEEK_API_KEY"
+        },
+        "models": [
+          {
+            "id": "deepseek-v4-flash-ark",
+            "name": "火山方舟 DeepSeek V4 Flash",
+            "api": "openai-completions",
+            "reasoning": false,
+            "input": ["text", "image"],
+            "contextWindow": 128000,
             "maxTokens": 32000
           }
         ]

@@ -12,28 +12,32 @@ set -euo pipefail
 # 本脚本所在目录 = profile 根目录（你把 profile 放在哪，这里就是哪）
 PROFILE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# 打包时的原始路径（课程制作机器上的路径），需要被替换掉
-OLD_PATH="/Users/hsail/.openclaw-hr"
+# 打包 / 旧环境路径 → 本机 PROFILE_DIR
+rewrite_old_path() {
+  local old_path="$1"
+  local label="$2"
+  if [ "$PROFILE_DIR" = "$old_path" ]; then
+    echo "  [$label] 当前路径与 $old_path 相同，跳过。"
+    return 0
+  fi
+  local count=0
+  # 只扫描文本文件（-I 跳过二进制，避免损坏 sqlite 等）
+  while IFS= read -r f; do
+    tmp="$(mktemp)"
+    sed "s|$old_path|$PROFILE_DIR|g" "$f" > "$tmp" && cat "$tmp" > "$f" && rm -f "$tmp"
+    count=$((count + 1))
+    echo "  已改写 ($label): ${f#"$PROFILE_DIR"/}"
+  done < <(grep -rlI --exclude='setup.sh' "$old_path" "$PROFILE_DIR" 2>/dev/null || true)
+  echo "  [$label] 共处理 $count 个文件。"
+}
 
 echo "============================================================"
 echo "  OpenClaw AI HR profile 配置"
 echo "  Profile 目录 : $PROFILE_DIR"
-echo "  改写规则     : $OLD_PATH  ->  $PROFILE_DIR"
 echo "============================================================"
 
-if [ "$PROFILE_DIR" = "$OLD_PATH" ]; then
-  echo "当前路径与打包路径相同，无需改写。"
-else
-  count=0
-  # 只扫描文本文件（-I 跳过二进制，避免损坏 sqlite 等）
-  while IFS= read -r f; do
-    tmp="$(mktemp)"
-    sed "s|$OLD_PATH|$PROFILE_DIR|g" "$f" > "$tmp" && cat "$tmp" > "$f" && rm -f "$tmp"
-    count=$((count + 1))
-    echo "  已改写: ${f#"$PROFILE_DIR"/}"
-  done < <(grep -rlI --exclude='setup.sh' "$OLD_PATH" "$PROFILE_DIR" 2>/dev/null || true)
-  echo "路径改写完成，共处理 $count 个文件。"
-fi
+rewrite_old_path "/Users/hsail/.openclaw-hr" "课程打包机"
+rewrite_old_path "/root/.openclaw-hr" "root 残留"
 
 # 运行期目录（打包时已清空/排除，OpenClaw 会按需重建，这里先建好空目录）
 mkdir -p "$PROFILE_DIR/memory" "$PROFILE_DIR/logs" "$PROFILE_DIR/sessions" "$PROFILE_DIR/agents"

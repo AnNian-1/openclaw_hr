@@ -2,87 +2,20 @@
 # 入职跟进 review 脚本 —— running-onboarding-review Skill 的核心脚本
 # 由 Cron 在入职后第 7/30/60/90 天定时触发，也可手动跑。
 # 用法: onboarding-review.sh <候选人姓名> <入职天数> [pinyin]
-# 读入职工作流落盘的 stub-state/<pinyin>/ 真实状态 + 09-入职流程.md 的跟进事项,
-# 产出一份结构化 review 报告,落盘到 workspace 根的 review-state/。
+#
+# 数据来源：HCM 系统 API（只读）
+# 不写入 HCM、不写本地 review-state——review 记录由 HR/主管在 HCM 维护。
+# 本脚本只查询状态、生成报告，供小慧通知 HR/主管。
 set -euo pipefail
 
 NAME="${1:-新员工}"
 DAY="${2:-7}"
 PINYIN="${3:-}"
 
-# ── 路径推导：本脚本封进 Skill 后，位于
-#    <workspace>/skills/running-onboarding-review/scripts/onboarding-review.sh
-#    ——向上三级即 workspace 根。stub-state / review-state 都在 workspace 根，
-#    是入职工作流、看板共享的数据资产，不放在本 Skill 目录里。
-#    支持 $ONBOARDING_WORKSPACE 环境变量覆盖，便于测试与移植。
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORKSPACE="${ONBOARDING_WORKSPACE:-$(cd "$SCRIPT_DIR/../../.." && pwd)}"
-STATE_ROOT="$WORKSPACE/stub-state"
-OUT="$WORKSPACE/review-state"
-mkdir -p "$OUT"
 NOW="$(date '+%Y-%m-%d %H:%M')"
 
-# 解析候选人目录：显式拼音 > 扫 stub-state/*/workflow.json|contract.json 的 candidate
-resolve_pinyin () {
-  local name="$1" hint="$2"
-  if [ -n "$hint" ] && [ -d "$STATE_ROOT/$hint" ]; then
-    echo "$hint"
-    return 0
-  fi
-  python3 - "$STATE_ROOT" "$name" <<'PY'
-import json, os, sys
-root, name = sys.argv[1], sys.argv[2]
-matches = []
-if not os.path.isdir(root):
-    sys.exit(0)
-for entry in sorted(os.listdir(root)):
-    base = os.path.join(root, entry)
-    if not os.path.isdir(base):
-        continue
-    for fn in ("workflow.json", "contract.json", "account.json"):
-        path = os.path.join(base, fn)
-        if not os.path.exists(path):
-            continue
-        try:
-            with open(path, encoding="utf-8") as f:
-                d = json.load(f)
-        except (OSError, json.JSONDecodeError):
-            continue
-        cand = d.get("candidate") or d.get("name")
-        if cand == name:
-            matches.append(entry)
-            break
-# 去重保序
-seen, out = set(), []
-for m in matches:
-    if m not in seen:
-        seen.add(m)
-        out.append(m)
-if len(out) == 1:
-    print(out[0])
-elif len(out) > 1:
-    sys.stderr.write(f"[review] 「{name}」匹配到多个目录 {out}，请手传拼音\n")
-PY
-}
-
-PINYIN="$(resolve_pinyin "$NAME" "$PINYIN" || true)"
-if [ -z "${PINYIN}" ]; then
-  # 没有本地目录，但有 HCM API 数据时仍可执行 review
-  echo "[review] 本地无 stub-state 目录，尝试从 HCM API 读取"  >&2
-  PINYIN="${3:-}"
-fi
-if [ -z "${PINYIN}" ]; then
-  echo "[review] 找不到候选人「${NAME}」的拼音标识。" >&2
-  echo "[review] 请确认入职工作流已落盘，或手传拼音：onboarding-review.sh ${NAME} ${DAY} <pinyin>" >&2
-fi
-if [ -n "${PINYIN}" ]; then
-  STATE_DIR="$STATE_ROOT/$PINYIN"
-  echo "[review] 候选人拼音：${PINYIN}"
-else
-  STATE_DIR=""
-fi
-
-# 按入职天数确定本次 review 的跟进事项(对应 09-入职流程.md 第四节)
+# 按入职天数确定本次 review 的跟进重点
 case "$DAY" in
   7)  FOCUS="完成公司级 Onboarding;导师启动带教;融入团队" ;;
   30) FOCUS="部门岗位培训;HR 第一次新人关怀沟通" ;;
@@ -91,78 +24,127 @@ case "$DAY" in
   *)  FOCUS="常规跟进" ;;
 esac
 
-# 从 HCM API 读取 5 个准备节点状态（优先），回退到本地 JSON
-read_status () {
-  local key="$1"
-  # 先尝试从 HCM API 读取
-  if [ -n "$PINYIN" ]; then
-    API_STAT="$(python3 - "$SCRIPT_DIR" "$PINYIN" "$key" <<'PYAPI'
-import sys, os
+# 从 HCM API 读取候选人信息 + 5 个准备节点状态 + review 状态
+HCM_RESULT="$(python3 - "$SCRIPT_DIR" "$NAME" "$PINYIN" "$DAY" "$FOCUS" "$NOW" <<'PY'
+import json, sys, os
 sys.path.insert(0, sys.argv[1])
 import hcm_api
-pinyin, node_type = sys.argv[2], sys.argv[3]
-node = hcm_api.get_prep_node(pinyin, node_type)
-status = node.get("status", "") if node else ""
-print(status if status else "")
-PYAPI
-)"
-    if [ -n "$API_STAT" ]; then
-      echo "$API_STAT"
-      return
-    fi
-  fi
-  # 回退到本地 JSON
-  if [ -z "$STATE_DIR" ]; then
-    echo "未就绪"
-    return
-  fi
-  python3 -c "import json; print(json.load(open('$STATE_DIR/$key.json')).get('status','缺失'))" 2>/dev/null || echo "未就绪"
-}
-C_STAT="$(read_status contract)"
-A_STAT="$(read_status account)"
-D_STAT="$(read_status device)"
-B_STAT="$(read_status buddy)"
-T_STAT="$(read_status training)"
 
-# 人类可读报告
-echo "========================================"
-echo " 入职跟进 Review · 第 ${DAY} 天"
-echo " 候选人：${NAME}${PINYIN:+（${PINYIN}）}"
-echo " 触发时间：${NOW}"
-echo "========================================"
-echo "本次跟进重点：${FOCUS}"
-echo "----------------------------------------"
-echo "入职准备 5 节点状态（来自入职工作流）："
-echo "  合同     ${C_STAT}"
-echo "  IT 账号  ${A_STAT}"
-echo "  设备     ${D_STAT}"
-echo "  Buddy    ${B_STAT}"
-echo "  培训     ${T_STAT}"
-echo "----------------------------------------"
-echo "Review 结论：第 ${DAY} 天跟进已执行，重点 [${FOCUS}] 已提醒。"
+name, pinyin_hint, day, focus, now = sys.argv[2:7]
 
-# 结构化状态落盘,供 HTML 看板读取(文件名带候选人名,多人入职不冲突)
-python3 - "$NAME" "$DAY" "$FOCUS" "$NOW" "$OUT" "${PINYIN:-}" \
-  "$C_STAT" "$A_STAT" "$D_STAT" "$B_STAT" "$T_STAT" <<'PY'
-import json, sys
-name, day, focus, now, out, pinyin = sys.argv[1:7]
-c, a, d, b, t = sys.argv[7:12]
-rec = {
-    "candidate": name,
-    "pinyin": pinyin or None,
+# 查找候选人
+candidate = None
+if pinyin_hint:
+    candidate = hcm_api.get_candidate_by_pinyin(pinyin_hint)
+if not candidate:
+    # 按姓名模糊匹配
+    for c in hcm_api.list_candidates():
+        if c.get("name") == name:
+            candidate = c
+            break
+
+if not candidate:
+    print(json.dumps({"error": f"花名册中未找到「{name}」", "found": False}, ensure_ascii=False))
+    sys.exit(0)
+
+pinyin = candidate.get("pinyin", "")
+hcm_status = candidate.get("status", "")
+
+# 5 个准备节点
+nodes = candidate.get("nodes") or []
+node_map = {n["node_type"]: n for n in nodes}
+prep = {}
+for key in ("contract", "account", "device", "training", "buddy"):
+    n = node_map.get(key, {})
+    data = n.get("data") or {}
+    prep[key] = {
+        "status": n.get("status", "未就绪"),
+        "detail": data.get("status", ""),
+    }
+
+# review 状态
+reviews = candidate.get("reviews") or []
+review_map = {r["review_type"]: r for r in reviews}
+day_key = f"day{day}"
+review_rec = review_map.get(day_key, {})
+review_status = review_rec.get("status", "pending")
+review_content = review_rec.get("content", "")
+
+result = {
+    "found": True,
+    "name": candidate.get("name"),
+    "pinyin": pinyin,
+    "role": candidate.get("role", ""),
+    "salary": candidate.get("salary", ""),
+    "hcm_status": hcm_status,
     "day": int(day),
     "focus": focus,
-    "reviewedAt": now,
-    "status": "已跟进",
-    "prep_nodes": {
-        "contract": c,
-        "account": a,
-        "device": d,
-        "buddy": b,
-        "training": t,
-    },
+    "reviewed_at": now,
+    "prep_nodes": prep,
+    "review_status": review_status,
+    "review_content": review_content,
+    "all_reviews": {r.get("review_type"): r.get("status") for r in reviews},
 }
-with open(f"{out}/review-{name}-day{day}.json", "w", encoding="utf-8") as f:
-    json.dump(rec, f, ensure_ascii=False, indent=2)
+
+# 判断是否需要提醒 HR
+needs_attention = []
+if review_status == "completed":
+    result["action"] = "already_reviewed"
+    result["message"] = f"第 {day} 天 review 已由 HR/主管完成"
+else:
+    result["action"] = "needs_review"
+    # 检查准备节点是否都就绪
+    pending_nodes = [k for k, v in prep.items() if v["status"] not in ("completed", "已审批", "已通过", "已配齐", "已匹配", "已排期")]
+    if pending_nodes:
+        needs_attention.append(f"以下准备节点未完成: {', '.join(pending_nodes)}")
+    result["message"] = f"第 {day} 天 review 待触发，重点: {focus}"
+    if needs_attention:
+        result["warnings"] = needs_attention
+
+print(json.dumps(result, ensure_ascii=False, indent=2))
 PY
-echo "[review] 状态已落盘 review-state/review-${NAME}-day${DAY}.json"
+)"
+
+# 检查 HCM 返回
+FOUND="$(echo "$HCM_RESULT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('found', False))" 2>/dev/null || echo "False")"
+if [ "$FOUND" != "True" ]; then
+  echo "[review] ❌ $HCM_RESULT" >&2
+  exit 1
+fi
+
+# 输出结构化报告到 stdout（供小慧解析后通知 HR）
+echo "$HCM_RESULT"
+
+# 人话摘要到 stderr
+python3 - "$HCM_RESULT" "$NAME" "$DAY" <<'PY' >&2
+import json, sys
+data = json.loads(sys.argv[1])
+name, day = sys.argv[2], int(sys.argv[3])
+
+print("=" * 40)
+print(f" 入职跟进 Review · 第 {day} 天")
+print(f" 候选人：{data['name']}（{data['pinyin']}）")
+print(f" 岗位：{data['role']} · 薪资：{data['salary']}")
+print(f" HCM 状态：{data['hcm_status']}")
+print("=" * 40)
+print(f"本次跟进重点：{data['focus']}")
+print("-" * 40)
+print("入职准备 5 节点状态（来自 HCM）：")
+for key, label in [("contract","合同"), ("account","IT 账号"), ("device","设备"), ("buddy","Buddy"), ("training","培训")]:
+    n = data["prep_nodes"].get(key, {})
+    print(f"  {label:8s} {n.get('status', '未就绪')}")
+print("-" * 40)
+print(f"Review 状态：{data['review_status']}")
+if data.get("review_content"):
+    print(f"Review 内容：{data['review_content']}")
+print("-" * 40)
+action = data.get("action", "")
+if action == "already_reviewed":
+    print(f"✅ {data['message']}")
+elif action == "needs_review":
+    print(f"⚠️  {data['message']}")
+    if data.get("warnings"):
+        for w in data["warnings"]:
+            print(f"   ⚠ {w}")
+print("=" * 40)
+PY

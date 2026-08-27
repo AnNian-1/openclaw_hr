@@ -22,10 +22,18 @@
 """
 import os, sys, json, glob, time, socket
 import urllib.request
+from pathlib import Path
 
 socket.setdefaulttimeout(90)  # 全局 socket 超时, 防 urlopen 永久挂起
 
-WORKSPACE = os.path.expanduser("~/.openclaw-hr/workspace-recruitment")
+# scripts/ → skill → skills → workspace-recruitment；可用 RECRUITMENT_WORKSPACE 覆盖
+_SCRIPT_DIR = Path(__file__).resolve().parent
+WORKSPACE = os.path.expanduser(
+    os.environ.get(
+        "RECRUITMENT_WORKSPACE",
+        str(_SCRIPT_DIR.parents[2]),  # scripts → skill → skills → workspace-recruitment
+    )
+)
 INBOX = os.path.join(WORKSPACE, "inbox")
 POOL_DIR = os.path.join(WORKSPACE, "talent-pool")
 RANKING = os.path.join(WORKSPACE, "scoring/results/ranking-后端开发.json")
@@ -33,7 +41,13 @@ PARSED_ALL = os.path.join(POOL_DIR, "parsed-all.json")
 OUT = os.path.join(POOL_DIR, "talent-pool.json")
 
 DEEPSEEK_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
-DASHSCOPE_KEY = os.environ.get("DASHSCOPE_API_KEY", "")
+EMBED_API_KEY = (
+    os.environ.get("SILICONFLOW_API_KEY")
+    or os.environ.get("SF_API_KEY")
+    or ""
+)
+EMBED_MODEL = os.environ.get("EMBEDDING_MODEL", "BAAI/bge-large-zh-v1.5")
+EMBED_DIM = int(os.environ.get("EMBEDDING_DIM", "1024"))
 
 def log(*a):
     print(*a, flush=True)
@@ -154,14 +168,14 @@ def build_full_text(dims, p):
             f"自我评价:{p.get('self_evaluation','') or ''}")
 
 EMBED_BASE = os.environ.get(
-    "DASHSCOPE_COMPAT_BASE_URL",
-    "https://llm-5ipvwnjovosmatzx.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
+    "EMBEDDING_BASE_URL",
+    "https://api.siliconflow.cn/v1",
 )
 
 def embed(texts):
-    # compatible-mode: POST /embeddings （OpenAI 协议，非原生 DashScope /api/v1/services/...）
-    payload = {"model": "text-embedding-v3", "input": texts, "dimensions": 1024}
-    headers = {"Authorization": f"Bearer {DASHSCOPE_KEY}", "Content-Type": "application/json"}
+    # SiliconFlow OpenAI-compatible: POST /v1/embeddings
+    payload = {"model": EMBED_MODEL, "input": texts}
+    headers = {"Authorization": f"Bearer {EMBED_API_KEY}", "Content-Type": "application/json"}
     url = f"{EMBED_BASE.rstrip('/')}/embeddings"
     r = post_json(url, payload, headers, timeout=60)
     embs = sorted(r["data"], key=lambda x: x.get("index", 0))
@@ -209,8 +223,8 @@ def stage_embed():
             r.setdefault("dim_vectors", {})[dim] = v
 
     pool = {
-        "embedding_model": "text-embedding-v3",
-        "dimension": 1024,
+        "embedding_model": EMBED_MODEL,
+        "dimension": EMBED_DIM,
         "candidate_count": len(records),
         "built_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "candidates": records,

@@ -3,19 +3,12 @@
 """
 入职进度看板生成器 —— generating-onboarding-dashboard Skill 的核心脚本。
 
-读入职审批工作流落盘的 stub-state 真实状态 + Cron review 落盘的 review-state,
-生成一份可视化 HTML 看板,供 HR 一眼看清每个新员工卡在哪一步。
+数据来源：HCM 系统 API（只读）
+  - 花名册与五部门准备节点：GET /api/candidates
+  - review 节点：candidate.reviews 字段
+  - 审批门角标：本机 stub-state/<pinyin>/workflow.json（HCM 无此字段）
 
-数据全部来自真实落盘文件,本脚本不编造任何状态:
-  - 准备节点状态 <- <workspace>/stub-state*/   (入职工作流跑出来的)
-  - 流程扭转状态 <- <workspace>/stub-state/<pinyin>/workflow.json
-  - review 节点状态 <- <workspace>/review-state/ (Cron 定时 review 落盘的)
-
-封进 Skill 后路径推导:本脚本位于
-  <workspace>/skills/generating-onboarding-dashboard/scripts/build-dashboard.py
-向上三级即 workspace 根。也支持环境变量 ONBOARDING_WORKSPACE 覆盖(测试/移植用)。
-不再硬编码员工名单——自动发现 workspace 根下所有 stub-state* 目录,
-新员工跑完入职工作流就自动出现在看板上,无需改本脚本。
+不向 HCM 写入，不读本地 stub-state 作为准备节点真相源。
 
 用法: build-dashboard.py            -> 看板写到 <workspace>/onboarding-dashboard.html
       build-dashboard.py <输出路径>  -> 看板写到指定路径
@@ -24,20 +17,23 @@ import json
 import os
 import sys
 import datetime
+import urllib.request
+import urllib.error
 from zoneinfo import ZoneInfo
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 
-# ── 路径推导:脚本在 <workspace>/skills/<skill>/scripts/ 下,向上三级是 workspace 根。
-#    ONBOARDING_WORKSPACE 环境变量可覆盖,便于测试与移植。
+# ── 路径推导
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 WS = os.environ.get(
     "ONBOARDING_WORKSPACE",
     os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", "..")),
 )
-REVIEW_DIR = os.path.join(WS, "review-state")
 
-# 5 个入职准备节点(对应入职审批工作流的 5 个 stub 系统)
+# HCM API 地址
+HCM_API_BASE = os.environ.get("HCM_API_URL", "http://localhost:8000")
+
+# 5 个入职准备节点
 PREP_NODES = [
     ("contract", "合同签署"),
     ("account", "IT 账号"),
@@ -46,17 +42,16 @@ PREP_NODES = [
     ("training", "入职培训"),
 ]
 
-# 4 个 review 节点(对应入职流程的 7/30/60/90 天跟进节点)
+# 4 个 review 节点
 REVIEW_NODES = [7, 30, 60, 90]
 REVIEW_LABEL = {7: "第 7 天", 30: "第 30 天", 60: "第 60 天", 90: "第 90 天"}
 
-# 状态归类:把 stub-state 里五花八门的中文 status 归到 3 个标准态。
-# 「待审批」= 已进审批门、等真人批；「已审批/已通过」= 审批通过后。
-# 「已排期」指培训节点已安排好日期(报到时该准备节点即完成),归为 done。
+# 状态归类
 DONE_WORDS = (
     "已审批", "已通过", "已开通", "已配齐", "已匹配", "已完成", "已签署", "已排期",
+    "completed",
 )
-PENDING_WORDS = ("待审批", "待办", "待制", "待分配", "待排期", "待开通", "未就绪")
+PENDING_WORDS = ("待审批", "待办", "待制", "待分配", "待排期", "待开通", "未就绪", "pending")
 
 STEP_LABELS = {
     "prep": "入职准备",
@@ -70,51 +65,58 @@ STATUS_LABELS = {
     "halted": "等待审批",
     "completed": "已完成",
     "cancelled": "已取消",
+    "onboarding": "入职中",
 }
 
 
 def classify(status):
-    """把原始 status 文案归类为 done / progress / pending 三态。"""
-    if status in DONE_WORDS:
-        return "done"
-    if status in PENDING_WORDS or status.startswith("待"):
+    """把原始 status 归类为 done / progress / pending 三态。"""
+    if not status or status in ("未就绪", "缺失"):
         return "pending"
-    return "progress"  # 进行中 / 起草中 等
+    if status in DONE_WORDS or status in ("in_progress",):
+        # in_progress 表示部门正在处理，算进行中
+        if status in DONE_WORDS:
+            return "done"
+        return "progress"
+    if status in PENDING_WORDS or (isinstance(status, str) and status.startswith("待")):
+        return "pending"
+    return "progress"
 
 
-def read_node(state_dir, node_key):
-    """读某个准备节点的 JSON,返回 (status, 整条记录)。文件缺失返回未就绪。"""
-    path = os.path.join(state_dir, node_key + ".json")
+def hcm_get(path):
+    """GET HCM API，返回 parsed JSON 或 None。"""
+    url = f"{HCM_API_BASE}{path}"
     try:
-        with open(path, encoding="utf-8") as f:
-            rec = json.load(f)
-        return rec.get("status", "缺失"), rec
-    except Exception:
-        return "未就绪", {}
+        with urllib.request.urlopen(url, timeout=10) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, urllib.error.HTTPError, OSError) as e:
+        print(f"[dashboard] HCM API 请求失败: {url} — {e}", file=sys.stderr)
+        return None
 
 
-def read_workflow(state_dir):
-    """读 workflow.json；缺失返回空 dict。"""
-    path = os.path.join(state_dir, "workflow.json")
+def fetch_candidates():
+    """从 HCM API 获取所有候选人。"""
+    data = hcm_get("/api/candidates")
+    if data is None:
+        print("[dashboard] ❌ HCM API 不可用，无法生成看板。", file=sys.stderr)
+        sys.exit(5)
+    return data
+
+
+def load_workflow(pinyin):
+    """读本机 workflow.json 获取审批门状态（HCM 无此字段）。"""
+    path = os.path.join(WS, "stub-state", pinyin, "workflow.json")
     try:
         with open(path, encoding="utf-8") as f:
             return json.load(f)
-    except Exception:
+    except (OSError, json.JSONDecodeError):
         return {}
-
-
-def is_employee_dir(state_dir):
-    """至少有 contract.json 或 workflow.json 才算有效候选人目录（跳过空壳）。"""
-    return (
-        os.path.isfile(os.path.join(state_dir, "contract.json"))
-        or os.path.isfile(os.path.join(state_dir, "workflow.json"))
-    )
 
 
 def workflow_badge(wf):
     """从 workflow.json 拼卡片角标文案与 CSS 类。"""
     if not wf:
-        return {"text": "无流程记录", "cls": "wf-unknown"}
+        return {"text": "无审批记录", "cls": "wf-unknown"}
     status = wf.get("status") or "started"
     step = wf.get("current_step") or "—"
     status_cn = STATUS_LABELS.get(status, status)
@@ -134,109 +136,38 @@ def workflow_badge(wf):
     return {"text": text, "cls": cls, "status": status, "step": step}
 
 
-def discover_employees():
-    """自动发现 workspace 根下所有 stub-state 目录下的员工状态。
-    支持两种目录结构:
-      旧结构: stub-state-张磊/  每个目录直接是一个员工
-      新结构: stub-state/zhanglei/  员工按拼音放在子目录里
-    同名候选人优先保留新结构（stub-state/<pinyin>/）。
-    员工姓名/岗位从 contract.json / workflow.json 读取——不再硬编码名单。
-    """
-    found = []  # list of dicts
-    for entry in sorted(os.listdir(WS)):
-        full = os.path.join(WS, entry)
-        if not (entry.startswith("stub-state") and os.path.isdir(full)):
-            continue
-
-        nested = entry == "stub-state"
-        subdirs = sorted(
-            d for d in os.listdir(full)
-            if os.path.isdir(os.path.join(full, d))
-        )
-        if subdirs:
-            for sub in subdirs:
-                sub_full = os.path.join(full, sub)
-                if not is_employee_dir(sub_full):
-                    continue
-                wf = read_workflow(sub_full)
-                _, contract = read_node(sub_full, "contract")
-                name = (
-                    contract.get("candidate")
-                    or wf.get("candidate")
-                    or sub
-                )
-                role = contract.get("role") or wf.get("role") or "—"
-                found.append({
-                    "name": name,
-                    "role": role,
-                    "state_dir": sub_full,
-                    "pinyin": wf.get("pinyin") or sub,
-                    "nested": nested,
-                    "wf": wf,
-                })
-        else:
-            if not is_employee_dir(full):
-                continue
-            wf = read_workflow(full)
-            _, contract = read_node(full, "contract")
-            name = (
-                contract.get("candidate")
-                or wf.get("candidate")
-                or entry.replace("stub-state-", "")
-                or entry
-            )
-            role = contract.get("role") or wf.get("role") or "—"
-            found.append({
-                "name": name,
-                "role": role,
-                "state_dir": full,
-                "pinyin": wf.get("pinyin") or "",
-                "nested": False,
-                "wf": wf,
-            })
-
-    # 同名去重：优先 stub-state/<pinyin>/（nested=True）
-    by_name = {}
-    for emp in found:
-        key = emp["name"]
-        prev = by_name.get(key)
-        if prev is None or (emp["nested"] and not prev["nested"]):
-            by_name[key] = emp
-    return [by_name[k] for k in sorted(by_name.keys())]
-
-
-def load_reviews(name):
-    """读 review-state 目录,返回该员工已 review 的天数集合。"""
-    done = set()
-    if not os.path.isdir(REVIEW_DIR):
-        return done
-    for fn in os.listdir(REVIEW_DIR):
-        if fn.startswith("review-" + name + "-day") and fn.endswith(".json"):
-            try:
-                with open(os.path.join(REVIEW_DIR, fn), encoding="utf-8") as f:
-                    rec = json.load(f)
-                done.add(int(rec.get("day", 0)))
-            except Exception:
-                continue
-    return done
-
-
-def build_employee(emp):
+def build_employee(candidate):
     """汇总单个员工的 9 个节点状态 + workflow 角标 + 整体进度。"""
+    name = candidate.get("name", "")
+    pinyin = candidate.get("pinyin", "")
+    role = candidate.get("role", "—")
+
+    nodes = candidate.get("nodes") or []
+    node_map = {n["node_type"]: n for n in nodes}
+
+    # 5 个准备节点（来自 HCM）
     prep = []
     done_count = 0
     for key, label in PREP_NODES:
-        raw, _ = read_node(emp["state_dir"], key)
-        cls = classify(raw)
+        n = node_map.get(key, {})
+        raw_status = n.get("status", "未就绪")
+        cls = classify(raw_status)
         if cls == "done":
             done_count += 1
-        prep.append({"label": label, "raw": raw, "cls": cls})
+        # 用 data.status（部门填的中文状态）作为显示文本，比 node.status 更友好
+        data = n.get("data") or {}
+        display = data.get("status", raw_status)
+        prep.append({"label": label, "raw": display, "cls": cls})
 
-    reviewed = load_reviews(emp["name"])
+    # 4 个 review 节点（来自 HCM）
+    reviews_data = candidate.get("reviews") or []
+    review_map = {r["review_type"]: r for r in reviews_data}
     reviews = []
     rdone = 0
     for day in REVIEW_NODES:
-        if day in reviewed:
+        rec = review_map.get(f"day{day}", {})
+        st = rec.get("status", "pending")
+        if st == "completed":
             reviews.append({"label": REVIEW_LABEL[day], "cls": "done",
                             "text": "已 review"})
             rdone += 1
@@ -246,9 +177,16 @@ def build_employee(emp):
 
     total = len(PREP_NODES) + len(REVIEW_NODES)
     pct = round((done_count + rdone) / total * 100)
-    badge = workflow_badge(emp.get("wf") or {})
+
+    # 审批门角标来自本机 workflow.json
+    wf = load_workflow(pinyin)
+    badge = workflow_badge(wf)
+
     return {
-        "emp": emp,
+        "name": name,
+        "role": role,
+        "pinyin": pinyin,
+        "hcm_status": candidate.get("status", ""),
         "prep": prep,
         "reviews": reviews,
         "done_count": done_count,
@@ -267,7 +205,6 @@ def render_node(label, cls, sub):
 
 
 def render_card(data):
-    emp = data["emp"]
     badge = data["badge"]
     prep_html = "\n".join(
         render_node(n["label"], n["cls"], n["raw"])
@@ -280,8 +217,8 @@ def render_card(data):
     return f"""    <section class="card">
       <header class="card-head">
         <div class="who">
-          <span class="name">{emp['name']}</span>
-          <span class="role">{emp['role']}</span>
+          <span class="name">{data['name']}</span>
+          <span class="role">{data['role']}</span>
         </div>
         <span class="wf-badge {badge['cls']}">{badge['text']}</span>
       </header>
@@ -310,13 +247,12 @@ def render_card(data):
 
 
 def main():
-    employees = discover_employees()
-    if not employees:
-        print("[dashboard] 未发现任何 stub-state* 目录——还没有员工跑过入职工作流。",
-              file=sys.stderr)
+    candidates = fetch_candidates()
+    if not candidates:
+        print("[dashboard] HCM 花名册为空，无候选人。", file=sys.stderr)
         sys.exit(2)
 
-    cards = [build_employee(e) for e in employees]
+    cards = [build_employee(c) for c in candidates]
     now = datetime.datetime.now(SHANGHAI).strftime("%Y-%m-%d %H:%M")
     total_emp = len(cards)
     avg = round(sum(c["pct"] for c in cards) / total_emp)
@@ -427,7 +363,7 @@ def main():
   <div class="page-head">
     <div>
       <h1>星桥科技 · 新员工入职进度看板</h1>
-      <div class="sub">入职准备 5 节点 + 试用期跟进 4 节点 · 卡片角标读自 workflow.json</div>
+      <div class="sub">数据来源：HCM 系统 API · 审批门角标读自本机 workflow.json</div>
     </div>
     <div class="meta">
       在职新员工 <b>{total_emp}</b> 人 · 平均进度 <b>{avg}%</b><br>
@@ -443,8 +379,8 @@ def main():
     <span><i class="dot pending"></i>待办 / 待审批 / 待触发</span>
   </div>
   <div class="foot">
-    准备节点读自 stub-state*/（入职工作流）· 流程角标读自 workflow.json ·
-    review 节点读自 review-state（Cron 定时 review）
+    准备节点与 review 状态来自 HCM GET /api/candidates ·
+    审批门角标来自本机 stub-state/&lt;pinyin&gt;/workflow.json
   </div>
 </body>
 </html>"""
@@ -453,10 +389,10 @@ def main():
         WS, "onboarding-dashboard.html")
     with open(out, "w", encoding="utf-8") as f:
         f.write(html)
-    print(f"[dashboard] 已生成 {out}")
+    print(f"[dashboard] 已生成 {out}（数据来源：HCM API）")
     for c in cards:
         badge = c["badge"]["text"]
-        print(f"  {c['emp']['name']}: [{badge}] 准备 {c['done_count']}/5 · "
+        print(f"  {c['name']}: [{badge}] 准备 {c['done_count']}/5 · "
               f"review {c['rdone']}/4 · 整体 {c['pct']}%")
 
 

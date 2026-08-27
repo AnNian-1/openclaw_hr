@@ -42,9 +42,7 @@ result = {
     "updated_at": now,
 }
 
-if pinyin:
-    hcm_api.update_prep_node(pinyin, "buddy", status="completed", data=result)
-
+# 不向 HCM 写入——部门节点由各部门在 HCM 维护
 print(json.dumps(result, ensure_ascii=False))
 PY
 )"

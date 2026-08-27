@@ -147,3 +147,9 @@ Thumbs.db
 .openclaw-hr/workspace-router/.openclaw/
 .openclaw-hr/workspace-router/*.png
 .openclaw-hr/workspace-router/.git.bak.local/
+
+# 本地分发的 QA 说明（不入库）
+docs/qa/
+
+# 工作区内容只备份到本地，不推远程
+.local-backup/

@@ -46,25 +46,55 @@ export WORKSPACE
 # lobster args.pinyin 通过 ${pinyin} template 替换传给 record-pending-approval.py；
 # 不走 $PINYIN 环境变量（lobster 不注入 args 到 env）。本脚本不需在此 export。
 
-# lobster CLI 入口：用 `command -v lobster` 走 PATH 找
-# env.sh 已 export PATH 包含 $HOME/.openclaw-hr/node_modules/.bin；
-# 不写死具体路径——npm install 装 lobster 可能换其它 scope 名，避免环境漂移。
+# lobster CLI：PATH 优先；fallback 为 profile 根 node_modules（本脚本在 workspace-onboarding 下）
+PROFILE_DIR="$(cd "$WORKSPACE/.." && pwd)"
 LOBSTER="$(command -v lobster 2>/dev/null || true)"
-LOBSTER_FALLBACK="$HOME/.openclaw-hr/node_modules/.bin/lobster"
+LOBSTER_FALLBACK="$PROFILE_DIR/node_modules/.bin/lobster"
 [ -z "$LOBSTER" ] && [ -x "$LOBSTER_FALLBACK" ] && LOBSTER="$LOBSTER_FALLBACK"
 
 # ── 前置检查：solve-don't-punt，文件缺失立即明确报错 ──────────────
 fail() { echo "[run-onboarding] 错误：$1" >&2; exit 3; }
 [ -f "$WORKFLOW" ] || fail "工作流文件不存在：$WORKFLOW"
 [ -x "$LOBSTER" ]  || fail "lobster CLI 不在 PATH 里、且 $LOBSTER_FALLBACK 不存在。
-请先安装 lobster：npm install @clawdbot/lobster --prefix \$HOME/.openclaw-hr
-然后 source ~/.openclaw-hr/env.sh 让 lobster 二进制入 PATH。"
+请先安装 lobster：npm install @clawdbot/lobster --prefix $PROFILE_DIR
+然后 source $PROFILE_DIR/env.sh 让 lobster 二进制入 PATH。"
 for s in contract.sh it-account.sh device.sh buddy.sh training.sh \
          build-approval-prompt.py record-pending-approval.py update-workflow.py \
          emit-approval-verbatim.py; do
   [ -f "$SCRIPT_DIR/$s" ] || fail "依赖脚本缺失：$SCRIPT_DIR/$s"
 done
 mkdir -p "$STATE"
+
+# HCM 花名册先行：小慧只读、不写 HCM。start/dry 前必须能在 HCM 查到该拼音。
+# 覆盖：HCM_API_BASE（默认 http://127.0.0.1:8000）
+require_hcm_candidate() {
+  local pinyin="$1"
+  local base="${HCM_API_BASE:-http://127.0.0.1:8000}"
+  local url="${base%/}/api/candidates"
+  local body
+  if ! body="$(curl -sS -m 5 "$url" 2>/dev/null)"; then
+    fail "无法连接 HCM（$url）。请先启动 HCM，再在花名册新建拼音「${pinyin}」的候选人后重试。"
+  fi
+  if ! PINYIN="$pinyin" BODY="$body" python3 -c '
+import json, os, sys
+pinyin = os.environ["PINYIN"]
+try:
+    data = json.loads(os.environ["BODY"])
+except json.JSONDecodeError:
+    sys.exit(2)
+if not isinstance(data, list):
+    data = data.get("candidates") or data.get("items") or []
+ok = any(isinstance(c, dict) and c.get("pinyin") == pinyin for c in data)
+sys.exit(0 if ok else 1)
+'; then
+    local rc=$?
+    if [ "$rc" = "2" ]; then
+      fail "HCM 返回无法解析（$url）。请确认服务正常。"
+    fi
+    fail "HCM 花名册中没有拼音「${pinyin}」的候选人。请先在 HCM（看板或 POST /api/candidates）建档，再启动入职流程。小慧不会向 HCM 写入。"
+  fi
+  echo "[run-onboarding] HCM 已有候选人拼音=${pinyin}，继续" >&2
+}
 
 # 捕获 lobster 输出 → attach approval_id/resume_token → 原样把 lobster JSON 打到 stdout
 # 注意：不用 exec，否则无法做回写。
@@ -99,6 +129,8 @@ ACTION="${1:-}"
 case "$ACTION" in
   start|dry)
     NAME="${2:-新员工}"; PINYIN="${3:-employee}"; ROLE="${4:-工程师}"; SALARY="${5:-面议}"
+    # 先查 HCM 花名册（只读），没有该拼音则拒绝，不建 stub、不调 lobster
+    require_hcm_candidate "$PINYIN"
     # stub 目录改为按候选人隔离：STUB_STATE_DIR = $STATE/<pinyin>/
     # 5 个 stub 脚本不改，只读取 $STUB_STATE_DIR 环境变量，自然落到候选人子目录下。
     # 此处 export 后 lobster 会透传给每个 run 子 shell（含 4 路并行的 stub 子 shell）。

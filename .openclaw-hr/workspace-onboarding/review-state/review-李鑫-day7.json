@@ -3,13 +3,13 @@
   "pinyin": "lixin",
   "day": 7,
   "focus": "完成公司级 Onboarding;导师启动带教;融入团队",
-  "reviewedAt": "2026-08-03 11:21",
+  "reviewedAt": "2026-08-27 01:30",
   "status": "已跟进",
   "prep_nodes": {
-    "contract": "已通过",
-    "account": "已通过",
-    "device": "已配齐",
-    "buddy": "已匹配",
-    "training": "已排期"
+    "contract": "completed",
+    "account": "completed",
+    "device": "completed",
+    "buddy": "completed",
+    "training": "completed"
   }
 }

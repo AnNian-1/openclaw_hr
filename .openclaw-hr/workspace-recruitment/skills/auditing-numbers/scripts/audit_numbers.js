@@ -41,10 +41,27 @@
 const fs = require('fs');
 const https = require('https');
 
-const MODEL = 'deepseek-v4-pro';
-const API_HOST = 'api.deepseek.com';
-const API_PATH = '/v1/chat/completions';
-const API_KEY = process.env.DEEPSEEK_API_KEY || '';
+function resolveLlm() {
+  const model = process.env.LLM_MODEL || 'deepseek-v4-pro';
+  const base = process.env.LLM_BASE_URL || '';
+  let host = 'api.deepseek.com';
+  let path = '/v1/chat/completions';
+  if (base) {
+    const u = new URL(base.includes('://') ? base : `https://${base}`);
+    host = u.hostname;
+    const prefix = (u.pathname || '/').replace(/\/+$/, '') || '/v1';
+    path = `${prefix}/chat/completions`;
+  }
+  const key =
+    process.env.LLM_API_KEY ||
+    ((host.includes('xiaomi') || String(model).includes('mimo'))
+      ? (process.env.XIAOMI_API_KEY || '')
+      : '') ||
+    process.env.DEEPSEEK_API_KEY ||
+    '';
+  return { model, host, path, key };
+}
+const { model: MODEL, host: API_HOST, path: API_PATH, key: API_KEY } = resolveLlm();
 
 // ── 要回核的评分文字字段 ────────────────────────────────────────────
 // 这几个字段是评分第二层用大模型生成的自由文本，有"复述简历时串台"的

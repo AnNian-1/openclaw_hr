@@ -9,7 +9,7 @@
 # 让 onboarding Agent 执行 running-onboarding-review 脚本。
 #
 # 环境：
-#   需能调到 openclaw-hr（建议先 source ~/.openclaw-hr/env.sh）
+#   需 PATH 上有 openclaw（先 source 本机 profile 的 env.sh），或设 OPENCLAW_HR_BIN
 #   SCHEDULE_DRY_RUN=1 只打印将注册的任务，不真正 cron add
 #
 # 由 hr-onboarding.lobster 的 complete 节点调用。
@@ -33,16 +33,10 @@ if [ ! -f "$REVIEW_SH" ]; then
   exit 2
 fi
 
-# openclaw-hr 可执行文件
-if [ -z "${OPENCLAW_HR_BIN:-}" ]; then
-  if [ -f "${HOME}/.openclaw-hr/env.sh" ]; then
-    # shellcheck disable=SC1091
-    source "${HOME}/.openclaw-hr/env.sh"
-  fi
-fi
+# openclaw CLI：只信 OPENCLAW_HR_BIN 或 PATH，不 source 家目录 env.sh
 OPENCLAW_BIN="${OPENCLAW_HR_BIN:-$(command -v openclaw || true)}"
 if [ -z "$OPENCLAW_BIN" ] || [ ! -x "$OPENCLAW_BIN" ]; then
-  echo "[schedule-reviews] 找不到 openclaw-hr（请 source ~/.openclaw-hr/env.sh）" >&2
+  echo "[schedule-reviews] 找不到 openclaw（请 source 本机 profile 的 env.sh，或设 OPENCLAW_HR_BIN）" >&2
   exit 2
 fi
 

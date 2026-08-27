@@ -18,10 +18,23 @@
 """
 import os, sys, json, math, argparse, re
 import urllib.request
+from pathlib import Path
 
-WORKSPACE = os.path.expanduser("~/.openclaw-hr/workspace-recruitment")
+# scripts/ → skill → skills → workspace-recruitment；可用 RECRUITMENT_WORKSPACE 覆盖
+_SCRIPT_DIR = Path(__file__).resolve().parent
+WORKSPACE = os.path.expanduser(
+    os.environ.get(
+        "RECRUITMENT_WORKSPACE",
+        str(_SCRIPT_DIR.parents[2]),  # scripts → skill → skills → workspace-recruitment
+    )
+)
 POOL = os.path.join(WORKSPACE, "talent-pool/talent-pool.json")
-DASHSCOPE_KEY = os.environ.get("DASHSCOPE_API_KEY", "")
+EMBED_API_KEY = (
+    os.environ.get("SILICONFLOW_API_KEY")
+    or os.environ.get("SF_API_KEY")
+    or ""
+)
+EMBED_MODEL = os.environ.get("EMBEDDING_MODEL", "BAAI/bge-large-zh-v1.5")
 
 def cos(a, b):
     dot = sum(x*y for x, y in zip(a, b))
@@ -30,14 +43,13 @@ def cos(a, b):
     return dot/(na*nb) if na and nb else 0.0
 
 EMBED_BASE = os.environ.get(
-    "DASHSCOPE_COMPAT_BASE_URL",
-    "https://llm-5ipvwnjovosmatzx.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
+    "EMBEDDING_BASE_URL",
+    "https://api.siliconflow.cn/v1",
 )
 
 def embed(texts):
-    # compatible-mode: POST /embeddings （OpenAI 协议）
-    payload = {"model": "text-embedding-v3", "input": texts, "dimensions": 1024}
-    headers = {"Authorization": f"Bearer {DASHSCOPE_KEY}", "Content-Type": "application/json"}
+    payload = {"model": EMBED_MODEL, "input": texts}
+    headers = {"Authorization": f"Bearer {EMBED_API_KEY}", "Content-Type": "application/json"}
     url = f"{EMBED_BASE.rstrip('/')}/embeddings"
     req = urllib.request.Request(url, data=json.dumps(payload).encode(), headers=headers, method="POST")
     with urllib.request.urlopen(req, timeout=60) as r:

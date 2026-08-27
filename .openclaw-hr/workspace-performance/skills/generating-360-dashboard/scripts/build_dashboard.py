@@ -266,6 +266,9 @@ def main():
         "STSong",
         "PingFang SC",
         "Arial Unicode MS",
+        "Microsoft YaHei",
+        "Microsoft YaHei UI",
+        "SimHei",
     ]:
         try:
             fpath = font_manager.findfont(fname, fallback_to_default=False)
@@ -284,6 +287,8 @@ def main():
             "/usr/local/share/fonts/chinese/SourceHanSansSC-Regular.otf",
             "/usr/share/fonts/opentype/chinese/SourceHanSansSC-Regular.otf",
             "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc",
+            os.path.expanduser("~/.fonts/MicrosoftYaHei.ttc"),
+            "/mnt/c/Windows/Fonts/msyh.ttc",
         ]:
             if os.path.isfile(fpath):
                 try:

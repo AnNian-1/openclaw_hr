@@ -21,6 +21,24 @@ metadata:
 
 一名新员工确定录用、要走入职流程时用。典型触发：「为新员工 X 启动入职」「X 的入职审批走一下」「HR 主管批准了 X 的合同，继续推进」。
 
+## 前置条件 · HCM 花名册先行（强制）
+
+**HCM 是花名册与五部门节点的唯一写入面。小慧 / 本 Skill 不向 HCM 做 POST/PUT。**
+
+启动前必须已在 HCM 建档（看板「新增」或 `POST /api/candidates`，拼音与 `start` 参数一致）。`run-onboarding.sh start|dry` 会 **GET** `$HCM_API_BASE/api/candidates`（默认 `http://127.0.0.1:8000`）按拼音精确匹配：
+
+- **查不到或 HCM 不可达** → 退出非 0，提示先建档；**不**清 stub、**不**调 lobster。
+- **查到** → 只写本机 `stub-state/<pinyin>/`，跑审批工作流。
+
+SOP：先 HCM 建人 → 再对小惠说「启动某某入职」。
+
+## 数据读写边界
+
+- **花名册校验**：启动前 GET HCM 确认拼音存在，不写 HCM。
+- **准备节点数据**：各准备脚本从 HCM 读取部门填写的数据（只读），同时写本地 `stub-state/<pinyin>/` 供审批 prompt 生成。
+- **审批门 / resumeToken**：HCM 无此概念，由 Lobster 工作流落盘到 `workflow.json`。
+- **看板**：从 HCM API 读取（只读），不读本地 stub-state 作为准备节点真相源。
+
 ## 工作流程
 
 入职审批工作流有三个动作：启动、批准/拒绝一个审批门、查看计划。都通过启动脚本调用。
@@ -31,7 +49,7 @@ metadata:
 bash skills/running-onboarding-workflow/scripts/run-onboarding.sh start <姓名> <拼音> <岗位> <薪资>
 ```
 
-例：`run-onboarding.sh start 张磊 zhanglei 后端工程师 32K`。拼音用于生成邮箱前缀（中文进 `tr` 会被破坏，所以单独传拼音）。
+例：`run-onboarding.sh start 张磊 zhanglei 后端工程师 32K`。拼音用于生成邮箱前缀（中文进 `tr` 会被破坏，所以单独传拼音），且必须已在 HCM 花名册中。
 
 启动后，4 路并行准备（合同 / IT 账号 / 设备 / 培训）会跑完，流程在**第一个审批门 `contract_gate` 暂停**，返回一段 JSON。JSON 里 `status` 是 `needs_approval`，`requiresApproval` 块里有四样东西，你必须把它们清楚交回给人：
 
@@ -100,4 +118,5 @@ bash skills/running-onboarding-workflow/scripts/run-onboarding.sh dry <姓名> <
 - **PROMPT 内核原样交回，标记行对用户隐藏。** 见到 `---PROMPT---` 必须粘贴其间正文；不要把 `=====` / `---PROMPT---` / `[display-hint]` 念给用户听。可用 Markdown 外壳美化，禁止改内核、禁止 emoji 表、禁止编造「内网访问」。
 - **resumeToken 必须原样留存。** 每次 halt 返回的 token 是流程状态的唯一钥匙，丢了就接不回流程。每个门一个新 token。
 - **启动前不要手动跑 stub 脚本。** `start` 会自己清掉旧状态、跑 4 路并行准备。重复跑会污染状态文件。
+- **不要替 HCM 建档或改部门节点。** 花名册与五部门写入只在 HCM；本 Skill 只读校验拼音是否存在。
 - 入职审批工作流的设计依据、4 路并行 / 双审批门为什么这么设计，见 → `references/workflow-design.md`。

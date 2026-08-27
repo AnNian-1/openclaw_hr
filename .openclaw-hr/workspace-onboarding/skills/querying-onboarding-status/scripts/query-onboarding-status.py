@@ -2,18 +2,16 @@
 """
 query-onboarding-status.py —— 入职审批状态查询
 
-真源优先级：
-  1. stub-state/<pinyin>/workflow.json（扭转状态机，含停留天数）
-  2. pending-approvals/<pinyin>-<gate>.json（halt 时 stub 快照，做 stub_changed_after_halt）
+真源：
+  · 花名册与五部门准备节点：HCM GET /api/candidates（默认 http://localhost:8000）
+  · 审批门 / resumeToken / 扭转轨迹：本机 stub-state/<pinyin>/workflow.json（Lobster）
+    HCM 没有这些字段；有工作流才附加，没有也不编造「全部完成」。
 
-按候选人全名查：
-  · 当前状态 / 当前节点 / halt 停留几天
-  · 完整事件轨迹
-  · stub 在 halt 之后是否被改过 + 当前 prompt 投影
+HCM 不可达 → 退出 5，不拿 stub 冒充花名册。
+HCM 花名册没有此人 → 退出 4。
 
-输出到 stdout：完整 JSON 给程序读
-输出到 stderr：人话摘要给 HR 看
-退出码：0 = 查到；3 = 有 stub 无 workflow（旧数据）；4 = 未启动
+输出到 stdout：完整 JSON；stderr：人话摘要。
+退出码：0 = HCM 查到该人；2 = 缺 WORKSPACE；4 = 花名册无此人；5 = HCM 不可用。
 """
 import datetime as dt
 import json
@@ -100,50 +98,58 @@ def _resolve_stub_scripts_dir():
     return candidates[0] if candidates else ""
 
 
-def _resolve_pinyin(workspace, name, pinyin):
-    """拼音解析：显式参数 > 内置表 > 扫 stub-state/*/workflow.json 的 candidate。"""
-    if pinyin:
-        return pinyin
-    pin_map = {
-        "张磊": "zhanglei", "陈思远": "chensiyuan", "王芳菲": "wangfangfei",
-        "李娜": "lina", "刘洋": "liuyang", "李四": "lisi", "王五": "wangwu",
-        "周敏": "zhoumin", "陈静": "chenjing", "毛毛豆": "maomaodou",
-    }
-    if name in pin_map:
-        return pin_map[name]
-    stub_root = os.path.join(workspace, "stub-state")
-    if not os.path.isdir(stub_root):
-        return None
-    matches = []
-    for entry in sorted(os.listdir(stub_root)):
-        base = os.path.join(stub_root, entry)
-        if not os.path.isdir(base):
-            continue
-        wf = _load_json(os.path.join(base, "workflow.json"))
-        if wf.get("candidate") == name:
-            matches.append(entry)
-            continue
-        for stub_name in ("contract.json", "account.json"):
-            stub = _load_json(os.path.join(base, stub_name))
-            if stub.get("candidate") == name:
-                matches.append(entry)
-                break
-    # 去重并保持顺序
-    dedup = []
-    for m in matches:
-        if m not in dedup:
-            dedup.append(m)
-    if len(dedup) == 1:
-        sys.stderr.write(
-            f"[query-onboarding-status] 拼音未手传，已从 stub-state/{dedup[0]}/ 匹配到「{name}」\n"
-        )
-        return dedup[0]
-    if len(dedup) > 1:
-        sys.stderr.write(
-            f"[query-onboarding-status] 「{name}」匹配到多个目录 {dedup}，请手传拼音\n"
-        )
-        return None
-    return None
+def _load_hcm_api():
+    """与 review 脚本共用 hcm_api.py。HCM_API_BASE 与 HCM_API_URL 等价。"""
+    if os.environ.get("HCM_API_BASE") and not os.environ.get("HCM_API_URL"):
+        os.environ["HCM_API_URL"] = os.environ["HCM_API_BASE"].rstrip("/")
+    here = os.path.dirname(os.path.abspath(__file__))
+    review_scripts = os.path.normpath(
+        os.path.join(here, "..", "..", "running-onboarding-review", "scripts")
+    )
+    if review_scripts not in sys.path:
+        sys.path.insert(0, review_scripts)
+    import hcm_api
+    return hcm_api
+
+
+NODE_LABELS = {
+    "contract": "合同",
+    "account": "IT 账号",
+    "device": "设备",
+    "training": "培训",
+    "buddy": "Buddy",
+}
+
+
+def _summarize_hcm(candidate):
+    """用人话列出 HCM 五节点，不把 stub 完成态说成 HCM。"""
+    name = candidate.get("name")
+    pinyin = candidate.get("pinyin")
+    lines = [
+        f"== {name}（{pinyin}）入职准备（HCM） ==",
+        f" · 来源：GET {os.environ.get('HCM_API_URL', 'http://localhost:8000')}/api/candidates",
+        f" · 花名册：id={candidate.get('id')} · 岗位={candidate.get('role')} · "
+        f"薪资={candidate.get('salary')} · HCM status={candidate.get('status')}",
+    ]
+    nodes = candidate.get("nodes") or []
+    if not nodes:
+        lines.append(" · 准备节点：HCM 未返回 nodes")
+    else:
+        lines.append(" · 五部门节点：")
+        for n in nodes:
+            nt = n.get("node_type", "?")
+            label = NODE_LABELS.get(nt, nt)
+            st = n.get("status", "?")
+            note = ""
+            data = n.get("data") or {}
+            if isinstance(data, dict) and data.get("note"):
+                note = f" · note={data['note']}"
+            lines.append(f"     {label}（{nt}）：{st}{note}")
+    reviews = candidate.get("reviews") or []
+    if reviews:
+        bits = [f"{r.get('review_type')}={r.get('status')}" for r in reviews]
+        lines.append(" · HCM reviews：" + ", ".join(bits))
+    return "\n".join(lines)
 
 
 def _load_json(path):
@@ -315,7 +321,7 @@ def _summarize_workflow(name, pinyin, wf, token_source=None):
     status = wf.get("status", "unknown")
     step = wf.get("current_step", "?")
     lines = [f"== {name}（{pinyin}）入职审批状态 =="]
-    lines.append(f" · 来源：stub-state/{pinyin}/workflow.json")
+    lines.append(f" · 审批工作流来源：stub-state/{pinyin}/workflow.json（非 HCM）")
     lines.append(f" · 状态：{status} · 当前节点：{step}")
     if status == "halted":
         halted_at = wf.get("halted_at")
@@ -366,26 +372,53 @@ def _summarize_workflow(name, pinyin, wf, token_source=None):
 
 def main():
     if len(sys.argv) < 2:
-        sys.stderr.write("usage: query-onboarding-status.py <候选人全名> [pinyin]\n"
-                         "       pinyin 可省·按 reference/pinyin.py 字典推导\n")
+        sys.stderr.write(
+            "usage: query-onboarding-status.py <候选人全名> [pinyin]\n"
+            "       花名册以 HCM GET /api/candidates 为准；拼音可省。\n"
+        )
         sys.exit(1)
     name = sys.argv[1]
-    pinyin = sys.argv[2] if len(sys.argv) > 2 else None
+    pinyin_arg = sys.argv[2] if len(sys.argv) > 2 else None
 
     workspace = os.environ.get("WORKSPACE")
     if not workspace:
         sys.stderr.write("[query-onboarding-status] 缺少 $WORKSPACE 环境变量。\n")
         sys.exit(2)
 
-    pinyin = _resolve_pinyin(workspace, name, pinyin)
-    if not pinyin:
+    hcm_api = _load_hcm_api()
+    hcm_ok, matches, hcm_err = hcm_api.find_candidates(name=name, pinyin=pinyin_arg)
+    if not hcm_ok:
         sys.stderr.write(
-            f"[query-onboarding-status] 无法解析 '{name}' 的拼音目录。"
-            "请手传拼音作为第 2 个参数，或确认 stub-state/<pinyin>/workflow.json 存在。\n"
+            "[query-onboarding-status] HCM 不可用，无法查询入职进度。"
+            f" 请确认服务 {os.environ.get('HCM_API_URL', 'http://localhost:8000')} 可访问。"
+            f" 详情：{hcm_err}\n"
+        )
+        sys.exit(5)
+    if pinyin_arg and not matches:
+        _, by_pin, _ = hcm_api.find_candidates(pinyin=pinyin_arg)
+        matches = by_pin
+    if not matches:
+        sys.stderr.write(
+            f"[query-onboarding-status] HCM 花名册没有「{name}」"
+            + (f"（拼音 {pinyin_arg}）" if pinyin_arg else "")
+            + "。不会用本地 stub 冒充进度。请先在 HCM 建档。\n"
+        )
+        sys.exit(4)
+    if len(matches) > 1:
+        pins = [c.get("pinyin") for c in matches]
+        sys.stderr.write(
+            f"[query-onboarding-status] HCM 中「{name}」对应多名候选人 {pins}，请手传拼音。\n"
         )
         sys.exit(4)
 
+    hcm_candidate = matches[0]
+    pinyin = hcm_candidate.get("pinyin")
+    if not pinyin:
+        sys.stderr.write("[query-onboarding-status] HCM 记录缺少 pinyin。\n")
+        sys.exit(4)
+
     stub_scripts_dir = _resolve_stub_scripts_dir()
+    hcm_block = _summarize_hcm(hcm_candidate)
 
     wf = _load_workflow(workspace, pinyin)
 
@@ -400,24 +433,28 @@ def main():
                 halts[gate] = info
 
     if wf is None and not found_pending:
-        stub_dir = os.path.join(workspace, "stub-state", pinyin)
-        if os.path.isdir(stub_dir):
-            sys.stderr.write(
-                f"[query-onboarding-status] '{name}'（{pinyin}）有 stub-state/{pinyin}/，"
-                "但没有 workflow.json，也没有 pending-approvals。\n"
-                "——可能是旧数据（workflow.json 落地前跑的）或流程异常中断。\n"
-                "→ 建议：重跑 run-onboarding.sh start 生成完整扭转记录。\n"
-            )
-            sys.exit(3)
+        sys.stderr.write(hcm_block + "\n\n")
         sys.stderr.write(
-            f"[query-onboarding-status] '{name}'（{pinyin}）未启动入职流程。\n"
-            f"——stub-state/{pinyin}/ 与 pending-approvals/{pinyin}-* 都不存在。\n"
+            f" · 本机尚未启动审批工作流（无 stub-state/{pinyin}/workflow.json）。\n"
+            " · 上面五节点以 HCM 为准；不要把缺失的工作流说成「全部完成」。\n"
         )
-        sys.exit(4)
+        payload = {
+            "source": "hcm",
+            "hcm_api": os.environ.get("HCM_API_URL", "http://localhost:8000"),
+            "candidate_pinyin": pinyin,
+            "query_input": name,
+            "hcm_candidate": hcm_candidate,
+            "workflow": None,
+            "found_pending": [],
+            "halts": {},
+            "summary": hcm_block,
+        }
+        print(json.dumps(payload, ensure_ascii=False, indent=2, default=str))
+        sys.exit(0)
 
     if wf is not None:
         wf, token_source = _ensure_tokens(workspace, stub_scripts_dir, pinyin, wf)
-        summary = _summarize_workflow(name, pinyin, wf, token_source=token_source)
+        summary = hcm_block + "\n\n" + _summarize_workflow(name, pinyin, wf, token_source=token_source)
         if found_pending:
             summary += "\n\n · pending-approvals 附加：\n"
             for gate in found_pending:
@@ -455,8 +492,11 @@ def main():
                 f"[query-onboarding-status] 找不到 emit：{emit}\n"
             )
         payload = {
+            "source": "hcm+workflow",
+            "hcm_api": os.environ.get("HCM_API_URL", "http://localhost:8000"),
             "candidate_pinyin": pinyin,
             "query_input": name,
+            "hcm_candidate": hcm_candidate,
             "workflow": wf,
             "token_source": token_source,
             "halt_days": _halt_days(wf.get("halted_at")) if wf.get("status") == "halted" else None,
@@ -464,7 +504,7 @@ def main():
             "halts": halts,
             "summary": summary,
         }
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        print(json.dumps(payload, ensure_ascii=False, indent=2, default=str))
         sys.exit(0)
 
     # 无 workflow.json、仅有 pending（旧数据兼容）
@@ -487,18 +527,21 @@ def main():
     else:
         lines.append("  有 stub 被改·如要走'最新 stub'重新审，请拒绝后让候选人 recruiter 重跑 start；")
         lines.append("  如认为旧 stub 足够·直接 resume <token> yes 也合理。")
-    summary = "\n".join(lines)
+    summary = hcm_block + "\n\n" + "\n".join(lines)
     sys.stderr.write(summary + "\n")
 
     payload = {
+        "source": "hcm+pending",
+        "hcm_api": os.environ.get("HCM_API_URL", "http://localhost:8000"),
         "candidate_pinyin": pinyin,
         "query_input": name,
+        "hcm_candidate": hcm_candidate,
         "workflow": None,
         "found_pending": found_pending,
         "halts": halts,
         "summary": summary,
     }
-    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    print(json.dumps(payload, ensure_ascii=False, indent=2, default=str))
 
 
 if __name__ == "__main__":
