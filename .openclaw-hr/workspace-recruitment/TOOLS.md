@@ -39,6 +39,14 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 
 Add whatever helps you do your job. This is your cheat sheet.
 
+## Exec（D-011）
+
+所有 shell 必须走：
+
+`scripts/recruitment-run.sh <本域 node/python Skill 命令>`
+
+不要直接 `python3 -c` / `sed` / `tee` 写 `workspace-onboarding`。闸会拒绝其它域路径；未走此脚本的 exec 会被 allowlist 拦住。
+
 ## 招聘业务 Skill 清单
 
 招聘子 Agent 的业务能力以 Skill 形式装在 `skills/` 目录下。下面是各 Skill 的用途和调用要点——具体怎么用看每个 Skill 的 `SKILL.md`。

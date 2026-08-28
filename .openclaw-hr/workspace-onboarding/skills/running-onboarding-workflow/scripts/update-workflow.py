@@ -373,8 +373,19 @@ def cmd_attach(pinyin, lobster_json_path):
     else:
         data["approval_id"] = None
         data["resume_token"] = None
-        print(f"[update-workflow] attach cleared tokens (status={status}) → {path}",
-              file=sys.stderr)
+        if status in ("cancelled", "rejected"):
+            data["status"] = "cancelled"
+            data["halted_at"] = None
+            data["events"].append({
+                "at": now,
+                "step": data.get("current_step") or "unknown",
+                "action": "rejected",
+                "note": "审批已拒绝，工作流取消",
+            })
+            print(f"[update-workflow] attach cancelled → {path}", file=sys.stderr)
+        else:
+            print(f"[update-workflow] attach cleared tokens (status={status}) → {path}",
+                  file=sys.stderr)
 
     _save(path, data)
     print(json.dumps({

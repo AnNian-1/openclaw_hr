@@ -32,13 +32,14 @@
   - `review-state/review-<姓名>-day<N>.json` 含 candidate / day / focus / reviewedAt / status 字段
   - 文件结构与 generating-onboarding-dashboard 看板读取的格式一致
 
-### 场景 4（边界）· 入职状态文件缺失
+### 场景 4（边界）· 花名册 / HCM 查无此人
 
-- 输入：一个还没启动入职工作流的员工
+- 输入：一个 HCM 花名册里不存在的姓名（如「不存在的人」）
 - query：跑入职跟进 review
 - expected_behavior：
-  - review 脚本读不到 stub-state 状态时，节点状态显示「未就绪」而非报错崩溃
-  - review 仍能产出报告（跟进重点不依赖 stub-state），不静默失败
+  - 脚本退出码非 0（花名册无此人 **4**；HCM 不可用 **5**）
+  - **不**写 `review-state/review-<姓名>-dayN.json`
+  - 不把「未就绪」包装成一次成功的跟进
 
 ## 基线测试（没有 Skill 时）
 

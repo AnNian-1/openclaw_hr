@@ -37,6 +37,7 @@ resolve_python() {
   local candidates=(
     /usr/local/miniconda3/envs/py312/bin/python3
     "${HOME}/miniconda3/envs/py312/bin/python3"
+    "${HOME}/miniconda3/envs/openclaw-hr/bin/python3"
     "${HOME}/anaconda3/envs/py312/bin/python3"
   )
   local c

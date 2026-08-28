@@ -21,6 +21,29 @@ import io
 import os
 import base64
 from datetime import datetime
+
+def _reexec_with_pandas():
+    try:
+        import pandas  # noqa: F401
+        return
+    except ImportError:
+        pass
+    cands = [
+        os.environ.get("MONTHLY_REPORT_PYTHON"),
+        os.path.expanduser("~/miniconda3/envs/openclaw-hr/bin/python3"),
+        os.path.expanduser("~/miniconda3/envs/py312/bin/python3"),
+        "/usr/local/miniconda3/envs/py312/bin/python3",
+        os.path.expanduser("~/anaconda3/envs/py312/bin/python3"),
+    ]
+    for c in cands:
+        if c and os.path.isfile(c) and os.access(c, os.X_OK) and os.path.realpath(c) != os.path.realpath(sys.executable):
+            os.execv(c, [c] + sys.argv)
+    sys.stderr.write(
+        "[monthly-report] 当前 python 无 pandas。请用 conda py312 或 MONTHLY_REPORT_PYTHON。\n"
+    )
+    sys.exit(127)
+
+_reexec_with_pandas()
 import pandas as pd
 import matplotlib
 matplotlib.use("Agg")

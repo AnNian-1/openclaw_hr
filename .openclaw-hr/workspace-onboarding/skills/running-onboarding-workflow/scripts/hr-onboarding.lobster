@@ -103,6 +103,7 @@ steps:
   # 归档后注册 7/30/60/90 天一次性 Cron（--at），到点由 onboarding Agent 跑 review
   - id: complete
     run: |
+      set -euo pipefail
       echo "=== ${name} 入职审批工作流完成 ==="
       echo "合同审批：已通过 | 账号权限审批：已通过"
       echo "[归档] 合同 / 账号 / 设备 / 培训 / Buddy 五项就绪，等待报到当天签约"

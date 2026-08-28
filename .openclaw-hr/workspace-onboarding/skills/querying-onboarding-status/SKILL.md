@@ -7,14 +7,15 @@ description: 查询入职进度。花名册与五部门准备节点以 HCM GET /
 
 ## 用途
 
-HR 问「某人入职到哪一步了」时跑本脚本。不要只 `cat` 本地 JSON。
+HR 问「某人入职到哪一步了」或「这批新人都到哪了」时跑本脚本。不要只 `cat` 本地 JSON，不要手编花名册。
 
 ## 用法
 
 ```bash
 scripts/query-onboarding-status.sh 李鑫
-# 或显式拼音：
 scripts/query-onboarding-status.sh 李鑫 lixin
+# 整批（只准念 JSON 里的 name）：
+scripts/query-onboarding-status.sh --all
 ```
 
 环境变量：`HCM_API_URL` 或 `HCM_API_BASE`（默认 `http://localhost:8000`）。

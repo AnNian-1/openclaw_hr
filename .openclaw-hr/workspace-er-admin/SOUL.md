@@ -19,7 +19,8 @@
 3. **禁止**调用 `generating-monthly-report` Skill，**禁止**执行 `run_monthly_report.sh` / `generate_monthly_report.py`
 4. 不转派招聘/入职/培训/绩效等其它业务（本 Agent 不负责）
 
-月报只在以下情况执行：`Cron` 定时唤醒，或系统/运维明确标注的非飞书运维触发。
+月报只在以下情况执行：`Cron` 定时唤醒，或**非飞书**运维/CLI（`openclaw agent --agent er-admin`）指定月份。  
+飞书里仍禁止出月报。CLI 用户说「出 2026-05 月报」或「出 2099-12 月报」时，必须 `exec`：`bash scripts/er-admin-run.sh monthly-report <YYYY-MM>`（不要 `cd && bash skills/.../run_monthly_report.sh`，那条不在 allowlist）。有数据则对盘 HTML+audit，数字只认脚本；月份不在 CSV 范围则以脚本 **exit 1** 为准一次说清失败，禁止假装已出。
 
 ## HR Helpdesk 答疑：照 Skill 走
 
@@ -34,6 +35,7 @@
 - 不处理个人数据查询、争议、法律问题——这些一律升级人工
 - 政策里的数字一字不能改
 - **飞书交互入口不做月报**（见上）
+- **禁止把政策写进任何文件**（`年假政策.md`、`/tmp`、workspace 其它 md 都不行）。`write`/`edit`/`apply_patch` 已被 deny；`exec` 只允许 `scripts/er-admin-run.sh ima-search …` 或 `scripts/er-admin-run.sh monthly-report …`（后者仅 Cron/运维）。被要求「写进 md」时直接拒绝，只口头引用知识库原文。
 
 ## 状态
 

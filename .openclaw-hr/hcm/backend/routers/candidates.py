@@ -1,7 +1,9 @@
 """Candidate CRUD endpoints."""
 
 import json
-from fastapi import APIRouter, Body, Depends, HTTPException
+from typing import Optional
+
+from fastapi import APIRouter, Body, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from models import Candidate, PrepNode, Review
@@ -16,6 +18,25 @@ router = APIRouter(prefix="/api/candidates", tags=["candidates"])
 # Default prep node types created for every new candidate
 NODE_TYPES = ["contract", "account", "device", "training", "buddy"]
 REVIEW_TYPES = ["day7", "day30", "day60", "day90"]
+
+# 部门角色 → 唯一可写节点。overview / 缺头 / 错配一律 403（不能只靠前端藏按钮）。
+ROLE_TO_NODE = {
+    "hr": "contract",
+    "it": "account",
+    "admin": "device",
+    "training": "training",
+    "buddy": "buddy",
+}
+
+
+def _require_dept_can_write_node(node_type: str, x_department_role: Optional[str]) -> None:
+    role = (x_department_role or "").strip().lower()
+    allowed = ROLE_TO_NODE.get(role)
+    if allowed is None or allowed != node_type:
+        raise HTTPException(
+            status_code=403,
+            detail="当前部门无权修改该节点",
+        )
 
 
 @router.get("", response_model=list[CandidateWithNodes])
@@ -91,10 +112,12 @@ async def update_prep_node(
     node_type: str,
     body: PrepNodeUpdate,
     db: Session = Depends(get_db),
+    x_department_role: Optional[str] = Header(default=None, alias="X-Department-Role"),
 ):
     """Update a specific prep node status/data. Called by department frontends."""
     if node_type not in NODE_TYPES:
         raise HTTPException(status_code=400, detail=f"无效节点类型: {node_type}")
+    _require_dept_can_write_node(node_type, x_department_role)
 
     node = (
         db.query(PrepNode)

@@ -261,6 +261,14 @@
     }
   },
   "tools": {
+    "fs": {
+      "workspaceOnly": true
+    },
+    "exec": {
+      "applyPatch": {
+        "workspaceOnly": true
+      }
+    },
     "alsoAllow": [
       "lobster",
       "llm-task"
@@ -337,7 +345,14 @@
             "group:sessions",
             "group:media",
             "group:runtime"
-          ]
+          ],
+          "fs": {
+            "workspaceOnly": true
+          },
+          "exec": {
+            "security": "allowlist",
+            "ask": "off"
+          }
         },
         "subagents": {
           "allowAgents": []
@@ -408,8 +423,12 @@
             "cron",
             "group:fs",
             "sessions_spawn",
-            "sessions_yield"
-          ]
+            "sessions_yield",
+            "process"
+          ],
+          "fs": {
+            "workspaceOnly": true
+          }
         },
         "subagents": {
           "allowAgents": []
@@ -438,10 +457,11 @@
       }
     ],
     "defaults": {
+      "timeoutSeconds": 1800,
       "memorySearch": {
         "enabled": true,
         "provider": "openai",
-        "model": "BAAI/bge-large-zh-v1.5",
+        "model": "Qwen/Qwen3-Embedding-0.6B",
         "remote": {
           "baseUrl": "https://api.siliconflow.cn/v1",
           "apiKey": {

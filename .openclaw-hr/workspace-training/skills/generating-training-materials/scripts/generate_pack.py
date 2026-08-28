@@ -1,0 +1,297 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""ADDIE 物料包驱动：每阶段一次 LLM HTTP 调用并落盘，最后打印 RESULT。
+
+不把 8 次长文写进 OpenClaw Agent 会话（会撞 CLI 630s 超时且无结束句）。
+已有且足够长的产出默认跳过（断点续跑）；--force 全量重写。
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import sys
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+REQUIRED = [
+    "01-needs-analysis.md",
+    "02-course-design.md",
+    "03-ppt-outline.md",
+    "04-instructor-manual.md",
+    "05-participant-handbook.md",
+    "06-assessment.md",
+    "07-delivery-guide.md",
+    "08-evaluation-form.md",
+]
+AI_FOOTER = "\n\n---\n> AI 辅助生成、讲师审核后交付\n"
+FILE_MARK = re.compile(
+    r"===FILE:\s*([0-9]{2}-[a-z0-9-]+\.md)\s*===\s*\n(.*?)(?=\n===FILE:|\Z)",
+    re.S,
+)
+SKILL_DIR = Path(__file__).resolve().parent.parent
+WORKSPACE = SKILL_DIR.parent.parent
+
+
+def resolve_llm() -> tuple[str, str, str]:
+    model = os.environ.get("LLM_MODEL") or "mimo-v2.5-pro"
+    is_mimo = "mimo" in model or "xiaomi" in (os.environ.get("LLM_BASE_URL") or "")
+    base = os.environ.get("LLM_BASE_URL") or (
+        "https://token-plan-cn.xiaomimimo.com/v1" if is_mimo else ""
+    )
+    if not base:
+        print("[ERROR] 未设置 LLM_BASE_URL", file=sys.stderr)
+        sys.exit(2)
+    url = base.rstrip("/") + "/chat/completions"
+    key = (
+        os.environ.get("LLM_API_KEY")
+        or (os.environ.get("XIAOMI_API_KEY") if is_mimo or "xiaomi" in base else "")
+        or os.environ.get("DEEPSEEK_API_KEY")
+        or ""
+    )
+    if not key:
+        print("[ERROR] 未设置 XIAOMI_API_KEY / LLM_API_KEY", file=sys.stderr)
+        sys.exit(2)
+    return model, url, key
+
+
+def chat(model: str, url: str, key: str, user: str, timeout: int = 180) -> str:
+    body = json.dumps(
+        {
+            "model": model,
+            "temperature": 0.3,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "你是企业内部培训设计师。只根据给定素材与上一阶段文件写作，"
+                        "不编造制度/数字/公司名。讲师手册禁止逐字稿。"
+                        "每份文末必须有「AI 辅助生成、讲师审核后交付」。"
+                    ),
+                },
+                {"role": "user", "content": user},
+            ],
+        },
+        ensure_ascii=False,
+    ).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {key}",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        err = e.read().decode("utf-8", errors="replace")[:800]
+        raise RuntimeError(f"LLM HTTP {e.code}: {err}") from e
+    choices = data.get("choices") or []
+    if not choices:
+        raise RuntimeError(f"LLM 无 choices: {str(data)[:400]}")
+    return (choices[0].get("message") or {}).get("content") or ""
+
+
+def strip_fence(text: str) -> str:
+    t = text.strip()
+    if t.startswith("```"):
+        t = re.sub(r"^```[a-zA-Z0-9_-]*\n", "", t)
+        if t.endswith("```"):
+            t = t[: t.rfind("```")].rstrip()
+    return t.strip()
+
+
+def parse_named_files(raw: str, expected: list[str]) -> dict[str, str]:
+    raw = strip_fence(raw)
+    found = {name: body.strip() for name, body in FILE_MARK.findall(raw)}
+    if found:
+        return {k: v for k, v in found.items() if k in expected}
+    if len(expected) == 1:
+        return {expected[0]: raw}
+    raise RuntimeError(
+        "模型未按 ===FILE: 文件名=== 输出，无法拆成 "
+        + ",".join(expected)
+    )
+
+
+def ensure_ai_mark(text: str) -> str:
+    if re.search(r"AI\s*辅助生成", text):
+        return text.rstrip() + "\n"
+    return text.rstrip() + AI_FOOTER
+
+
+def load_source_docs(src: Path, limit: int = 60000) -> str:
+    parts: list[str] = []
+    n = 0
+    files = sorted(p for p in src.iterdir() if p.is_file() and p.suffix.lower() in {".md", ".txt"})
+    if not files:
+        print(f"[ERROR] 素材为空: {src}", file=sys.stderr)
+        sys.exit(2)
+    for p in files:
+        chunk = p.read_text(encoding="utf-8", errors="replace")
+        header = f"\n\n## 素材文件 {p.name}\n\n"
+        take = chunk
+        if n + len(header) + len(take) > limit:
+            take = take[: max(0, limit - n - len(header) - 20)] + "\n…(截断)\n"
+        parts.append(header + take)
+        n += len(header) + len(take)
+        if n >= limit:
+            break
+    return "".join(parts)
+
+
+def read_if(path: Path) -> str:
+    return path.read_text(encoding="utf-8") if path.is_file() else ""
+
+
+def present(path: Path) -> bool:
+    return path.is_file() and path.stat().st_size >= 50
+
+
+def load_template_block(md: str, heading: str) -> str:
+    # ## 模板 N  … until next ## 模板 or EOF
+    pat = re.compile(
+        rf"^## {re.escape(heading)}\s*$",
+        re.M,
+    )
+    m = pat.search(md)
+    if not m:
+        raise RuntimeError(f"stage-prompts.md 缺少 {heading}")
+    rest = md[m.end() :]
+    nxt = re.search(r"^## 模板 \d+", rest, re.M)
+    return rest[: nxt.start() if nxt else None].strip()
+
+
+def emit_result(outdir: Path, ok: bool, extra: str = "") -> int:
+    have = [n for n in REQUIRED if present(outdir / n)]
+    miss = [n for n in REQUIRED if n not in have]
+    status = "success" if ok and not miss else "failure"
+    print("")
+    print(f"RESULT: {status}")
+    print("FILES: " + (", ".join(have) if have else "(none)"))
+    print("MISSING: " + (", ".join(miss) if miss else "(none)"))
+    if extra:
+        print(extra)
+    return 0 if status == "success" else 1
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--theme", default="信息安全意识")
+    ap.add_argument("--force", action="store_true", help="忽略已有文件，全量重写")
+    ap.add_argument("--outdir", default="", help="默认 training-materials/<theme>")
+    args = ap.parse_args()
+
+    outdir = Path(args.outdir) if args.outdir else WORKSPACE / "training-materials" / args.theme
+    src = WORKSPACE / "source-docs"
+    prompts_md = (SKILL_DIR / "references" / "stage-prompts.md").read_text(encoding="utf-8")
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    stages: list[dict] = [
+        {
+            "id": "t1",
+            "template": "模板 1",
+            "outputs": ["01-needs-analysis.md", "02-course-design.md"],
+            "inputs": [],
+            "use_source": True,
+        },
+        {
+            "id": "t2",
+            "template": "模板 2",
+            "outputs": ["03-ppt-outline.md"],
+            "inputs": ["01-needs-analysis.md", "02-course-design.md"],
+        },
+        {
+            "id": "t3",
+            "template": "模板 3",
+            "outputs": ["04-instructor-manual.md"],
+            "inputs": ["03-ppt-outline.md"],
+        },
+        {
+            "id": "t4",
+            "template": "模板 4",
+            "outputs": ["05-participant-handbook.md"],
+            "inputs": ["03-ppt-outline.md"],
+        },
+        {
+            "id": "t5",
+            "template": "模板 5",
+            "outputs": ["06-assessment.md"],
+            "inputs": ["01-needs-analysis.md", "05-participant-handbook.md"],
+        },
+        {
+            "id": "t6",
+            "template": "模板 6",
+            "outputs": ["07-delivery-guide.md"],
+            "inputs": REQUIRED[:6],
+        },
+        {
+            "id": "t7",
+            "template": "模板 7",
+            "outputs": ["08-evaluation-form.md"],
+            "inputs": ["01-needs-analysis.md", "06-assessment.md"],
+        },
+    ]
+
+    model, url, key = resolve_llm()
+    source_blob = load_source_docs(src)
+
+    try:
+        for st in stages:
+            outs = st["outputs"]
+            if not args.force and all(present(outdir / n) for n in outs):
+                print(f"[skip] {st['id']} 已有 {', '.join(outs)}")
+                continue
+            tpl = load_template_block(prompts_md, st["template"])
+            chunks = [
+                f"主题：{args.theme}",
+                f"产出目录（相对工作区）：training-materials/{args.theme}/",
+                "输出格式：若本步多个文件，必须用标记分隔：",
+                "===FILE: 01-needs-analysis.md===",
+                "（正文）",
+                "===FILE: 02-course-design.md===",
+                "单文件则直接输出 Markdown 正文，不要包代码围栏。",
+                "",
+                "【本步模板】",
+                tpl,
+            ]
+            if st.get("use_source"):
+                chunks += ["", "【source-docs 素材】", source_blob]
+            for name in st["inputs"]:
+                body = read_if(outdir / name)
+                if not body:
+                    print(f"[ERROR] 缺输入 {name}，无法跑 {st['id']}", file=sys.stderr)
+                    return emit_result(outdir, False, extra=f"halted_at={st['id']}")
+                chunks += ["", f"【已有文件 {name}】", body[:24000]]
+            print(f"[run] {st['id']} → {', '.join(outs)}", flush=True)
+            raw = chat(model, url, key, "\n".join(chunks))
+            files = parse_named_files(raw, outs)
+            for name in outs:
+                text = files.get(name)
+                if not text or len(text) < 50:
+                    raise RuntimeError(f"{st['id']} 未产出有效 {name}")
+                (outdir / name).write_text(ensure_ai_mark(text), encoding="utf-8")
+                print(f"  wrote {outdir / name} ({(outdir / name).stat().st_size} bytes)")
+    except Exception as e:
+        print(f"[ERROR] {e}", file=sys.stderr)
+        return emit_result(outdir, False, extra=f"error={e}")
+
+    # self_check
+    check = SKILL_DIR / "scripts" / "self_check.py"
+    import subprocess
+
+    r = subprocess.run(
+        [sys.executable, str(check), "--outdir", str(outdir)],
+        cwd=str(WORKSPACE),
+    )
+    extra = f"self_check_exit={r.returncode}"
+    return emit_result(outdir, r.returncode == 0, extra=extra)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

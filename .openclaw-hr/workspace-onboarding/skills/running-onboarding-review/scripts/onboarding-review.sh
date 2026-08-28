@@ -25,6 +25,8 @@ case "$DAY" in
 esac
 
 # 从 HCM API 读取候选人信息 + 5 个准备节点状态 + review 状态
+# 退出码：0 查到；4 花名册无此人；5 HCM 不可用。不写 review-state。
+set +e
 HCM_RESULT="$(python3 - "$SCRIPT_DIR" "$NAME" "$PINYIN" "$DAY" "$FOCUS" "$NOW" <<'PY'
 import json, sys, os
 sys.path.insert(0, sys.argv[1])
@@ -32,20 +34,42 @@ import hcm_api
 
 name, pinyin_hint, day, focus, now = sys.argv[2:7]
 
-# 查找候选人
-candidate = None
-if pinyin_hint:
-    candidate = hcm_api.get_candidate_by_pinyin(pinyin_hint)
-if not candidate:
-    # 按姓名模糊匹配
-    for c in hcm_api.list_candidates():
-        if c.get("name") == name:
-            candidate = c
-            break
+hcm_ok, matches, hcm_err = hcm_api.find_candidates(
+    name=name if not pinyin_hint else None,
+    pinyin=pinyin_hint or None,
+)
+if pinyin_hint and hcm_ok and not matches:
+    hcm_ok, matches, hcm_err = hcm_api.find_candidates(pinyin=pinyin_hint)
+if hcm_ok and not matches and name:
+    hcm_ok, matches, hcm_err = hcm_api.find_candidates(name=name)
 
-if not candidate:
-    print(json.dumps({"error": f"花名册中未找到「{name}」", "found": False}, ensure_ascii=False))
-    sys.exit(0)
+if not hcm_ok:
+    print(json.dumps({
+        "found": False,
+        "hcm_ok": False,
+        "error": "HCM 不可用，无法做入职跟进",
+        "detail": hcm_err,
+    }, ensure_ascii=False))
+    sys.exit(5)
+
+if not matches:
+    print(json.dumps({
+        "found": False,
+        "hcm_ok": True,
+        "error": f"花名册中未找到「{name}」" + (f"（拼音 {pinyin_hint}）" if pinyin_hint else ""),
+    }, ensure_ascii=False))
+    sys.exit(4)
+
+if len(matches) > 1:
+    pins = [c.get("pinyin") for c in matches]
+    print(json.dumps({
+        "found": False,
+        "hcm_ok": True,
+        "error": f"「{name}」匹配多名候选人 {pins}，请手传拼音",
+    }, ensure_ascii=False))
+    sys.exit(4)
+
+candidate = matches[0]
 
 pinyin = candidate.get("pinyin", "")
 hcm_status = candidate.get("status", "")
@@ -104,12 +128,16 @@ else:
 print(json.dumps(result, ensure_ascii=False, indent=2))
 PY
 )"
-
-# 检查 HCM 返回
+PY_RC=$?
+set -e
+if [ "$PY_RC" -ne 0 ]; then
+  echo "[review] ❌ $HCM_RESULT" >&2
+  exit "$PY_RC"
+fi
 FOUND="$(echo "$HCM_RESULT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('found', False))" 2>/dev/null || echo "False")"
 if [ "$FOUND" != "True" ]; then
   echo "[review] ❌ $HCM_RESULT" >&2
-  exit 1
+  exit 4
 fi
 
 # 输出结构化报告到 stdout（供小慧解析后通知 HR）

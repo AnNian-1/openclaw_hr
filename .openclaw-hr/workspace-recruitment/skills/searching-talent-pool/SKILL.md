@@ -54,6 +54,7 @@ python3 skills/searching-talent-pool/scripts/search_talent_pool.py --like 张磊
 - 向量语义检索的相似度是**真实余弦计算**，不经 LLM 排名——结果可信的根本。
 - 按候选人检索时，每名 Top N 候选人会带 4 个维度（教育/经历/技能/行业）的相似度分解，不是一个黑盒分数。
 - 检索结果落盘 `talent-pool/search-<锚点>.json`，这份 JSON 是下游 `explaining-similarity` 的输入。
+- `--like` 排除锚点后 **MATCHABLE=0**（库内仅 1 人）时：stdout 写明无法匹配，`results: []`，`insufficient: true`。对话必须说清库内仅此人，**禁止编造第二人**或「从 N 份简历匹配到」。
 
 ## 关键规则
 

@@ -50,19 +50,33 @@ ADDIE 是培训设计领域沿用数十年的标准方法论，五个字母是�
 | **I** Implementation | 实施——交付指南，讲师怎么落地这套物料 | `07-delivery-guide.md` |
 | **E** Evaluation | 评估——评估反馈表 | `08-evaluation-form.md` |
 
-**这不是一个编排脚本，是一条人工编排的 prompt 链 + 交付前自检。** 流水线之所以成立，靠的是三条铁规则：
+**编排在脚本里，不在一次 Agent 会话里。** 8 次长文若交给 OpenClaw 连续 `write`，会撞 CLI 默认 630s 超时且没有结束句（X-PROC-05 / T-D-002）。
 
-1. **每个阶段的产出落盘成文件**——产出写到 `training-materials/`（或主题子目录）下的指定文件名。
-2. **后一阶段开工前，先读前一阶段产出的指定文件**——下一步的输入由上一步的输出文件严格定义。
-3. **全部落盘后必须自我校验**——对照 `evals/eval-cases.md`，并跑 `scripts/self_check.py`。
+对话层只许：
 
-## 工作流程：按顺序走 8 个步骤
+```bash
+bash scripts/training-run.sh generate --theme <主题>
+```
 
-逐步执行，**不跳步、不打乱顺序**。步骤 1–7 用 `references/stage-prompts.md` 里对应的 prompt 模板；步骤 8 做验收。
+脚本按 ADDIE 对每个阶段做 **一次 HTTP LLM 调用** 并落盘；已有足够长的 `01`…`0k` 默认跳过（断点续跑）；结束时 **一定** 打印 `RESULT: success|failure` 以及 `FILES` / `MISSING`。声称交付时只认这一行 + `self_check.py`。禁止自己用 `write` 编 `training/courses/` 假路径。
+
+流水线仍靠三条铁规则（由脚本执行，不是靠模型自觉）：
+
+1. **每个阶段的产出落盘成文件**——`training-materials/<主题>/` 下指定文件名。
+2. **后一阶段开工前读前一阶段产出**——脚本把文件打进下一阶段 prompt。
+3. **全部落盘后自我校验**——脚本末尾跑 `self_check.py`。
+
+## 工作流程
+
+**Agent：只跑 `training-run.sh generate`，把脚本的 `RESULT` 原样交回。** 下面步骤 1–8 是脚本内部顺序（对照 `stage-prompts.md`），不要在对话里逐步 `write` 八份长文。
+
+全量重写加 `--force`。缺素材则脚本非 0 退出，按 `RESULT: failure` 汇报。
 
 ### 步骤 0 · 准备
 
-确认 `source-docs/` 下有培训素材文档。**素材为空就停下来要素材**——需求分析是整条流水线的地基，没有素材不能凭空编。确认产出目录存在（没有就建）。主题子目录示例：`training-materials/<主题名>/`。
+确认 `source-docs/` 下有培训素材。空则停。产出目录：`training-materials/<主题>/`。
+
+脚本会 `ls` 后跳过已有合格文件。禁止 Agent 自己逐步写 01–08。
 
 ### 步骤 1 · A+D 阶段——需求分析 + 课程设计
 

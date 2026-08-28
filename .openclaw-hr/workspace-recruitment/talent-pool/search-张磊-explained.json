@@ -2,5 +2,43 @@
   "query": "张磊",
   "query_type": "candidate",
   "topn": 5,
-  "results": []
+  "insufficient": false,
+  "matchable": 2,
+  "pool_names": [
+    "夹具远邻",
+    "夹具近邻",
+    "张磊"
+  ],
+  "results": [
+    {
+      "rank": 1,
+      "id": "resume-tech-夹具近邻",
+      "name": "夹具近邻",
+      "category": "tech",
+      "target_position": "后端技术专家 / 交易中台",
+      "similarity": 0.8489,
+      "dim_similarity": {
+        "education": 0.6671,
+        "experience": 0.9059,
+        "skills": 0.739,
+        "industry": 0.8258
+      },
+      "explanation": "这位候选人与张磊的核心相似度集中在**职业经历**上（相似度高达0.9059），两人都曾在头部电商集团担任后端技术专家，并拥有互联网金融公司的相关背景。技能栈（相似度0.739）也高度重叠，都精通Java、Spring Cloud、Dubbo及分布式消息队列，不过相似候选人在Kubernetes、CI/CD等工程化工具上更为突出。"
+    },
+    {
+      "rank": 2,
+      "id": "resume-ops-夹具远邻",
+      "name": "夹具远邻",
+      "category": "ops",
+      "target_position": "行政专员 / 员工关系",
+      "similarity": 0.6092,
+      "dim_similarity": {
+        "education": 0.4827,
+        "experience": 0.5709,
+        "skills": 0.342,
+        "industry": 0.3454
+      },
+      "explanation": "经历维度相似度最高（0.5709），因为两者都拥有多年的工作经验，锚点候选人有14.8年技术岗位经历，相似候选人有7年行政岗位经历。技能维度差异较大（0.342），锚点精通Java、Spring等技术技能，而相似候选人擅长Office、文档处理等行政技能。"
+    }
+  ]
 }

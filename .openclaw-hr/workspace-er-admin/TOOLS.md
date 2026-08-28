@@ -46,7 +46,7 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 - **做什么**：回答员工的 HR 政策问题——先检索公司政策知识库、基于检索到的原文答复并引用出处、遇到红线问题升级人工。
 - **什么时候用**：员工问任何 HR 政策问题（年假、病假、报销、社保公积金、加班调休、入离职、培训晋升等）。
 - **调用要点**：
-  - 检索引擎是**腾讯 IMA 知识库**；用 `exec` 跑 `skills/answering-hr-policy-questions/scripts/search_ima_policies.cjs "<问题>"`，**不用** `memory_search`。
+  - 检索引擎是**腾讯 IMA 知识库**；用 `exec` 跑 `scripts/er-admin-run.sh ima-search "<问题>"`（内部再调 `search_ima_policies.cjs`），**不用** `memory_search`。禁止 `python3 -c` / `tee` / heredoc 写政策文件。
   - 凭证：`IMA_OPENAPI_CLIENTID` / `IMA_OPENAPI_APIKEY`（在 `env.sh`）；推荐配置 `IMA_HR_KNOWLEDGE_BASE_ID`。
   - 本地 `memory/hr-policies/` 仅备份对照；答疑以 IMA 检索结果为准。
   - 三步答疑协议（IMA 检索 → 引用原文 → 红线升级）与 5 类 HiTL 红线见 SKILL.md / `references/escalation-redlines.md`。
@@ -57,7 +57,7 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 - **做什么**：pandas 读 6 个 CSV → 算指标 + 对标 5 项业界基准 → matplotlib 出 4 张图 → 拼成单文件 HTML 月报，打印数字回核表，并默认发布到 OpenClaw Canvas（id=`hr-monthly-report`）。
 - **什么时候用**：**仅 Cron 月末唤醒 / 非飞书运维触发**。飞书群聊与私聊**禁止**用此 Skill（用户要月报时拒绝）。
 - **调用要点**：
-  - **优先** `bash skills/generating-monthly-report/scripts/run_monthly_report.sh`（可带 `YYYY-MM` / `--force` / `--no-publish`）。壳脚本会选用 conda `py312`（含 pandas/matplotlib），避免 OpenClaw exec 落到 `/usr/bin/python3`。
+  - **只** `bash scripts/er-admin-run.sh monthly-report`（可带 `YYYY-MM` / `--force` / `--no-publish`）。不要直接 `bash skills/.../run_monthly_report.sh`。壳脚本会选用 conda 环境（含 pandas/matplotlib），避免 OpenClaw exec 落到 `/usr/bin/python3`。非法月（2099-12）同样走此入口。
   - **禁止**因缺包去 `pip install`；**禁止**瞎 `source env.sh`（本 workspace 无此文件）；路径不是 workspace 根下的 `scripts/...`。
   - 直调 Python 时用：`/usr/local/miniconda3/envs/py312/bin/python3 skills/generating-monthly-report/scripts/generate_monthly_report.py ...`，或设 `MONTHLY_REPORT_PYTHON`。
   - 6 个 CSV 在 `report-system/data/`；本地 HTML 与 `*-audit.md` 在 `report-output/`；Canvas id=`hr-monthly-report`（浏览器推荐 18999）。

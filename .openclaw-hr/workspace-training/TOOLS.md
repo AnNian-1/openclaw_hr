@@ -47,17 +47,11 @@ Add whatever helps you do your job. This is your cheat sheet.
 
 - **做什么**：把 `source-docs/` 里的培训素材，经 ADDIE 五阶段流水线，生成一套内在自洽的培训物料——8 份 Markdown；**交付前按评测场景自我校验**。
 - **什么时候用**：业务部门要办一场内训、需要一整套培训物料时。注意"一整套"不是一份 PPT——只要 PPT 是没把握住需求的。
-- **形态**：markdown 指令型 Skill + 交付前结构自检脚本。能力 = `SKILL.md` 步骤 0→8 + `references/stage-prompts.md`（7 段模板）+ `scripts/self_check.py` + `evals/eval-cases.md`（验收说明书）。
-- **评测 / 自检（必做）**：
-  - 说明书：`skills/generating-training-materials/evals/eval-cases.md`（作者评测 + Agent 交付前自检，两用）。
-  - 结构自检：`python3 skills/generating-training-materials/scripts/self_check.py --outdir <物料目录>`
-  - 自检未通过不得声称「全套物料已交付」。细则见 SKILL.md 步骤 8。
+- **形态**：`scripts/training-run.sh generate` 驱动 7 次 LLM HTTP + 落盘 + `self_check.py`。Agent 不要自己 write 八份长文。
 - **调用要点**：
-  - 严格按 SKILL.md 的步骤 0→8 顺序走，不跳步；步骤 8 不可省。
-  - 每一步产出落盘到 `training-materials/`（或主题子目录）后，再进下一步。
-  - 后一步开工前先读前一步指定的产出文件——这是流水线阶段承接的硬约束。
-  - 讲师手册（步骤 3）只要讲解要点 + 互动 + 控场提示，**不要写逐字稿**。
-  - 物料生成读写文件（`group:fs`）；自检需 `python3`。
+  - `bash scripts/training-run.sh generate --theme 信息安全意识`（全量加 `--force`）
+  - 结束句认 stdout 的 `RESULT:`；未通过不得声称已交付。
+  - 讲师手册禁止逐字稿。
 
 ## Related
 

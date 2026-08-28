@@ -29,6 +29,13 @@
 #         非 0 = 启动器自身的前置检查失败（文件缺失等）或 lobster 进程异常。
 set -euo pipefail
 
+# lobster 子进程会继承本 PATH。openclaw 的 shebang 是 env node：
+# 只保证「找得到 openclaw」不够，PATH 里若先是 Node 20，cron add 会直接失败。
+if [ -d "${HOME}/.local/node/node-22/bin" ]; then
+  export PATH="${HOME}/.local/node/node-22/bin:${PATH}"
+fi
+export OPENCLAW_HR_BIN="${OPENCLAW_HR_BIN:-$(command -v openclaw || true)}"
+
 # ── 路径推导：由本脚本位置反推，不依赖调用方 cwd ────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # …/skills/running-onboarding-workflow/scripts
 SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"                    # …/skills/running-onboarding-workflow

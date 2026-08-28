@@ -27,9 +27,14 @@ const fs = require('fs');
 const https = require('https');
 
 function resolveLlm() {
-  const model = process.env.LLM_MODEL || 'deepseek-v4-pro';
-  const base = process.env.LLM_BASE_URL || '';
-  let host = 'api.deepseek.com';
+  const model = process.env.LLM_MODEL || 'mimo-v2.5-pro';
+  const isMimo =
+    String(model).includes('mimo') ||
+    String(process.env.LLM_BASE_URL || '').includes('xiaomi');
+  const base =
+    process.env.LLM_BASE_URL ||
+    (isMimo ? 'https://token-plan-cn.xiaomimimo.com/v1' : '');
+  let host = isMimo ? 'token-plan-cn.xiaomimimo.com' : 'api.deepseek.com';
   let path = '/v1/chat/completions';
   if (base) {
     const u = new URL(base.includes('://') ? base : `https://${base}`);
@@ -39,7 +44,7 @@ function resolveLlm() {
   }
   const key =
     process.env.LLM_API_KEY ||
-    ((host.includes('xiaomi') || String(model).includes('mimo'))
+    (isMimo || host.includes('xiaomi')
       ? (process.env.XIAOMI_API_KEY || '')
       : '') ||
     process.env.DEEPSEEK_API_KEY ||
@@ -235,7 +240,7 @@ async function main() {
     }
   }
   if (!API_KEY) {
-    console.error('环境变量 DEEPSEEK_API_KEY 未设置');
+    console.error('未设置 XIAOMI_API_KEY / LLM_API_KEY（mimo）或 DEEPSEEK_API_KEY');
     process.exit(2);
   }
 

@@ -75,5 +75,87 @@
       "SkyWalking",
       "ELK"
     ]
+  },
+  "resume-tech-夹具近邻.md": {
+    "name": "夹具近邻",
+    "target_position": "后端技术专家 / 交易中台",
+    "expected_salary": "",
+    "expected_city": "上海",
+    "available_date": "一个月内",
+    "education": {
+      "school": "浙江大学",
+      "major": "计算机科学与技术",
+      "degree": "硕士",
+      "graduation_year": "2017"
+    },
+    "work_experience": [
+      {
+        "company": "某头部电商集团 · 交易中台",
+        "position": "后端技术专家",
+        "start_date": "2017-08",
+        "end_date": "至今",
+        "industry": "电商"
+      },
+      {
+        "company": "某互联网金融公司",
+        "position": "高级后端工程师",
+        "start_date": "2013-07",
+        "end_date": "2017-07",
+        "industry": "互联网金融"
+      }
+    ],
+    "total_experience_years": 13,
+    "job_count": 2,
+    "skills": [
+      "Java",
+      "Go",
+      "Spring Boot",
+      "Spring Cloud",
+      "Dubbo",
+      "MySQL",
+      "Redis",
+      "Kafka",
+      "RocketMQ",
+      "微服务",
+      "分布式事务",
+      "Kubernetes",
+      "CI/CD",
+      "Prometheus",
+      "Grafana"
+    ],
+    "self_evaluation": "交易中台后端，高并发与消息中间件。测试夹具，非真实候选人。"
+  },
+  "resume-ops-夹具远邻.md": {
+    "name": "夹具远邻",
+    "target_position": "行政专员 / 员工关系",
+    "expected_salary": "",
+    "expected_city": "成都",
+    "available_date": "随时",
+    "education": {
+      "school": "某师范大学",
+      "major": "汉语言文学",
+      "degree": "本科",
+      "graduation_year": "2019"
+    },
+    "work_experience": [
+      {
+        "company": "某制造企业行政人事部",
+        "position": "行政专员",
+        "start_date": "2019-07",
+        "end_date": "至今",
+        "industry": "制造业行政管理"
+      }
+    ],
+    "total_experience_years": 7,
+    "job_count": 1,
+    "skills": [
+      "Office",
+      "飞书文档",
+      "采购询价",
+      "会议接待",
+      "档案管理",
+      "政策宣讲"
+    ],
+    "self_evaluation": "行政后勤与政策宣贯。测试夹具，非真实候选人。无研发经验。"
   }
 }

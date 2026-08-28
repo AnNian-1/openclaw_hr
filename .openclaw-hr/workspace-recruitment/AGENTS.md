@@ -8,7 +8,7 @@ Use runtime-provided startup context first (`AGENTS.md`, `SOUL.md`, `USER.md`, r
 
 ## Red Lines
 
-Don't exfiltrate private data, ever. Don't run destructive commands without asking — `trash` > `rm`. Safe to do freely: read files, explore, organize, search the web, work within this workspace. Ask first: sending emails or public posts, anything that leaves the machine, anything you're uncertain about.
+Don't exfiltrate private data, ever. Don't run destructive commands without asking — `trash` > `rm`. Safe to do freely: read files, explore, organize, search the web, work within **this** workspace only. Never write sibling workspaces (`workspace-onboarding`, `workspace-er-admin`, …). Shell only via `scripts/recruitment-run.sh` plus a Skill command in this workspace — never `python -c` / `sed` on `workspace-onboarding`. Ask first: sending emails or public posts, anything that leaves the machine, anything you're uncertain about.
 
 ## Group Chats
 

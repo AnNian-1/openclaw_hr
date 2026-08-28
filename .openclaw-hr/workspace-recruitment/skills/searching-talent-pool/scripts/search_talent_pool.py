@@ -1,4 +1,4 @@
-#!/usr/local/miniconda3/envs/py312/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 人才库语义检索 (openclaw-ai-hr C-3b)
@@ -82,7 +82,10 @@ def main():
 
     pool = json.load(open(POOL, encoding="utf-8"))
     cands = pool["candidates"]
-    print(f"人才库: {pool['candidate_count']} 名候选人 | embedding={pool['embedding_model']} | 建于 {pool['built_at']}\n")
+    pool_names = [c.get("name") for c in cands if c.get("name")]
+    print(f"人才库: {pool.get('candidate_count', len(cands))} 名候选人 | embedding={pool.get('embedding_model')} | 建于 {pool.get('built_at')}\n")
+    print(f"POOL_NAMES: {', '.join(pool_names) if pool_names else '(空)'}")
+    print("硬规则: 对话回复禁止出现 POOL_NAMES 以外的姓名；禁止声称从库外 N 份简历匹配到。\n")
 
     # ---- 确定 query ----
     if args.like:
@@ -96,6 +99,23 @@ def main():
         print(f"=== 查询: 找出和【{q['name']}】({q['parsed'].get('target_position','')}) 相似的候选人 ===")
         print(f"    锚点候选人画像: {q['dim_texts']['summary'][:80]}")
         print(f"    技能: {q['dim_texts']['skills'][:100]}\n")
+        print(f"MATCHABLE: {len(pool_list)}")
+        if not pool_list:
+            print("库内仅锚点本人，无法匹配相似候选人。禁止编造第二人。")
+            out = {
+                "query": args.like,
+                "query_type": "candidate",
+                "topn": args.topn,
+                "insufficient": True,
+                "matchable": 0,
+                "pool_names": pool_names,
+                "results": [],
+            }
+            tag = args.like.replace("/", "_")
+            outpath = os.path.join(WORKSPACE, f"talent-pool/search-{tag}.json")
+            json.dump(out, open(outpath, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+            print(f"\n检索结果已落盘: {outpath}")
+            sys.exit(0)
     elif args.jd:
         jd_text = open(args.jd, encoding="utf-8").read()
         q_vec = embed([jd_text])[0]
@@ -153,6 +173,9 @@ def main():
         "query": args.like or args.jd,
         "query_type": "candidate" if args.like else "jd",
         "topn": args.topn,
+        "insufficient": False,
+        "matchable": len(results),
+        "pool_names": pool_names,
         "results": [{
             "rank": i, "id": r["cand"]["id"], "name": r["cand"]["name"],
             "category": r["cand"]["category"],

@@ -370,15 +370,46 @@ def _summarize_workflow(name, pinyin, wf, token_source=None):
     return "\n".join(lines)
 
 
+def dump_hcm_roster(hcm_api):
+    """整批进度：只输出 HCM 花名册，禁止 Agent 手编姓名。"""
+    ok, data = hcm_api.fetch_candidates()
+    if not ok:
+        sys.stderr.write(
+            "[query-onboarding-status] HCM 不可用，无法列出花名册。"
+            f" 请确认服务 {os.environ.get('HCM_API_URL', 'http://localhost:8000')} 可访问。"
+            f" 详情：{data}\n"
+        )
+        sys.exit(5)
+    rows = []
+    for c in data:
+        if not isinstance(c, dict):
+            continue
+        rows.append({
+            "name": c.get("name"),
+            "pinyin": c.get("pinyin"),
+            "status": c.get("status"),
+            "role": c.get("role"),
+        })
+    payload = {
+        "source": "HCM",
+        "count": len(rows),
+        "candidates": rows,
+        "forbid_invented_names": True,
+    }
+    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    names = [r["name"] for r in rows if r.get("name")]
+    sys.stderr.write(f"ALLOWED_NAMES: {', '.join(names) if names else '(空)'}\n")
+    sys.stderr.write(f"必须在回复中列出全部 {len(rows)} 人，不得漏人、不得添加 JSON 以外的姓名。不要用 stub 编花名册。\n")
+
+
 def main():
     if len(sys.argv) < 2:
         sys.stderr.write(
             "usage: query-onboarding-status.py <候选人全名> [pinyin]\n"
-            "       花名册以 HCM GET /api/candidates 为准；拼音可省。\n"
+            "       query-onboarding-status.py --all\n"
+            "       花名册以 HCM GET /api/candidates 为准。\n"
         )
         sys.exit(1)
-    name = sys.argv[1]
-    pinyin_arg = sys.argv[2] if len(sys.argv) > 2 else None
 
     workspace = os.environ.get("WORKSPACE")
     if not workspace:
@@ -386,6 +417,12 @@ def main():
         sys.exit(2)
 
     hcm_api = _load_hcm_api()
+    if sys.argv[1] in ("--all", "--roster"):
+        dump_hcm_roster(hcm_api)
+        return
+
+    name = sys.argv[1]
+    pinyin_arg = sys.argv[2] if len(sys.argv) > 2 else None
     hcm_ok, matches, hcm_err = hcm_api.find_candidates(name=name, pinyin=pinyin_arg)
     if not hcm_ok:
         sys.stderr.write(

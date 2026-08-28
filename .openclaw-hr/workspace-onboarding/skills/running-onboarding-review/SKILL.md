@@ -24,7 +24,7 @@ metadata:
 - **review 状态**：HCM 返回的 `candidate.reviews` 字段（只读）
 - **不向 HCM 写入**，不写本地 `review-state/`——review 记录由 HR/主管在 HCM 维护。
 
-HCM 不可达时脚本会报错退出，不会用本地数据冒充。
+HCM 不可达时脚本退出 **5**，花名册无此人退出 **4**，都不会用本地数据冒充，也**不写** `review-state/`。
 
 ## 工作流程
 

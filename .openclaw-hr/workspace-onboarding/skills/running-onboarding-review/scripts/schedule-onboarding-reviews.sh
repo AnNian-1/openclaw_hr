@@ -33,6 +33,10 @@ if [ ! -f "$REVIEW_SH" ]; then
   exit 2
 fi
 
+# openclaw 用 env node；lobster 里常见 PATH 先命中 Node 20，必须把 22 放最前。
+if [ -d "${HOME}/.local/node/node-22/bin" ]; then
+  export PATH="${HOME}/.local/node/node-22/bin:${PATH}"
+fi
 # openclaw CLI：只信 OPENCLAW_HR_BIN 或 PATH，不 source 家目录 env.sh
 OPENCLAW_BIN="${OPENCLAW_HR_BIN:-$(command -v openclaw || true)}"
 if [ -z "$OPENCLAW_BIN" ] || [ ! -x "$OPENCLAW_BIN" ]; then

@@ -19,7 +19,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE="${ONBOARDING_WORKSPACE:-$(cd "$SCRIPT_DIR/../../.." && pwd)}"
 STATE_ROOT="$WORKSPACE/stub-state"
 OUT="$WORKSPACE/review-state"
-mkdir -p "$OUT"
 NOW="$(date '+%Y-%m-%d %H:%M')"
 
 # 解析候选人目录：显式拼音 > 扫 stub-state/*/workflow.json|contract.json 的 candidate
@@ -69,12 +68,12 @@ PINYIN="$(resolve_pinyin "$NAME" "$PINYIN" || true)"
 if [ -z "${PINYIN}" ]; then
   echo "[review] 找不到候选人「${NAME}」的 stub-state/<pinyin>/ 目录。" >&2
   echo "[review] 请确认入职工作流已落盘，或手传拼音：onboarding-review.sh ${NAME} ${DAY} <pinyin>" >&2
-  # 仍产出 review 记录，但 5 节点一律未就绪（保持旧行为可见）
-  STATE_DIR=""
-else
-  STATE_DIR="$STATE_ROOT/$PINYIN"
-  echo "[review] 读取落盘目录：stub-state/${PINYIN}/"
+  echo "[review] 查无此人：不写 review-state，退出 4。" >&2
+  exit 4
 fi
+STATE_DIR="$STATE_ROOT/$PINYIN"
+mkdir -p "$OUT"
+echo "[review] 读取落盘目录：stub-state/${PINYIN}/"
 
 # 按入职天数确定本次 review 的跟进事项(对应 09-入职流程.md 第四节)
 case "$DAY" in

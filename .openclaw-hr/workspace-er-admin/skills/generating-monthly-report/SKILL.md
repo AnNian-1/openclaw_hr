@@ -22,7 +22,7 @@ metadata:
 
 ## 推荐入口（务必用这个）
 
-**优先跑 `run_monthly_report.sh`**，不要直接喊系统 `python3` / 不要 `pip install`。
+对话/`exec` **只跑** `bash scripts/er-admin-run.sh monthly-report [YYYY-MM] [--force] [--no-publish]`（内部再调 `run_monthly_report.sh`）。不要直接 `bash skills/.../run_monthly_report.sh`（不在 allowlist）、不要系统 `python3` / 不要 `pip install` / 不要用 `tee` 写 md。非法月（如 2099-12）也走同一入口，把脚本失败原文交回。
 
 OpenClaw `exec` 的 PATH 常把 `python3` 解析成 `/usr/bin/python3`（无 pandas）；依赖已装在 conda `py312`。壳脚本会自动选用：
 

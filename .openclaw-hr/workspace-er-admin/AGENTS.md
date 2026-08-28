@@ -56,6 +56,7 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - Don't run destructive commands without asking.
 - `trash` > `rm` (recoverable beats gone forever)
 - When in doubt, ask.
+- Never write policy into `年假政策.md`, `/tmp`, or any other file. Exec only via `scripts/er-admin-run.sh`.
 
 ## External vs Internal
 
@@ -138,9 +139,9 @@ Reactions are lightweight social signals. Humans use them constantly — they sa
 
 仅在 **Cron 定时唤醒** 或非飞书运维触发时，用 `generating-monthly-report` Skill。Pipeline：pandas 读 6 个 CSV → 算指标 → 出图 → HTML 月报 → Canvas（id=`hr-monthly-report`）。
 
-调用时**优先**执行：
+调用时只 `exec`：
 
-`bash skills/generating-monthly-report/scripts/run_monthly_report.sh`（可带 `<YYYY-MM>` / `--force`）。
+`bash scripts/er-admin-run.sh monthly-report`（可带 `<YYYY-MM>` / `--force` / `--no-publish`）。不要直接 `bash skills/.../run_monthly_report.sh`（不在 exec allowlist）。非法月同样走此入口，把脚本失败交回用户。
 
 该壳脚本会选用 conda `py312`（带 pandas/matplotlib）。OpenClaw exec 里的裸 `python3` 常是 `/usr/bin/python3`，**不要**因此去 `pip install`，也**不要** `source env.sh`（本 workspace 无此文件）。
 

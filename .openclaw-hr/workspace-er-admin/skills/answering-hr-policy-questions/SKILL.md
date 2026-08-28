@@ -44,7 +44,7 @@ node skills/answering-hr-policy-questions/scripts/search_ima_policies.cjs --list
 收到问题，用 `exec` 运行本 Skill 检索脚本（工作目录为 er-admin workspace 根）：
 
 ```bash
-node skills/answering-hr-policy-questions/scripts/search_ima_policies.cjs "<员工原话或提炼后的检索词>"
+bash scripts/er-admin-run.sh ima-search "<员工原话或提炼后的检索词>"
 ```
 
 - **严禁跳过检索凭印象答。** 必须先拿到脚本返回的 `hits`（含 `title` / `highlight`；`content_source=get_media_info` 表示已拉原文）。

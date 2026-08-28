@@ -34,7 +34,11 @@ export const useCandidatesStore = defineStore('candidates', () => {
     try {
       const body: Record<string, any> = { status }
       if (nodeData !== undefined) body.data = nodeData
-      const { data } = await axios.put<PrepNode>(`/api/candidates/${candidateId}/prep/${nodeType}`, body)
+      const { data } = await axios.put<PrepNode>(
+        `/api/candidates/${candidateId}/prep/${nodeType}`,
+        body,
+        { headers: { 'X-Department-Role': currentDepartment.value } },
+      )
       // Update local state
       const c = candidates.value.find(c => c.id === candidateId)
       if (c) {

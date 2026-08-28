@@ -84,6 +84,146 @@
         "channel": "last"
       },
       "state": {}
+    },
+    {
+      "id": "20877b5c-1204-4a29-b456-46c68f281f50",
+      "agentId": "onboarding",
+      "name": "onboard-review-ceshiyuan-day90",
+      "description": "测试员入职第90天试用期跟进 review",
+      "enabled": true,
+      "deleteAfterRun": true,
+      "createdAtMs": 1787810019379,
+      "schedule": {
+        "kind": "at",
+        "at": "2026-11-25T01:00:00.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行命令并把完整输出返回：bash /home/yhwz/openclaw-hr/.openclaw-hr/workspace-onboarding/skills/running-onboarding-review/scripts/onboarding-review.sh 测试员 90 ceshiyuan",
+        "timeoutSeconds": 120,
+        "toolsAllow": [
+          "exec"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {}
+    },
+    {
+      "id": "eba7581a-37c7-4465-aa73-c7a2c1c10641",
+      "agentId": "onboarding",
+      "name": "onboard-review-ceshiyuan-day7",
+      "description": "测试员入职第7天试用期跟进 review",
+      "enabled": true,
+      "deleteAfterRun": true,
+      "createdAtMs": 1787812304255,
+      "schedule": {
+        "kind": "at",
+        "at": "2026-09-03T01:00:00.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行命令并把完整输出返回：bash /home/yhwz/openclaw-hr/.openclaw-hr/workspace-onboarding/skills/running-onboarding-review/scripts/onboarding-review.sh 测试员 7 ceshiyuan",
+        "timeoutSeconds": 120,
+        "toolsAllow": [
+          "exec"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {}
+    },
+    {
+      "id": "30ab66e5-19e1-4650-81e2-4d578aacf324",
+      "agentId": "onboarding",
+      "name": "onboard-review-ceshiyuan-day30",
+      "description": "测试员入职第30天试用期跟进 review",
+      "enabled": true,
+      "deleteAfterRun": true,
+      "createdAtMs": 1787812306522,
+      "schedule": {
+        "kind": "at",
+        "at": "2026-09-26T01:00:00.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行命令并把完整输出返回：bash /home/yhwz/openclaw-hr/.openclaw-hr/workspace-onboarding/skills/running-onboarding-review/scripts/onboarding-review.sh 测试员 30 ceshiyuan",
+        "timeoutSeconds": 120,
+        "toolsAllow": [
+          "exec"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {}
+    },
+    {
+      "id": "629ab13a-e186-4dc3-987d-db651f8108da",
+      "agentId": "onboarding",
+      "name": "onboard-review-ceshiyuan-day60",
+      "description": "测试员入职第60天试用期跟进 review",
+      "enabled": true,
+      "deleteAfterRun": true,
+      "createdAtMs": 1787812308756,
+      "schedule": {
+        "kind": "at",
+        "at": "2026-10-26T01:00:00.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行命令并把完整输出返回：bash /home/yhwz/openclaw-hr/.openclaw-hr/workspace-onboarding/skills/running-onboarding-review/scripts/onboarding-review.sh 测试员 60 ceshiyuan",
+        "timeoutSeconds": 120,
+        "toolsAllow": [
+          "exec"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {}
+    },
+    {
+      "id": "6ac37705-b103-4b9f-9add-e92dd72a6480",
+      "agentId": "onboarding",
+      "name": "onboard-review-ceshiyuan-day90",
+      "description": "测试员入职第90天试用期跟进 review",
+      "enabled": true,
+      "deleteAfterRun": true,
+      "createdAtMs": 1787812311023,
+      "schedule": {
+        "kind": "at",
+        "at": "2026-11-25T01:00:00.000Z"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行命令并把完整输出返回：bash /home/yhwz/openclaw-hr/.openclaw-hr/workspace-onboarding/skills/running-onboarding-review/scripts/onboarding-review.sh 测试员 90 ceshiyuan",
+        "timeoutSeconds": 120,
+        "toolsAllow": [
+          "exec"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {}
     }
   ]
 }
