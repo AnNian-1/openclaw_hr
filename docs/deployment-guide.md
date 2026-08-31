@@ -1,335 +1,170 @@
-# HCM 入职管理系统 — 部署指南
+# 部署指南（HCM + OpenClaw HR）
 
-> 本文档面向组员，指导从零部署 HCM 系统和 OpenClaw HR 数字员工。
+面向组员从 GitHub clone 后在本机或开发云主机拉起服务。架构与红线见 [项目说明.md](项目说明.md)。钉 OpenClaw **2026.5.12**。
+
+下文 `$REPO` = clone 下来的仓库根，`$PROFILE="$REPO/.openclaw-hr"`。本机示例曾是 `$HOME/openclaw-hr`。
 
 ---
 
 ## 一、环境要求
 
-| 依赖 | 最低版本 | 说明 |
-|------|---------|------|
-| **Python** | 3.11+ | 推荐 3.13（miniconda3） |
-| **Node.js** | 22.16+ | OpenClaw 强制要求 ≥22.16.0 |
-| **npm** | 10+ | 随 Node.js 安装 |
-| **Git** | 2.30+ | 用于克隆仓库 |
-| **miniconda** | 最新 | Python 环境管理（可选但推荐） |
+| 依赖 | 说明 |
+|------|------|
+| Git | clone https://github.com/yhwz131/openclaw |
+| Node.js | ≥ 22.16.0 |
+| Python / conda | 推荐 conda 环境名 `openclaw-hr`（`conda/environment-openclaw-hr.yml`） |
+| OpenClaw | 2026.5.12；Lobster 插件必须同版本 |
+| unrar | `bash "$PROFILE/scripts/ensure-rar-tools.sh"`（conda-forge 无 linux-64 包） |
 
 ---
 
-## 二、获取项目文件
-
-从负责人处拷贝整个项目目录到本机
-
-
-
-
-
----
-
-## 三、Node.js 22 安装
-
-如果本机 Node.js 版本低于 22.16：
+## 二、获取代码
 
 ```bash
-# 下载 Node.js 22.16
-mkdir -p ~/.local/node
-cd ~/.local/node
+git clone git@github.com:yhwz131/openclaw.git "$REPO"
+cd "$REPO"
+```
+
+不要用 `_ref/` 或 `hr_claw_hub.tar.gz` 当现行树。会话、`env.sh`、`hcm.db` 不在 git 里，迁机另拷，见 [云迁移与记忆交接.md](../.openclaw-hr/docs/云迁移与记忆交接.md)。
+
+---
+
+## 三、Node.js 22
+
+若 `node -v` 低于 22.16：
+
+```bash
+mkdir -p ~/.local/node && cd ~/.local/node
 curl -LO https://npmmirror.com/mirrors/node/v22.16.0/node-v22.16.0-linux-x64.tar.xz
 tar -xf node-v22.16.0-linux-x64.tar.xz
 mv node-v22.16.0-linux-x64 node-22
-
-# 添加到 PATH（写入 ~/.bashrc）
 echo 'export PATH="$HOME/.local/node/node-22/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
-
-# 验证
-node --version  # 应显示 v22.16.0
-```
-
----
-
-## 四、Python 环境
-
-### 方案 A：使用 conda（推荐）
-
-```bash
-# 创建专用环境
-conda create -n openclaw-hr python=3.13 -y
-conda activate openclaw-hr
-
-# 安装 HCM 后端依赖
-cd ~/openclaw-hr/.openclaw-hr/hcm/backend
-pip install -r requirements.txt
-```
-
-### 方案 B：使用系统 Python
-
-```bash
-cd ~/openclaw-hr/.openclaw-hr/hcm/backend
-pip install -r requirements.txt
-```
-
-### requirements.txt 内容
-
-```
-fastapi==0.115.12
-uvicorn==0.34.3
-sqlalchemy==2.0.41
-pydantic>=2.12
-python-multipart==0.0.20
-websockets==15.0.1
-```
-
----
-
-## 五、环境变量配置
-
-⚠️ **这一步必须手动完成**，`env.sh` 不在 Git 仓库中（被 `.gitignore` 排除）。
-
-```bash
-cd ~/openclaw-hr/.openclaw-hr
-cp env.sh.example env.sh  # 如果有模板；否则手动创建
-```
-
-### 必须配置的变量
-
-编辑 `env.sh`，确保以下变量正确：
-
-```bash
-# ── 路径（根据实际安装位置调整）──────────────────
-export OPENCLAW_STATE_DIR="$HOME/openclaw-hr/.openclaw-hr"
-export OPENCLAW_CONFIG_PATH="$HOME/openclaw-hr/.openclaw-hr/config/openclaw.yaml"
-export OPENCLAW_HR_BIN="$HOME/openclaw-hr/.openclaw-hr/install/node_modules/.bin/openclaw"
-
-# ── PATH ──────────────────────────────────────
-export PATH="$HOME/.local/node/node-22/bin:$HOME/openclaw-hr/.openclaw-hr/install/node_modules/.bin:$HOME/openclaw-hr/.openclaw-hr/node_modules/.bin:$PATH"
-
-# ── LLM API Keys（向负责人索取）────────────────
-export DEEPSEEK_API_KEY="sk-..."
-export DASHSCOPE_API_KEY="sk-..."
-export VOLCANO_ENGINE_API_KEY="ark-..."
-export XIAOMI_API_KEY="tp-..."
-
-# ── 飞书配置 ──────────────────────────────────
-export FEISHU_APP_ID="cli_..."
-export FEISHU_APP_SECRET="..."
-
-# ── Gateway Token（首次使用时生成）──────────────
-export OPENCLAW_GATEWAY_TOKEN=$(openssl rand -hex 32)
-```
-
-### 加载环境变量
-
-```bash
-source ~/openclaw-hr/.openclaw-hr/env.sh
-```
-
----
-
-## 六、openclaw.yaml 路径修正
-
-如果项目不在 `$HOME/openclaw-hr/` 目录下，需要修改配置文件中的路径：
-
-```bash
-cd ~/openclaw-hr/.openclaw-hr/config
-
-# 查看需要替换的路径
-grep -n "/root/" openclaw.yaml
-
-# 批量替换（将 /root/ 改为你的 HOME 目录）
-sed -i "s|/root/.openclaw-hr|$HOME/openclaw-hr/.openclaw-hr|g" openclaw.yaml
-```
-
----
-
-## 七、OpenClaw 依赖安装
-
-```bash
-cd ~/openclaw-hr/.openclaw-hr
-npm install
-
-# 安装 lobster 插件（必须与 openclaw 版本匹配）
-npx openclaw plugin install @openclaw/lobster@2026.5.12 --force
-```
-
----
-
-## 八、HCM 系统初始化
-
-### 8.1 安装前端依赖
-
-```bash
-cd ~/openclaw-hr/.openclaw-hr/hcm/frontend
-npm install
-```
-
-### 8.2 初始化数据库
-
-```bash
-cd ~/openclaw-hr/.openclaw-hr/hcm/backend
-python seed.py
-```
-
-输出示例：
-```
-✅ 导入 guochao (guochao) — 运营工程师 30K
-✅ 导入 leiwu (leiwu) — 后端开发工程师 18K
-✅ 导入 lisi (lisi) — 人工智能算法工程师 25K
-✅ 导入 lixin (lixin) — 数据标准岗位 8K
-✅ 导入 zhanglei (zhanglei) — 后端工程师 32K
-🎉 完成！共导入 5 位候选人
-```
-
-> `seed.py` 从 `workspace-onboarding/stub-state/` 读取 JSON 数据导入 SQLite。
-> 数据库文件自动生成在 `hcm/hcm.db`。
-
----
-
-## 九、启动服务
-
-### 一键启动
-
-```bash
-cd ~/openclaw-hr/.openclaw-hr/hcm
-bash start.sh
-```
-
-### 分别启动（调试用）
-
-```bash
-# 终端 1：后端
-cd ~/openclaw-hr/.openclaw-hr/hcm/backend
-uvicorn main:app --host 0.0.0.0 --port 8000
-
-# 终端 2：前端
-cd ~/openclaw-hr/.openclaw-hr/hcm/frontend
-npm run dev
-```
-
-### 启动 OpenClaw Gateway（可选）
-
-```bash
-source ~/openclaw-hr/.openclaw-hr/env.sh
-openclaw gateway run
-```
-
----
-
-## 十、访问地址
-
-| 服务 | 地址 | 说明 |
-|------|------|------|
-| **HCM 看板** | http://localhost:5173 | Vue 3 前端 |
-| **HCM API** | http://localhost:8000 | FastAPI 后端 |
-| **Swagger 文档** | http://localhost:8000/docs | API 交互文档 |
-| **OpenClaw Gateway** | http://localhost:18790 | Agent 网关 |
-
----
-
-## 十一、项目结构速查
-
-```
-.openclaw-hr/
-├── hcm/                          ← HCM 系统
-│   ├── backend/                  ← FastAPI 后端
-│   │   ├── main.py               ← 入口（CORS、路由注册、WebSocket）
-│   │   ├── models.py             ← SQLAlchemy 3 张表
-│   │   ├── schemas.py            ← Pydantic 校验
-│   │   ├── database.py           ← SQLite 连接
-│   │   ├── routers/
-│   │   │   ├── candidates.py     ← 候选人 CRUD
-│   │   │   └── reviews.py        ← Review 管理
-│   │   ├── websocket.py          ← WebSocket 广播
-│   │   ├── seed.py               ← 数据导入脚本
-│   │   └── requirements.txt
-│   ├── frontend/                 ← Vue 3 前端
-│   │   ├── src/components/       ← 看板组件
-│   │   ├── src/stores/           ← Pinia 状态管理
-│   │   ├── src/composables/      ← WebSocket composable
-│   │   ├── src/types/            ← TypeScript 类型
-│   │   ├── vite.config.ts        ← 代理配置
-│   │   └── package.json
-│   ├── start.sh                  ← 一键启动脚本
-│   └── hcm.db                    ← SQLite 数据库（自动生成）
-├── env.sh                        ← 环境变量（不在 Git 中）
-├── config/openclaw.yaml          ← OpenClaw 主配置
-├── hr-agents/hr-agents.yaml      ← Agent 定义
-├── workspace-onboarding/         ← 入职 Agent 工作空间
-├── workspace-recruitment/        ← 招聘 Agent 工作空间
-└── workspace-training/           ← 培训 Agent 工作空间
-```
-
----
-
-## 十二、常见问题
-
-### Q1: `openclaw` 命令找不到
-```bash
-# 确认 PATH 包含 node_modules/.bin
-echo $PATH | grep openclaw
-# 或直接用完整路径
-$HOME/openclaw-hr/.openclaw-hr/install/node_modules/.bin/openclaw --version
-```
-
-### Q2: Node.js 版本不够
-```bash
 node --version
-# 如果低于 v22.16.0，按第三节重新安装
 ```
 
-### Q3: `seed.py` 报路径找不到
-确保 `workspace-onboarding/stub-state/` 目录存在且有数据：
+业务脚本会 source `$PROFILE/scripts/prepend-node22.sh`。
+
+---
+
+## 四、Python / conda
+
 ```bash
-ls ~/openclaw-hr/.openclaw-hr/workspace-onboarding/stub-state/
-# 应有 guochao/ leiwu/ lisi/ lixin/ zhanglei/ 等目录
+conda env update -f "$PROFILE/conda/environment-openclaw-hr.yml"
+conda activate openclaw-hr
+bash "$PROFILE/scripts/ensure-rar-tools.sh"
+pip install -r "$PROFILE/hcm/backend/requirements.txt"
 ```
 
-### Q4: 端口被占用
-```bash
-# 查看占用
-lsof -ti:8000
-lsof -ti:5173
+FunASR 用**单独**环境 `funasr_me`，见 [环境配置.md](环境配置.md)。本机面试转写仍跳过补测。
 
-# 杀掉占用进程
-kill $(lsof -ti:8000) 2>/dev/null
+---
+
+## 五、环境变量
+
+`env.sh` gitignore，必须本地创建：
+
+```bash
+cp "$PROFILE/env.sh.example" "$PROFILE/env.sh"
 ```
 
-### Q5: 前端代理报错
-确认后端已启动且在 8000 端口运行：
-```bash
-curl http://localhost:8000/api/health
-# 应返回 {"ok":true,"service":"hcm"}
-```
+至少设置（只填你自己的值，不要提交）：
 
-### Q6: Gateway 启动失败 — API Key 缺失
-检查 `env.sh` 中的 API Key 是否已取消注释并填写：
-```bash
-source ~/openclaw-hr/.openclaw-hr/env.sh
-echo $DEEPSEEK_API_KEY  # 不应为空
-```
+- `OPENCLAW_STATE_DIR="$PROFILE"`
+- `OPENCLAW_CONFIG_PATH="$PROFILE/config/openclaw.yaml"`（若你的启动方式需要）
+- `OPENCLAW_GATEWAY_TOKEN`（随机串；Canvas 启动脚本注入 nginx，不要把 token 写入 `nginx/conf/canvas-proxy.conf` 再 git add）
+- `XIAOMI_API_KEY`（Gateway 主模型）
+- `SILICONFLOW_API_KEY`（embedding）
+- `DEEPSEEK_API_KEY` / `DASHSCOPE_API_KEY`（部分 Skill 脚本）
+- `FEISHU_APP_SECRET`（yaml 里已有 appId 的 SecretRef）
+- IMA：`IMA_OPENAPI_CLIENTID`、`IMA_OPENAPI_APIKEY`、`IMA_HR_KNOWLEDGE_BASE_ID`
 
-### Q7: lobster 插件版本不匹配
 ```bash
-# 查看当前版本
-openclaw plugin list
-
-# 强制安装匹配版本
-npx openclaw plugin install @openclaw/lobster@2026.5.12 --force
+source "$PROFILE/env.sh"
 ```
 
 ---
 
-## 十三、关键配置变更记录
+## 六、路径
 
-以下是部署过程中修正的配置问题，新环境部署时需注意：
+`bash "$PROFILE/setup.sh"` 只替换 `/Users/hsail/.openclaw-hr` 与 `/root/.openclaw-hr`。
 
-| 问题 | 修正方式 |
-|------|---------|
-| `env.sh` 中路径指向 `$HOME/.openclaw-hr` | 改为 `$HOME/openclaw-hr/.openclaw-hr` |
-| `openclaw.yaml` 中硬编码 `/root/` 路径 | `sed` 替换为实际 HOME 路径 |
-| `env.sh` 中 API Key 被注释 | 取消注释并填入实际 Key |
-| lobster 插件版本过高（v2026.7.1） | 降级安装 v2026.5.12 |
-| Node.js 版本不够（需 ≥22.16） | 手动下载安装 22.16.0 |
-| Gateway systemd 服务缺少环境变量 | 改用 `source env.sh && openclaw gateway run` 手动启动 |
-| `auth-profiles.json` 缺失 | 手动创建空 JSON `{}` |
-| `openclaw.yaml` 中 `toolCalling` 字段不识别 | 删除该字段（2026.5.12 不支持） |
+yaml、`cron/jobs.json`、nginx 日志路径里若仍是 `/home/yhwz/openclaw-hr`，换机后：
+
+```bash
+# 示例：把旧根换成新 $REPO（先确认 grep 结果再 sed）
+grep -n "/home/yhwz/openclaw-hr" "$PROFILE/config/openclaw.yaml" | head
+```
+
+`openclaw config validate` 应通过。`maxChildrenPerAgent` / `runTimeoutSeconds` 只允许出现在 `agents.defaults.subagents`。
+
+---
+
+## 七、OpenClaw 与 Lobster
+
+按你现有安装方式保证 `openclaw` 在 PATH。Lobster 必须 **2026.5.12**，不要装更新主版本。
+
+```bash
+openclaw --version
+openclaw plugin list
+```
+
+---
+
+## 八、HCM
+
+```bash
+cd "$PROFILE/hcm/frontend" && npm install
+cd "$PROFILE/hcm/backend" && python seed.py   # 从 stub-state 灌演示人
+bash "$PROFILE/hcm/start.sh"
+```
+
+新人必须先在 HCM 建档再 `run-onboarding.sh start`。小慧只 GET。详见 [hcm/README.md](../.openclaw-hr/hcm/README.md)。
+
+`start.sh` 里后端目前 `--host 0.0.0.0`；云主机建议改成 `127.0.0.1`。
+
+---
+
+## 九、启动
+
+```bash
+source "$PROFILE/env.sh"
+openclaw gateway run                          # 保持运行；飞书/Cron/Lobster 都在此进程
+curl -sS http://127.0.0.1:18790/health
+bash "$PROFILE/nginx/start-canvas-proxy.sh"   # :18999，需 Gateway
+```
+
+| 服务 | 地址 |
+|------|------|
+| HCM 看板 | http://127.0.0.1:5173 |
+| HCM API / Swagger | http://127.0.0.1:8000 与 `/docs` |
+| Gateway | http://127.0.0.1:18790 |
+| Canvas 反代 | http://127.0.0.1:18999 |
+
+对话示例见 [`.openclaw-hr/README.md`](../.openclaw-hr/README.md)。**不要**对 router/飞书要月报。
+
+---
+
+## 十、常见问题
+
+- **找不到 `openclaw`**：把安装目录的 `node_modules/.bin` 加进 PATH，或用你机器上的绝对路径。
+- **Node 太旧**：第三节。
+- **seed 找不到人**：看 `$PROFILE/workspace-onboarding/stub-state/`。
+- **端口占用**：`lsof -ti:8000,5173,18790,18999`。
+- **前端代理失败**：后端要先在 8000 起来，`curl http://127.0.0.1:8000/api/health`。
+- **Gateway 起不来**：`source env.sh`；主模型要 `XIAOMI_API_KEY`。
+- **lobster 版本不对**：卸掉新版本，装与 OpenClaw 相同的 2026.5.12。
+- **yaml `toolCalling` 不识别**：2026.5.12 无此字段，删掉。
+- **Canvas 401**：用 `start-canvas-proxy.sh`，不要手写 token 进 conf 再提交。
+
+---
+
+## 十一、部署时仍要自己改的硬编码
+
+| 点 | 说明 |
+|----|------|
+| `$HOME/.openclaw-hr` | 课程默认；现行是 `$REPO/.openclaw-hr` |
+| `/root/.openclaw-hr` | setup.sh 会改 |
+| `/home/yhwz/openclaw-hr` | setup.sh **不会**改 |
+| `hcm/start.sh` 里 miniconda 路径 | 本机 `/home/yhwz/miniconda3` |
+| `cron/jobs.json` 脚本绝对路径 | 换目录必改 |

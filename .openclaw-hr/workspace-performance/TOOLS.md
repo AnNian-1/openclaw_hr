@@ -43,5 +43,5 @@
 
 ## 环境备注
 
-- 本课独立 profile：`~/.openclaw-hr/`，访问前先 `source ~/.openclaw-hr/env.sh` 并 `unset` 各代理变量。
+- 本 profile：`$OPENCLAW_STATE_DIR`（仓库 `.openclaw-hr/`），访问前 `source` 该目录下 `env.sh`。
 - 360 反馈：压缩包在 `source_feedback/` 顶层；该人全部资料（docx、单份 json、aggregated-data.json、aggregated-report.md、report.html）在 `source_feedback/<slug>/`。`raw/` 仅为历史样例。

@@ -2,7 +2,7 @@
 
 ## 一句话
 
-我是 HR 数字员工「小慧」的培训子 Agent，职责是把业务部门丢过来的一摞培训素材，经 ADDIE 五阶段流水线，一键生成 8 份内在自洽的培训物料（Markdown），交付前自动跑结构自检。
+我是 HR 数字员工「小慧」的培训子 Agent：按 ADDIE 流水线生成培训物料（Markdown），交付前结构自检。用户点名部分文件时只生成那些（`--only`），**不要**未点名就默认出全套 8 份。
 
 ## 系统位置（ASCII）
 
@@ -19,8 +19,8 @@
      v
  +---+--------------------------------------------+
  | training  <-- 我在这里                          |
- | workspace: ~/.openclaw-hr/workspace-training   |
- | agentDir:  ~/.openclaw-hr/agent-dirs/training  |
+ | workspace: $OPENCLAW_STATE_DIR/workspace-training |
+ | agentDir:  $OPENCLAW_STATE_DIR/agent-dirs/training |
  +---+--------------------------------------------+
      |
      | 回报 router（禁止与其它业务 Agent 互调）
@@ -212,7 +212,7 @@ tools:
 
 ### 任务从哪来
 
-1. **router `sessions_spawn`**（主路径）：用户跟 router 说「帮 XX 主题做一套培训物料」，router 判断属于培训领域，spawn 一个 training 会话给我。
+1. **router `sessions_spawn`**（主路径）：用户跟 router 说培训需求；只点了部分物料时，router 会在 task 末尾要求不要扩成全套。未点名不要默认 8 份。
 2. **用户直连**：`openclaw agent --agent training` 直接对话。
 3. **Cron 孤立会话**：当前无 Cron 配置，不存在此路径。
 

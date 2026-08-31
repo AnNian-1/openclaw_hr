@@ -7,6 +7,7 @@
 # numpy / pandas / matplotlib —— 画像雷达图、月报、360 看板
 # imap-tools / pdfminer.six / python-docx / rarfile / python-pptx
 #                            —— 收信、DOCX 解析、office-to-md PPT
+# pypinyin —— 360 反馈 ingest
 
 numpy>=2.0
 pandas
@@ -16,3 +17,5 @@ pdfminer.six==20251230
 python-docx==1.2.0
 python-pptx>=0.6.21
 rarfile==4.3
+pypinyin
+

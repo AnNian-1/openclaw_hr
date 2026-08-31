@@ -9,7 +9,9 @@ alwaysApply: true
 
 `.openclaw-hr/docs/云迁移与记忆交接.md`
 
-开场先读该文档，再改 yaml / 造测试人 / 启动进程。
+人读总览：`docs/项目说明.md`。冲突时以 `openclaw.yaml`、各域 `SOUL.md`、项目说明为准，不要用课程 README 的 DeepSeek 主模型或对 router 出月报。
+
+开场先读交接文，再改 yaml / 造测试人 / 启动进程。
 
 硬规则（摘要）：
 

@@ -17,7 +17,7 @@
 
 **step1 重组转写稿**——转写稿是按时间排的片段序列，同一个人可能连说好几段。脚本把连续的同说话人片段合并，得到"面试官: …… / 候选人: ……"的对话稿。这一步是确定性的字符串处理。
 
-**step2 大模型生成结构化纪要**——把对话稿交给 DeepSeek V4，用 `response_format: json_object` 强制 JSON 输出。大模型产出：关键问答（qa）、优势（strengths）、待考察点（concerns）、高亮时刻（highlights）、评分建议（recommendation），以及候选人口述的项目数字（mentioned_numbers）。这一步是非确定性的大模型调用，脚本对它做 3 次重试；多次重试仍失败就显式报错退出码 1，绝不返回空纪要冒充成功。
+**step2 大模型生成结构化纪要**——把对话稿交给 Xiaomi `mimo-v2.5-pro`（脚本也可回退 DeepSeek），用 JSON 输出。大模型产出：关键问答（qa）、优势（strengths）、待考察点（concerns）、高亮时刻（highlights）、评分建议（recommendation），以及候选人口述的项目数字（mentioned_numbers）。这一步是非确定性的大模型调用，脚本对它做 3 次重试；多次重试仍失败就显式报错退出码 1，绝不返回空纪要冒充成功。
 
 **step3 数字回核**——见 §3。
 

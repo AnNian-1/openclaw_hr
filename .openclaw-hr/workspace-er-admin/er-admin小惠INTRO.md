@@ -2,7 +2,7 @@
 
 ## 一句话
 
-我是 HR 数字员工「小慧」的**行政员工关系 Agent**，通过腾讯 IMA 知识库为员工提供 7x24 HR 政策答疑，并按月自动生成公司 HR 月报。
+我是 HR 数字员工「小慧」的**行政员工关系 Agent**，通过腾讯 IMA 知识库为员工提供 7x24 HR 政策答疑。HR 月报由独立 Agent `er-admin-cron` 按月生成，**飞书通道不提供月报**。
 
 ## 系统位置（ASCII）
 
@@ -114,14 +114,14 @@
 
 **逐步说明：**
 
-1. **触发**：OpenClaw Cron 月末定时唤醒，或手动指定月份
-2. **执行**（`exec`）：`bash skills/generating-monthly-report/scripts/run_monthly_report.sh [YYYY-MM]`
+1. **触发**：OpenClaw Cron 月末唤醒 **`er-admin-cron`**（不要在飞书 `er-admin` 会话里跑）
+2. **执行**（`exec`）：`bash scripts/er-admin-run.sh monthly-report [YYYY-MM]`（不要直接 `run_monthly_report.sh`）
 3. **内部流程**：conda py312 环境 → pandas 读 6 CSV → 算指标 → 对标 5 项业界基准 → matplotlib 出 4 张图 → 拼单文件 HTML → 打印数字回核表
 4. **落盘**：`report-output/hr-monthly-report-<月份>.html` + `report-output/*-audit.md`
 5. **发布**：复制到 `canvas/documents/hr-monthly-report/index.html`，浏览器访问端口 18999
 6. **不改动数字**：所有数值由 pandas 确定性算出，LLM 不碰数字
 
-**端到端示例**：Cron 于 2026-05-31 23:59 唤醒 → `exec` 跑 `run_monthly_report.sh 2026-05` → pandas 读 6 CSV → 产出 `report-output/hr-monthly-report-2026-05.html` + `report-output/hr-monthly-report-2026-05-audit.md` → 发布到 Canvas `hr-monthly-report` → 浏览器 `http://127.0.0.1:18999/__openclaw__/canvas/documents/hr-monthly-report/index.html`。
+**端到端示例**：Cron 唤醒 `er-admin-cron` → `exec` 跑 `er-admin-run.sh monthly-report 2026-05` → pandas 读 6 CSV → 产出 `report-output/hr-monthly-report-2026-05.html` + audit → 发布到 Canvas `hr-monthly-report` → 浏览器 `http://127.0.0.1:18999/__openclaw__/canvas/documents/hr-monthly-report/index.html`。
 
 ### 流程 3：IMA 笔记/知识库操作
 
@@ -181,7 +181,7 @@ er-admin tools:
 
 ### Cron
 
-- **月报定时任务**：Cron 月末 23:59 唤醒，触发 `run_monthly_report.sh`（由总控/运维配置，不在 er-admin 内）
+- **月报定时任务**：Cron 唤醒 **`er-admin-cron`**（与本工作区共用），`exec` 只跑 `scripts/er-admin-run.sh monthly-report`。飞书绑定的 `er-admin` **没有**该子命令。
 - **Heartbeat**：当前 `HEARTBEAT.md` 为空，不用于本职业务
 
 ### 外部系统
@@ -199,7 +199,7 @@ er-admin tools:
 | 飞书私聊 | OpenClaw binding 直接路由到 `er-admin`（`channel:feishu` → `agentId:er-admin`） |
 | 飞书群聊 @我 | 同上，`requireMention: true` |
 | WebChat | 先到 `router`，再由 router `sessions_spawn` 给我 |
-| Cron 孤立会话 | 月末月报任务，直接唤醒 |
+| Cron 孤立会话 | 月末月报走 **`er-admin-cron`**，不是飞书这条 `er-admin` |
 
 ### 交回结果
 

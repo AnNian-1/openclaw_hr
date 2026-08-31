@@ -195,7 +195,7 @@
 2. **解析**：运行 `parsing-resumes`，产出 `parsed/张磊-后端开发.json`，跑 `validate_profile.js` 校验通过。
 3. **真实性核对**：运行 `auditing-extraction`，产出 `audited/张磊-后端开发.audit.json`，可追溯率达标，退出码 0。
 4. **合规过滤**：运行 `filtering-sensitive-fields`，产出 `scoring/clean-张磊-后端开发.json`，退出码 0（无敏感字段残留）。
-5. **评分**：运行 `scoring-candidates`，调 DeepSeek 按 8 维度打分，产出评分 JSON。
+5. **评分**：运行 `scoring-candidates`，按 8 维度打分（脚本默认走 Gateway 同系小米/mimo，可回退 DeepSeek），产出评分 JSON。
 6. **数字回核**：运行 `auditing-numbers`，比对评分文字里的数字与原简历 `inbox/张磊-后端开发.md`，修正虚构数字。
 7. **产出**：`ranking JSON` 交到 HR 手里，含建议动作（如「建议进入面试」）。
 
@@ -222,9 +222,9 @@
 **脚本语言**：Python 3（parsing/embedding/转写/画像生成）+ Node.js（validate/audit 脚本）。
 
 **外部依赖**（只写服务名，不写 Key）：
-- **DeepSeek**：简历解析、评分、纪要生成、相似度解释的大模型推理。缺凭证时脚本报错退出，不会用模型常识冒充。
-- **DashScope（通义 text-embedding-v3）**：人才库向量化。缺凭证时 ingest 脚本失败。
-- **FunASR + ModelScope**：面试录音转写 + 说话人分离。缺环境时报错，需 conda 环境 `funasr_me`。
+- **Gateway 主模型**：`xiaomi/mimo-v2.5-pro`。纪要、相似度解释走 `XIAOMI_API_KEY`。解析/评分脚本可走小米或 DeepSeek（缺凭证非零退出，不用常识冒充）。
+- **SiliconFlow**：人才库 embedding（`SILICONFLOW_API_KEY`）。缺凭证时 ingest 失败。
+- **FunASR + ModelScope**：面试录音转写 + 说话人分离。需 conda 环境 `funasr_me`（不要装进 `openclaw-hr`）。本机转写仍待换机补测。
 - **matplotlib**：画像雷达图和词云渲染。
 - **IMAP（企业邮箱）**：fetching-resumes-by-mail 收取简历。
 
@@ -302,7 +302,7 @@ Heartbeat：可用于整理 memory 文件、更新文档等杂务，不用于触
 | 场景 | 表现 | 是失败还是假成功 |
 |------|------|-----------------|
 | inbox 为空 | 告知「没有待处理的简历」 | **明确失败**，不会编造候选人 |
-| DeepSeek API 不可用 | 脚本非零退出，报错信息 | **明确失败**，不会用本地模型凑合 |
+| LLM API 不可用（小米 / DeepSeek） | 脚本非零退出，报错信息 | **明确失败**，不会用本地模型凑合 |
 | 合规过滤自检未通过 | filter_sensitive.js 退出码 1 | **明确失败**，绝不拿残留敏感字段的数据去评分 |
 | 数字回核失败 | audit_numbers.js 退出码 1 | **明确失败**，不会把「判定没拿到」当「无虚构」放行 |
 | 面试转写校验不通过 | validate_transcript.js 退出码 1 | **明确失败**，不会拿校验不过的转写稿去生成纪要 |

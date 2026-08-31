@@ -1,41 +1,23 @@
 # 权限分级配置
 # 基于 sender_id (open_id) 的角色映射
+# 飞书通道的真实工具权限以 config/openclaw.yaml 的 toolsBySender 为准。
+# 飞书不出月报：monthly-report 只在 Agent er-admin-cron。HR 档可 write，主管/员工/`*` deny write。
 
-# 管理员列表（完整权限）
+# 管理员 / HR 测试号（yaml：write + exec + read）
 admin:
   - "ou_2f67ed66e57e214e72c318a57c60d1c4"   # HR（测试用户1）
 
-# HR 专员列表（可出月报、查看审计日志、管理知识库）
 hr_staff:
-  - "ou_2f67ed66e57e214e72c318a57c60d1c4"   # HR（测试用户1）- 同时也是管理员
+  - "ou_2f67ed66e57e214e72c318a57c60d1c4"   # 同 HR 测试号
 
-# 部门主管列表（可查看团队相关数据）
+# 部门主管（yaml：exec + read，deny write）
 manager:
   - "ou_85759e2571f33307b6fc7b265060d5c1"   # 部门主管（测试用户2）
 
-# 普通员工（默认，无需配置）
-# 其他所有 sender_id 自动归为普通员工
+# 普通员工（默认）：exec + read，deny write。其它 ou_* 归入此类。
 
-# 权限说明：
-# Level 1 - 普通员工：
-#   - 查询HR政策（只读）
-#   - 禁止：月报生成、个人数据查询、审计日志
-#
-# Level 2 - 部门主管：
-#   - Level 1 所有权限
-#   - 查看团队考勤汇总（脱敏）
-#   - 查看团队假期统计
-#
-# Level 3 - HR专员：
-#   - Level 1 所有权限
-#   - 生成月报
-#   - 查看审计日志
-#   - 知识库管理
-#   - 员工信息查询（受限）
-#
-# Level 4 - 管理员：
-#   - 所有权限
-#   - Gateway 配置
-#   - Skill 管理
-#   - 跨域操作
-#   - 用户角色管理
+# 与 yaml 对齐的说明：
+# - 全员可 ima-search 问政策（exec 业务入口）。
+# - 禁止：飞书生成月报、用常识填政策、政策原文另存知识库。
+# - HR 测试号可对本 workspace write/edit（冒烟/文档）；主管与员工不能写盘。
+# - 月报、Gateway 配置、跨域操作不在飞书会话里做。

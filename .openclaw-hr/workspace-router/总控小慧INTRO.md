@@ -29,7 +29,7 @@
     子 Agent 禁止互相 spawn；只回报 router
 ```
 
-- Manifest: `.openclaw-hr/hr-agents/hr-agents.yaml`（6 个 Agent 的 id / 领域 / 工作区）
+- Manifest: `.openclaw-hr/hr-agents/hr-agents.yaml`（业务五域 + `er-admin-cron` 月报；router 只调度 WebChat）
 - 路由模式: Local Workflow；子 Agent 的 `subagents.allowAgents` 为空，互相不可达
 - 我绑定在 WebChat channel；飞书 channel 绑定的是 `er-admin`
 
@@ -56,7 +56,7 @@
 | `onboarding`  | 入职      | 入职流程、新员工报到、入职审批、查进度        |
 | `training`    | 培训      | 做培训、出 PPT、培训物料、课后测试题          |
 | `performance` | 绩效      | 360 反馈、绩效评估、绩效数据                  |
-| `er-admin`    | 行政      | 年假/病假/报销/社保政策咨询、会议纪要、HR 月报 |
+| `er-admin`    | 行政      | 年假/病假/报销/社保政策咨询。**不要**把「出月报」当分发成功项（月报只 `er-admin-cron`） |
 
 ## 主工作流（ASCII + 逐步说明）
 
@@ -72,7 +72,8 @@
     - "入职流程" "新员工报到"   --> onboarding
     - "做培训" "出 PPT"         --> training
     - "360 反馈" "绩效评估"     --> performance
-    - "年假" "报销" "HR 月报"   --> er-admin
+    - "年假" "报销"             --> er-admin
+    - "出月报"                  --> 说明只由 Cron/`er-admin-cron` 生成，不要 spawn 假成功
     - 判不准? --> 问用户澄清，不猜
         |
         v

@@ -30,8 +30,8 @@
        +-- sync-reviews-if-ready.sh  (五节点全绿才挂 7/30/60/90)
 ```
 
-- **workspace 目录**：`~/.openclaw-hr/workspace-onboarding/` —— 业务文件、Skill、状态数据都在这里。
-- **agentDir 目录**：`~/.openclaw-hr/agent-dirs/onboarding/` —— OpenClaw 会话记忆与身份文件。
+- **workspace 目录**：`$OPENCLAW_STATE_DIR/workspace-onboarding/`（本仓库 `.openclaw-hr/workspace-onboarding/`）—— 业务文件、Skill、状态数据都在这里。
+- **agentDir 目录**：`$OPENCLAW_STATE_DIR/agent-dirs/onboarding/` —— OpenClaw 会话记忆与身份文件。
 - **Canvas 发布**：看板发布到 `canvas/documents/onboarding-dashboard/index.html`（纯 ASCII id），通过 18999 端口访问。
 
 ## 我负责 / 我不负责

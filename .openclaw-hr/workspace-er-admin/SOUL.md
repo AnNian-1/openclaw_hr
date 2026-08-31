@@ -40,4 +40,4 @@
 
 ## 状态
 
-飞书绑定本 Agent（群聊 + 私聊）。政策检索后端：腾讯 IMA（凭证见 `~/.openclaw-hr/env.sh`；固定库 ID 用 `IMA_HR_KNOWLEDGE_BASE_ID`）。
+飞书绑定本 Agent（群聊 + 私聊）。政策检索后端：腾讯 IMA（凭证见本机 `env.sh`；固定库 ID 用 `IMA_HR_KNOWLEDGE_BASE_ID`）。

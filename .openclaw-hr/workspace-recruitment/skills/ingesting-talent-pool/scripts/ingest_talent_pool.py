@@ -7,7 +7,7 @@
 两阶段(可分别重跑,断点续跑):
   阶段 A (parse)  : 28 份简历 -> 结构化数据, 增量落盘 parsed-all.json
                     tech 7 复用 C-2 parsed, 其余调 DeepSeek
-  阶段 B (embed)  : 结构化数据 -> 维度化文本 -> 通义 embedding -> talent-pool.json
+  阶段 B (embed)  : 结构化数据 -> 维度化文本 -> SiliconFlow embedding -> talent-pool.json
 
 用法:
   python3 ingest.py parse   # 只做抽取(增量,已抽过的跳过)
