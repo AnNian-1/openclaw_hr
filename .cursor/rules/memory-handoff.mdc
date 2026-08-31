@@ -1,0 +1,23 @@
+---
+description: 换机器/新对话时防止记忆断层；硬规则与交接文档入口
+alwaysApply: true
+---
+
+# openclaw-hr 交接（编码 Agent）
+
+完整事实、会话能否迁云、rsync 清单见：
+
+`.openclaw-hr/docs/云迁移与记忆交接.md`
+
+开场先读该文档，再改 yaml / 造测试人 / 启动进程。
+
+硬规则（摘要）：
+
+- 说话人是**总控**。OpenClaw 钉 **2026.5.12**。`maxChildrenPerAgent` / `runTimeoutSeconds` 只写 `agents.defaults.subagents`。
+- **禁止编造**花名册、绩效 S/A/B/C、人才库真人。夹具不是生产数据。默认人才库非夹具主要是张磊。
+- **ASR 跳过**直到换机补测。**不要开 Dreaming**。
+- 飞书绑 **er-admin**（不是 router）。Router 用 `sessions_spawn`。飞书 **禁止出月报**（月报只 `er-admin-cron`）。
+- HR 测试号 `ou_2f67ed66…` 可 write；主管/员工/`*` deny write。
+- 密钥只在 `env.sh`。Canvas 反代配置不要写 Gateway token。
+- 未要求则不要启动 Gateway/HCM/Canvas，不要 force-push。
+- 不要编辑 `.cursor/plans/`。不要把 `_ref/`、会话、sqlite、冒烟落盘当源码提交。
