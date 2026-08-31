@@ -6,7 +6,7 @@ auditing-numbers 评测场景
 == 评测场景 ==
 
 场景 1 · 抓出真实的串台虚构数字
-- 输入：张磊回核前评分结果 score-张磊-回核前.json（highlights[1] 与 dimension_reasons.抗压能力 都写了"58万笔/秒"）+ 张磊原简历 resume-tech-01-张磊-后端开发.md
+- 输入：员工1回核前评分结果 score-员工1-回核前.json（highlights[1] 与 dimension_reasons.抗压能力 都写了"58万笔/秒"）+ 员工1原简历 resume-tech-01-员工1-后端开发.md
 - query：对这份评分结果做数字回核
 - expected_behavior：
   - 抽出评分文字里所有"数字+单位"，逐个在原简历里反查
@@ -25,7 +25,7 @@ auditing-numbers 评测场景
   - 不误报、不报错，退出码 0
 
 场景 3 · 回核基准只能是原简历，不能是 JD
-- 输入：张磊回核前评分结果 + 张磊原简历（JD 里有"58万笔/秒"这个数字，简历里没有）
+- 输入：员工1回核前评分结果 + 员工1原简历（JD 里有"58万笔/秒"这个数字，简历里没有）
 - query：对这份评分结果做数字回核
 - expected_behavior：
   - 脚本只接收原简历作回核基准，不接收 JD

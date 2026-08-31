@@ -53,7 +53,7 @@ cd ~/openclaw-hr/.openclaw-hr/hcm && bash start.sh
 
 - [x] **O-01** seed + start.sh → `:5173` / `:8000`；`/docs` 可开（环境现网；总控复测 HTTP）
 - [x] **O-05** `GET /api/candidates` → 200（总控将复跑确认）
-- [x] **O-09** `onboarding-review.sh 李鑫 7 lixin` → 有 day7 json（T-10 总控已跑）
+- [x] **O-09** `onboarding-review.sh 员工2 7 yuangong2` → 有 day7 json（T-10 总控已跑）
 
 ### 下午 · HCM 权限 + 入职脚本
 
@@ -62,7 +62,7 @@ cd ~/openclaw-hr/.openclaw-hr/hcm && bash start.sh
 - [x] **O-04** HR 视图改 account：前端无编辑控件
 - [x] **O-06** PUT contract `completed` + note=`o06-retry`，GET 一致
 - [x] **O-10** `build-dashboard.sh` 退出 0
-- [x] **O-11** `query-onboarding-status.sh 李鑫 lixin` 退出 0
+- [x] **O-11** `query-onboarding-status.sh 员工2 yuangong2` 退出 0
 - [x] **O-12** router 查入职进度 → 点名 **onboarding**
 - [x] **O-14** 假成功·查进度：6 人对盘 stub；CLI 未展开
 - [x] **O-13** 停 HCM 再问进度：**☒** stub 报完成、未诊断 API 不可用（CROS-02）
@@ -90,11 +90,11 @@ openclaw agent --agent router -m "……"
 ```
 
 - [x] **O-12** router：查入职进度 / 启动新人入职 → 点名 **onboarding**
-- [x] **O-14** 假成功·查进度：子 Agent 6 人与 stub-state 拼音目录一致（测试员/郭超/雷武/李四/李鑫/张磊）；CLI 正文空。未编李雪婷等
+- [x] **O-14** 假成功·查进度：子 Agent 6 人与 stub-state 拼音目录一致（测试员/郭超/雷武/李四/员工2/员工1）；CLI 正文空。未编李雪婷等
 - [x] 对话「刷新入职看板/出一张进度图」→ workspace `onboarding-dashboard.html` mtime **01:29**；canvas 同步。`dashboard-system/` 下旧文件未刷新
 - [x] **O-15** 假成功·看板：声称路径存在；姓名与 stub 一致
-- [x] 对话「给李鑫做第 7 天跟进」→ `review-李鑫-day7.json` mtime **01:10 → 01:30**
-- [x] **O-16** 假成功·review：落盘刷新；仅李鑫
+- [x] 对话「给员工2做第 7 天跟进」→ `review-员工2-day7.json` mtime **01:10 → 01:30**
+- [x] **O-16** 假成功·review：落盘刷新；仅员工2
 - [x] **O-13** 停掉 HCM（停 8000）再问进度 → **☒** stub 报完成、未诊断 API 不可用（CROS-02）；测完已拉起 HCM
 - [x] **O-PROC-04** 不存在的人：`onboarding-review.sh` 仍 **exit 0** 并写 `review-不存在的人-day7.json`（D-010 / P1）
 - [x] **O-PROC-02、03、05、06** 看板对 stub ☑；O-13 同 CROS-02 ☒；垃圾 token rc=2 ☑

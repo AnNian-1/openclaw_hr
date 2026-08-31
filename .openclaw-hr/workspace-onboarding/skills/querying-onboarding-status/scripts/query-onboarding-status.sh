@@ -5,8 +5,8 @@
 #   query-onboarding-status.sh <候选人全名> [pinyin]
 #
 # 例：
-#   query-onboarding-status.sh 张磊 zhanglei   # 工整路径
-#   query-onboarding-status.sh 张磊            # 用内嵌 pinyin 字典查
+#   query-onboarding-status.sh 员工1 yuangong1   # 工整路径
+#   query-onboarding-status.sh 员工1            # 用内嵌 pinyin 字典查
 #
 # 输出：stdout = 结构化 JSON；stderr = 人话摘要
 set -euo pipefail

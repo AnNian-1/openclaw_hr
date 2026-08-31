@@ -6,7 +6,7 @@
   - 压缩包文件名**不固定**（任意 .zip / .rar 均可）
   - 所有落盘资料统一在 feedback-360/source_feedback/ 下
   - 子目录名由 DOCX 内「被评估人」字段决定，不依赖压缩包名
-    例：表内被评估人=张磊 → source_feedback/zhanglei/
+    例：表内被评估人=员工1 → source_feedback/yuangong1/
 
 流程：
   1. 定位压缩包（显式路径，或扫描 source_feedback/ 顶层）

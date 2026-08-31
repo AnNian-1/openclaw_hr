@@ -105,7 +105,7 @@ def validate_id(canvas_id: str) -> Tuple[bool, str]:
             f"id '{canvas_id}' 含非 ASCII / 全角 / emoji 字符: {bad_chars}. "
             f"Canvas 路由 normalizeCanvasDocumentId() 只接 [A-Za-z0-9._-]. "
             f"约定 ASCII 别名: 'profile-<pinyin-no-tones>', "
-            f"如 'profile-zhanglei'."
+            f"如 'profile-yuangong1'."
         )
     return True, ""
 
@@ -187,12 +187,12 @@ def resolve_ports() -> Tuple[int, int]:
     else:
         # 从 nginx 配置探测: 扫监听 127.0.0.1 的非 80 端口
         nginx_port = 0  # 0 表示未探测到
-        if shutil.which("nginx") and Path("/root/.openclaw-hr/nginx/conf").exists():
+        if shutil.which("nginx") and Path("/opt/openclaw-hr/.openclaw-hr/nginx/conf").exists():
             try:
                 import subprocess
                 # 用 nginx -T 过滤出 listen 行
                 out = subprocess.run(
-                    ["nginx", "-T", "-c", "/root/.openclaw-hr/nginx/conf/nginx.conf"],
+                    ["nginx", "-T", "-c", "/opt/openclaw-hr/.openclaw-hr/nginx/conf/nginx.conf"],
                     capture_output=True,
                     text=True,
                     timeout=3,
@@ -323,7 +323,7 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
         description="把候选人画像 HTML 发布到 OpenClaw Canvas host.",
         epilog=(
             "约束详见 references/canvas-publishing.md. "
-            "ASCII 别名示例: profile-zhanglei / profile-zhouxiaofeng"
+            "ASCII 别名示例: profile-yuangong1 / profile-zhouxiaofeng"
         ),
     )
     p.add_argument(

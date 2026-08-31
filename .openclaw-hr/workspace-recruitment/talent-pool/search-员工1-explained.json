@@ -1,0 +1,60 @@
+{
+  "query": "员工1",
+  "query_type": "candidate",
+  "topn": 5,
+  "insufficient": false,
+  "matchable": 3,
+  "pool_names": [
+    "员工1",
+    "员工2",
+    "员工3",
+    "员工4"
+  ],
+  "results": [
+    {
+      "rank": 1,
+      "id": "resume-tech-员工2-后端开发",
+      "name": "员工2",
+      "category": "tech",
+      "target_position": "后端开发工程师（Java/Go）",
+      "similarity": 0.8458,
+      "dim_similarity": {
+        "education": 0.6576,
+        "experience": 0.8266,
+        "skills": 0.7048,
+        "industry": 0.6983
+      },
+      "explanation": "这位候选人与锚点候选人在核心经历上最为相似（经历维度0.83分），他们都有头部电商集团的后端开发经验，且都精通电商相关业务。技能上重合度也较高（技能维度0.70分），都掌握Java、Go、Spring体系、RocketMQ、Redis和MySQL等关键后端技术栈。主要差异在于教育背景（教育维度0.66分）和总年限，但业务场景和技术栈高度匹配。"
+    },
+    {
+      "rank": 2,
+      "id": "resume-tech-员工3-后端开发",
+      "name": "员工3",
+      "category": "tech",
+      "target_position": "后端开发工程师",
+      "similarity": 0.8379,
+      "dim_similarity": {
+        "education": 0.8946,
+        "experience": 0.7935,
+        "skills": 0.727,
+        "industry": 0.6364
+      },
+      "explanation": "员工3在教育维度上与锚点高度相似（相似度0.8946），因为双方都毕业于软件工程专业，尽管学位层次不同但专业领域一致。行业维度差异较大（相似度0.6364），因为锚点具有电商和O2O经历，而员工3仅专注于互联网金融领域。"
+    },
+    {
+      "rank": 3,
+      "id": "resume-tech-员工4-前端开发",
+      "name": "员工4",
+      "category": "tech",
+      "target_position": "前端开发工程师",
+      "similarity": 0.7037,
+      "dim_similarity": {
+        "education": 0.5746,
+        "experience": 0.7519,
+        "skills": 0.4345,
+        "industry": 0.782
+      },
+      "explanation": "这个人在行业维度上与锚点候选人最像，相似度达到0.782，因为两人都有O2O生活服务平台的工作经历。不过技能维度差异较大，相似度仅为0.4345，锚点是后端技术专家，精通Java和微服务架构，而相似候选人是前端开发工程师，专注于Vue等前端技能。"
+    }
+  ]
+}

@@ -10,6 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "openclaw": "^2026.5.12"
+    "openclaw": "2026.5.12"
   }
 }

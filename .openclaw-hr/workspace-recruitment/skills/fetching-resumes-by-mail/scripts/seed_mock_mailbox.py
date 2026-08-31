@@ -28,7 +28,7 @@ def is_resume_attachment(p: Path) -> bool:
 
 
 def guess_candidate_name(p: Path) -> str:
-    # 文件名形如  resume-function-01-陈雅琴-财务.md → 陈雅琴
+    # 文件名形如  resume-function-01-候选人F-财务.md → 候选人F
     m = re.search(r"-\d{2}-(.+?)-", p.name)
     return m.group(1) if m else p.stem
 

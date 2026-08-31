@@ -61,6 +61,10 @@ pnpm-lock.yaml
 *.db-wal
 .openclaw-hr/memory/
 .openclaw-hr/hcm/hcm.db
+.openclaw-hr/ops/memory-snapshots/
+.openclaw-hr/ops/dream-quarantine/
+.openclaw-hr/ops/dream-approved/
+.openclaw-hr/ops/dream-gate-blocklist.local.txt
 
 # ========== 大媒体 / ASR 模型（本轮测试也不需要）==========
 .openclaw-hr/media/
@@ -120,6 +124,7 @@ pnpm-lock.yaml
 *.swp
 *.swo
 *.log
+*.pid
 *.migrated
 *.migrated.*
 .DS_Store

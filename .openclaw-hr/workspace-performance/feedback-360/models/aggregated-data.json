@@ -1,5 +1,5 @@
 {
-  "subject": "张磊",
+  "subject": "员工1",
   "subject_role": "支付平台研发组 后端开发工程师",
   "period": "2026-H1",
   "total_feedback_count": 7,
@@ -141,11 +141,11 @@
       "count": 2,
       "reviewers": [
         {
-          "alias": "孙浩（应届新人，张磊的带教对象）",
+          "alias": "孙浩（应届新人，员工1的带教对象）",
           "file": "report-01.json"
         },
         {
-          "alias": "周琳（实习生，张磊的带教对象）",
+          "alias": "周琳（实习生，员工1的带教对象）",
           "file": "report-02.json"
         }
       ],
@@ -207,7 +207,7 @@
       "count": 1,
       "reviewers": [
         {
-          "alias": "张磊（本人自评）",
+          "alias": "员工1（本人自评）",
           "file": "self.json"
         }
       ],

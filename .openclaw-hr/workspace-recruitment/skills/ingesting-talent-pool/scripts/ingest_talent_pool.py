@@ -62,8 +62,13 @@ EMBED_API_KEY = (
     or os.environ.get("SF_API_KEY")
     or ""
 )
-EMBED_MODEL = os.environ.get("EMBEDDING_MODEL", "BAAI/bge-large-zh-v1.5")
+EMBED_MODEL = os.environ.get("EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B")
 EMBED_DIM = int(os.environ.get("EMBEDDING_DIM", "1024"))
+
+
+def embed_wants_dimensions(model):
+    m = (model or "").lower()
+    return "qwen3-embedding" in m or "text-embedding-v3" in m
 
 def log(*a):
     print(*a, flush=True)
@@ -195,6 +200,8 @@ EMBED_BASE = os.environ.get(
 def embed(texts):
     # SiliconFlow OpenAI-compatible: POST /v1/embeddings
     payload = {"model": EMBED_MODEL, "input": texts}
+    if embed_wants_dimensions(EMBED_MODEL):
+        payload["dimensions"] = EMBED_DIM
     headers = {"Authorization": f"Bearer {EMBED_API_KEY}", "Content-Type": "application/json"}
     url = f"{EMBED_BASE.rstrip('/')}/embeddings"
     r = post_json(url, payload, headers, timeout=60)
@@ -254,7 +261,7 @@ def stage_embed():
     for r in records:
         cats[r["category"]] = cats.get(r["category"], 0) + 1
     log(f"[embed] 人才库已落盘: {OUT}")
-    log(f"[embed] {len(records)} 名候选人, 每人 1 整体向量 + 4 维度向量, 维度 1024")
+    log(f"[embed] {len(records)} 名候选人, 每人 1 整体向量 + 4 维度向量, 维度 {EMBED_DIM} ({EMBED_MODEL})")
     log(f"[embed] 分类: {', '.join(f'{k}={v}' for k,v in sorted(cats.items()))}")
 
 if __name__ == "__main__":

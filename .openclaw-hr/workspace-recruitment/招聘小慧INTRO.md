@@ -149,7 +149,7 @@
 [Step 1] ingesting-talent-pool  (trigger: 人才库不存在或需重建)
   |  工具: exec  脚本: skills/ingesting-talent-pool/scripts/ingest_talent_pool.py all
   |  产出: talent-pool/talent-pool.json（每候选人 1 整体 + 4 维度向量）
-  |  依赖: XIAOMI_API_KEY（mimo 抽取）+ DASHSCOPE_API_KEY（embedding）
+  |  依赖: XIAOMI_API_KEY（mimo 抽取）+ SILICONFLOW_API_KEY（Qwen/Qwen3-Embedding-0.6B）
   v
 [Step 2] searching-talent-pool  (trigger: 人才库已建好)
   |  工具: exec  脚本: skills/searching-talent-pool/scripts/search_talent_pool.py
@@ -185,21 +185,21 @@
 输出：结构化面试纪要（关键问答 / 优势 / 待考察点 / 评分建议）
 ```
 
-### 端到端例子：张磊-后端开发
+### 端到端例子：员工1-后端开发
 
-以工作区已有夹具 `张磊-后端开发` 为例，走一遍完整链路：
+以工作区已有夹具 `员工1-后端开发` 为例，走一遍完整链路：
 
-**用户话术**：「帮我对张磊的简历做评分，JD 用后端开发的」
+**用户话术**：「帮我对员工1的简历做评分，JD 用后端开发的」
 
-1. **简历已在 inbox**：`inbox/张磊-后端开发.md` 已存在（从 PDF 转换而来），跳过 Step 1 和 Step 2。
-2. **解析**：运行 `parsing-resumes`，产出 `parsed/张磊-后端开发.json`，跑 `validate_profile.js` 校验通过。
-3. **真实性核对**：运行 `auditing-extraction`，产出 `audited/张磊-后端开发.audit.json`，可追溯率达标，退出码 0。
-4. **合规过滤**：运行 `filtering-sensitive-fields`，产出 `scoring/clean-张磊-后端开发.json`，退出码 0（无敏感字段残留）。
+1. **简历已在 inbox**：`inbox/员工1-后端开发.md` 已存在（从 PDF 转换而来），跳过 Step 1 和 Step 2。
+2. **解析**：运行 `parsing-resumes`，产出 `parsed/员工1-后端开发.json`，跑 `validate_profile.js` 校验通过。
+3. **真实性核对**：运行 `auditing-extraction`，产出 `audited/员工1-后端开发.audit.json`，可追溯率达标，退出码 0。
+4. **合规过滤**：运行 `filtering-sensitive-fields`，产出 `scoring/clean-员工1-后端开发.json`，退出码 0（无敏感字段残留）。
 5. **评分**：运行 `scoring-candidates`，按 8 维度打分（脚本默认走 Gateway 同系小米/mimo，可回退 DeepSeek），产出评分 JSON。
-6. **数字回核**：运行 `auditing-numbers`，比对评分文字里的数字与原简历 `inbox/张磊-后端开发.md`，修正虚构数字。
+6. **数字回核**：运行 `auditing-numbers`，比对评分文字里的数字与原简历 `inbox/员工1-后端开发.md`，修正虚构数字。
 7. **产出**：`ranking JSON` 交到 HR 手里，含建议动作（如「建议进入面试」）。
 
-若 HR 还要看画像：运行 `generating-candidate-profiles`，产出 `profile/output/profile-张磊-后端开发.html`，跑 `validate_profile_html.js` 校验合规字段零渲染。
+若 HR 还要看画像：运行 `generating-candidate-profiles`，产出 `profile/output/profile-员工1-后端开发.html`，跑 `validate_profile_html.js` 校验合规字段零渲染。
 
 ## Skill 与脚本
 
@@ -270,13 +270,13 @@ Heartbeat：可用于整理 memory 文件、更新文档等杂务，不用于触
 ### 如何交回结果
 
 - **回复文本**：直接在会话中回复结构化文字（评分排名、解析状态、回核结果）。
-- **文件路径**：告知 HR 产物落盘路径（如 `parsed/张磊-后端开发.json`、`profile/output/profile-张磊-后端开发.html`）。
+- **文件路径**：告知 HR 产物落盘路径（如 `parsed/员工1-后端开发.json`、`profile/output/profile-员工1-后端开发.html`）。
 - **Canvas URL**：画像 HTML 可通过 `publish_to_canvas.py` 发布到 `canvas/documents/profile-<ascii-id>/`，HR 通过 nginx canvas-proxy（端口 18999）在浏览器打开。
 - **不使用 `---PROMPT---` 块**：那是 router 的路由协议，我不产出它。
 
 ### 能不能 spawn 其它业务 Agent
 
-**不能**。`subagents.allowAgents` 为空。用户提出跨域需求（如「帮张磊办入职」），我在回复中说明这属于入职小慧的职责，由 router 决定是否转派。
+**不能**。`subagents.allowAgents` 为空。用户提出跨域需求（如「帮员工1办入职」），我在回复中说明这属于入职小慧的职责，由 router 决定是否转派。
 
 ### 与 router 的关系
 
@@ -343,18 +343,18 @@ Heartbeat：可用于整理 memory 文件、更新文档等杂务，不用于触
 
 ### 会接的（3 条）
 
-1. **「帮我对 inbox 里这批简历做评分，JD 在 jds/后端开发.md」**
+1. **「帮我对 inbox 里这批简历做评分，JD 在 jds/jd-bigtech-后端开发工程师.md」**
    → 触发完整简历处理 + 评分排序工作流，产出 ranking JSON。
 
-2. **「再找几个像张磊的候选人」**
+2. **「再找几个像员工1的候选人」**
    → 触发人才库检索工作流（确认 talent-pool.json 存在 → searching-talent-pool → explaining-similarity）。
 
-3. **「这段面试录音帮我整理成纪要，候选人是张磊」**
+3. **「这段面试录音帮我整理成纪要，候选人是员工1」**
    → 触发面试纪要工作流（transcribing-interviews → generating-minutes）。
 
 ### 应拒绝或应转走的（2 条）
 
-4. **「帮张磊办入职手续」**
+4. **「帮员工1办入职手续」**
    → 不是我的职责。回复：入职流程由入职小慧处理，我帮你转给总控路由。
 
 5. **「把评分低于 60 分的候选人直接淘汰掉」**

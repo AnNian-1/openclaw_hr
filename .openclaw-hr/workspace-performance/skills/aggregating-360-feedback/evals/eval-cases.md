@@ -17,7 +17,7 @@
 
 ### 场景 1 · 正常 7 份反馈（happy path）
 
-- 输入：场景 0 产出的 `source_feedback/zhanglei/`（或等价合法 JSON 目录）
+- 输入：场景 0 产出的 `source_feedback/yuangong1/`（或等价合法 JSON 目录）
 - query：把这组 360 反馈聚合一下，给绩效面谈用
 - expected_behavior：
   - 先跑 `check_feedback.py` 校验，7 份全部合法

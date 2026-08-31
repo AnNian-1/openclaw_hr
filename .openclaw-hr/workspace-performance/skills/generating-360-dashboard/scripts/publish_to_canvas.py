@@ -21,7 +21,7 @@ Skill:    generating-360-dashboard
   6. 同一目录下已有 index.html 时, 必须显式 --force 才覆盖
 
 约定 canvas-id（按人一份）:
-  feedback-360-<slug>   例: feedback-360-zhanglei
+  feedback-360-<slug>   例: feedback-360-yuangong1
 
 CLI:
   python3 publish_to_canvas.py <dashboard.html> <canvas-id> [--force]
@@ -105,7 +105,7 @@ def validate_id(canvas_id: str) -> Tuple[bool, str]:
         return False, (
             f"id '{canvas_id}' 含非 ASCII / 全角 / emoji 字符: {bad_chars}. "
             f"Canvas 路由 normalizeCanvasDocumentId() 只接 [A-Za-z0-9._-]. "
-            f"约定 ASCII id: 'feedback-360-<slug>'（例 feedback-360-zhanglei）."
+            f"约定 ASCII id: 'feedback-360-<slug>'（例 feedback-360-yuangong1）."
         )
     return True, ""
 
@@ -187,12 +187,12 @@ def resolve_ports() -> Tuple[int, int]:
     else:
         # 从 nginx 配置探测: 扫监听 127.0.0.1 的非 80 端口
         nginx_port = 0  # 0 表示未探测到
-        if shutil.which("nginx") and Path("/root/.openclaw-hr/nginx/conf").exists():
+        if shutil.which("nginx") and Path("/opt/openclaw-hr/.openclaw-hr/nginx/conf").exists():
             try:
                 import subprocess
                 # 用 nginx -T 过滤出 listen 行
                 out = subprocess.run(
-                    ["nginx", "-T", "-c", "/root/.openclaw-hr/nginx/conf/nginx.conf"],
+                    ["nginx", "-T", "-c", "/opt/openclaw-hr/.openclaw-hr/nginx/conf/nginx.conf"],
                     capture_output=True,
                     text=True,
                     timeout=3,
@@ -377,7 +377,7 @@ def main() -> int:
         print(
             "用法: python3 publish_to_canvas.py <dashboard.html> <canvas-id> "
             "[<html2> <id2> ...] [--force]\n"
-            "约定: canvas-id = feedback-360-<slug>（例 feedback-360-zhanglei）\n"
+            "约定: canvas-id = feedback-360-<slug>（例 feedback-360-yuangong1）\n"
             "或  : python3 publish_to_canvas.py --help",
             file=sys.stderr,
         )

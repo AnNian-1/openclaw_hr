@@ -41,14 +41,14 @@ PY
 
 if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
   nginx -c "$CONF" -s reload
-  echo "canvas-proxy reloaded on 127.0.0.1:18999"
+  echo "canvas-proxy reloaded on 0.0.0.0:18999"
   exit 0
 fi
 
 if command -v nginx >/dev/null 2>&1; then
   nginx -t -c "$CONF"
   nginx -c "$CONF"
-  echo "canvas-proxy (nginx) listening on 127.0.0.1:18999"
+  echo "canvas-proxy (nginx) listening on 0.0.0.0:18999"
   exit 0
 fi
 
@@ -63,4 +63,4 @@ cd "$ROOT"
 nohup python3 "$ROOT/canvas_proxy.py" >>"$ROOT/logs/canvas-proxy-python.log" 2>&1 &
 echo $! >"$ROOT/canvas-proxy-python.pid"
 sleep 0.3
-echo "canvas-proxy (python) listening on 127.0.0.1:18999"
+echo "canvas-proxy (python) listening on 0.0.0.0:18999"

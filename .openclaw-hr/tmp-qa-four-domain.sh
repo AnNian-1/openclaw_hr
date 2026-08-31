@@ -30,7 +30,7 @@ cd "$WS_R"
 
 # ===== 招聘脚本 =====
 # R-04
-if node skills/filtering-sensitive-fields/scripts/filter_sensitive.js scoring/clean-张磊-后端开发.json "$OUT/clean-r04.json"; then
+if node skills/filtering-sensitive-fields/scripts/filter_sensitive.js scoring/clean-员工1-后端开发.json "$OUT/clean-r04.json"; then
   rec "R-04 PASS"
 else rec "R-04 FAIL rc=$?"; fi
 
@@ -51,26 +51,26 @@ if [[ -n "$PDF" && -n "$CONVERT" ]]; then
 else rec "R-01 SKIP pdf=$PDF convert=$CONVERT"; fi
 
 # R-05 / R-06
-if node skills/scoring-candidates/scripts/score_candidate.js scoring/clean-张磊-后端开发.json jds/jd-bigtech-后端开发工程师.md "$OUT/ranking-张磊.json"; then
+if node skills/scoring-candidates/scripts/score_candidate.js scoring/clean-员工1-后端开发.json jds/jd-bigtech-后端开发工程师.md "$OUT/ranking-员工1.json"; then
   rec "R-05 PASS"
   if [[ -f skills/auditing-numbers/scripts/audit_numbers.js ]]; then
-    if node skills/auditing-numbers/scripts/audit_numbers.js "$OUT/ranking-张磊.json" inbox/张磊-后端开发.md "$OUT/ranking-张磊-audited.json"; then
+    if node skills/auditing-numbers/scripts/audit_numbers.js "$OUT/ranking-员工1.json" inbox/员工1-后端开发.md "$OUT/ranking-员工1-audited.json"; then
       rec "R-06 PASS"
     else rec "R-06 FAIL"; fi
   fi
 else rec "R-05 FAIL"; rec "R-06 SKIP no ranking"; fi
 
 # R-07 profile
-RANK=$(ls -1 scoring/results/ranking-张磊-后端开发.json 2>/dev/null || true)
-[[ -f "$OUT/ranking-张磊.json" ]] && RANK="$OUT/ranking-张磊.json"
+RANK=$(ls -1 scoring/results/ranking-员工1-后端开发.json 2>/dev/null || true)
+[[ -f "$OUT/ranking-员工1.json" ]] && RANK="$OUT/ranking-员工1.json"
 if [[ -n "$RANK" && -f skills/generating-candidate-profiles/scripts/generate_profile.py ]]; then
-  if python3 skills/generating-candidate-profiles/scripts/generate_profile.py "$RANK" 张磊 "$OUT/profile-zhanglei.html"; then
+  if python3 skills/generating-candidate-profiles/scripts/generate_profile.py "$RANK" 员工1 "$OUT/profile-yuangong1.html"; then
     rec "R-07 PASS"
   else rec "R-07 FAIL"; fi
 else rec "R-07 SKIP rank=$RANK"; fi
 
 # R-09 (pool exists)
-if python3 skills/searching-talent-pool/scripts/search_talent_pool.py --like 张磊 --topn 5 | tee "$OUT/r09.txt"; then
+if python3 skills/searching-talent-pool/scripts/search_talent_pool.py --like 员工1 --topn 5 | tee "$OUT/r09.txt"; then
   rec "R-09 PASS"
 else rec "R-09 FAIL"; fi
 
@@ -78,7 +78,7 @@ else rec "R-09 FAIL"; fi
 EX=$(find skills -name 'explain*.py' ! -path '*/node_modules/*' | head -1)
 if [[ -n "$EX" ]]; then
   python3 "$EX" --help 2>&1 | head -20 || true
-  if python3 "$EX" --like 张磊 2>&1 | tee "$OUT/r10.txt"; then rec "R-10 PASS"; else rec "R-10 FAIL_or_empty"; fi
+  if python3 "$EX" --like 员工1 2>&1 | tee "$OUT/r10.txt"; then rec "R-10 PASS"; else rec "R-10 FAIL_or_empty"; fi
 else rec "R-10 SKIP no explain.py"; fi
 
 # R-03 auditing-extraction
@@ -90,7 +90,7 @@ rec "R-03 NOTE see $AUD"
 cd "$WS_E/skills/generating-monthly-report/scripts"
 MR="${MONTHLY_REPORT_PYTHON:-}"
 if [[ -z "$MR" ]]; then
-  for p in /home/yhwz/miniconda3/envs/openclaw-hr/bin/python3 /usr/local/miniconda3/envs/py312/bin/python3 python3; do
+  for p in /usr/local/miniconda3/envs/openclaw-hr/bin/python3 /usr/local/miniconda3/envs/py312/bin/python3 python3; do
     command -v "$p" >/dev/null && "$p" -c "import pandas" 2>/dev/null && MR="$p" && break
   done
 fi
@@ -108,14 +108,14 @@ if bash run_monthly_report.sh 2026-05 --publish --force; then rec "X-13 PASS"; e
 
 # ===== 360 脚本 =====
 cd "$WS_P"
-if python3 skills/aggregating-360-feedback/scripts/check_feedback.py feedback-360/source_feedback/dirty-zhanglei; then rec "X-04-check PASS"; else rec "X-04-check FAIL"; fi
-if python3 skills/aggregating-360-feedback/scripts/aggregate.py feedback-360/source_feedback/dirty-zhanglei; then rec "X-04-agg PASS"; else rec "X-04-agg FAIL"; fi
+if python3 skills/aggregating-360-feedback/scripts/check_feedback.py feedback-360/source_feedback/dirty-yuangong1; then rec "X-04-check PASS"; else rec "X-04-check FAIL"; fi
+if python3 skills/aggregating-360-feedback/scripts/aggregate.py feedback-360/source_feedback/dirty-yuangong1; then rec "X-04-agg PASS"; else rec "X-04-agg FAIL"; fi
 # X-06 dirty zip
 set +e
 python3 skills/aggregating-360-feedback/scripts/ingest_archive.py feedback-360/source_feedback/eval-s2-dirty-json.zip
-python3 skills/aggregating-360-feedback/scripts/check_feedback.py feedback-360/source_feedback/dirty-zhanglei 2>"$OUT/x06-dirty.txt"
+python3 skills/aggregating-360-feedback/scripts/check_feedback.py feedback-360/source_feedback/dirty-yuangong1 2>"$OUT/x06-dirty.txt"
 echo "x06-check-after-dirty rc=$?"
-# restore? don't leave dirty json in dirty-zhanglei if ingest overwrote - skip restore complexity
+# restore? don't leave dirty json in dirty-yuangong1 if ingest overwrote - skip restore complexity
 set -e
 if python3 skills/aggregating-360-feedback/scripts/check_feedback.py feedback-360/source_feedback/wangfang 2>"$OUT/x06-wangfang.txt"; then rec "X-06-wangfang unexpected PASS"; else rec "X-06-wangfang FAIL_expected"; fi
 if bash skills/generating-360-dashboard/scripts/build_dashboard.sh feedback-360/source_feedback/lisi --publish --force; then rec "X-05 PASS"; else rec "X-05 FAIL"; fi
@@ -126,9 +126,9 @@ if python3 skills/generating-training-materials/scripts/self_check.py --outdir t
 
 # ===== 入职脚本 =====
 cd "$WS_O"
-if bash skills/running-onboarding-review/scripts/onboarding-review.sh 李鑫 7 lixin; then rec "O-09 PASS"; else rec "O-09 FAIL"; fi
+if bash skills/running-onboarding-review/scripts/onboarding-review.sh 员工1 7 yuangong1; then rec "O-09 PASS"; else rec "O-09 FAIL"; fi
 if bash skills/generating-onboarding-dashboard/scripts/build-dashboard.sh; then rec "O-10 PASS"; else rec "O-10 FAIL"; fi
-if bash skills/querying-onboarding-status/scripts/query-onboarding-status.sh 李鑫 lixin | head -40; then rec "O-11 PASS"; else rec "O-11 FAIL"; fi
+if bash skills/querying-onboarding-status/scripts/query-onboarding-status.sh 员工1 yuangong1 | head -40; then rec "O-11 PASS"; else rec "O-11 FAIL"; fi
 # O-PROC-04
 set +e
 bash skills/running-onboarding-review/scripts/onboarding-review.sh 不存在的人 7 nonexist

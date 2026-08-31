@@ -34,7 +34,7 @@ for fb in feedbacks:
 
 # 计算各视角各维度统计
 aggregated = {
-    "subject": "张磊",
+    "subject": "员工1",
     "subject_role": "支付平台研发组 后端开发工程师",
     "period": "2026-H1",
     "total_feedback_count": len(feedbacks),

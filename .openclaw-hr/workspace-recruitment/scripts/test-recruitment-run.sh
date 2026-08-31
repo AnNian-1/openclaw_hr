@@ -3,7 +3,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUN="$ROOT/scripts/recruitment-run.sh"
-ONB="$ROOT/../workspace-onboarding/stub-state/lixin/workflow.json"
+ONB="$ROOT/../workspace-onboarding/stub-state/yuangong1/workflow.json"
 fail=0
 cd "$ROOT"
 
@@ -32,7 +32,7 @@ expect_allow() {
 
 expect_deny "python -c" python3 -c 'print(1)'
 expect_deny "绝对路径 onboarding" cat "$ONB"
-expect_deny "相对路径 onboarding" cat "../workspace-onboarding/stub-state/lixin/workflow.json"
+expect_deny "相对路径 onboarding" cat "../workspace-onboarding/stub-state/yuangong1/workflow.json"
 expect_allow "echo" echo ok
 expect_allow "true" true
 

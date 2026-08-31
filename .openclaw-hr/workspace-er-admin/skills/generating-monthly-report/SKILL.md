@@ -1,6 +1,6 @@
 ---
 name: generating-monthly-report
-description: Generate the company HR monthly report as a single-file HTML with charts, then publish it to OpenClaw Canvas host for browser viewing. Use this skill whenever an HR monthly report is needed - either when woken by a month-end Cron job, or when asked for a specific month's report. Prefer bash scripts/run_monthly_report.sh (it selects conda py312 with pandas/matplotlib). Do not pip install dependencies. It runs a deterministic pandas pipeline that reads 6 HR CSV files, computes metrics, benchmarks them against 5 industry baselines, draws 4 matplotlib charts, assembles a single-file HTML report, and copies it to canvas/documents/hr-monthly-report/index.html (ASCII id required; view via nginx 18999). It also prints a number-audit table tracing every figure in the report back to its CSV source. All numeric values are computed deterministically by the script - the LLM never touches the numbers.
+description: Generate the company HR monthly report as a single-file HTML with charts, then publish it to OpenClaw Canvas host for browser viewing. Use this skill when an HR monthly report is needed from ops CLI (not Feishu). Production trigger is the host daily check /opt/hr-ops/maybe-monthly-report.sh (run only when tomorrow is the 1st). Prefer bash scripts/run_monthly_report.sh (it selects conda with pandas/matplotlib). Do not pip install dependencies. It runs a deterministic pandas pipeline that reads 6 HR CSV files, computes metrics, benchmarks them against 5 industry baselines, draws 4 matplotlib charts, assembles a single-file HTML report, and copies it to canvas/documents/hr-monthly-report/index.html (ASCII id required; view via nginx 18999). It also prints a number-audit table tracing every figure in the report back to its CSV source. All numeric values are computed deterministically by the script - the LLM never touches the numbers.
 metadata:
   openclaw:
     requires:
@@ -17,8 +17,8 @@ metadata:
 
 需要生成 HR 月报时用，两种触发场景：
 
-- **被 OpenClaw Cron 月末定时唤醒** —— 生产环境每月 28-31 日 23:59 触发，生成本月月报并发布 Canvas。
-- **手动要某个月的月报** —— 临时需要补某月或重出某月的月报。
+- **宿主机日检** —— `/opt/hr-ops/maybe-monthly-report.sh` 每天 23:59（Asia/Shanghai）检查「明天是否为 01」，是才调用本脚本。不经过 Gateway。
+- **手动要某个月的月报** —— 运维 CLI 补某月或重出某月。飞书禁止。
 
 ## 推荐入口（务必用这个）
 

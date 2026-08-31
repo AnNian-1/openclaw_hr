@@ -5,10 +5,15 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-# Use miniconda python if available (has sqlalchemy/fastapi/uvicorn installed)
-if [ -x /home/yhwz/miniconda3/bin/python3 ]; then
-  PYTHON=/home/yhwz/miniconda3/bin/python3
-  export PATH="/home/yhwz/miniconda3/bin:$PATH"
+# conda 环境 openclaw-hr 才有 sqlalchemy/fastapi/uvicorn，base 没有
+CONDA_BIN=/usr/local/miniconda3/envs/openclaw-hr/bin
+if [ -x "$CONDA_BIN/python3" ]; then
+  PYTHON="$CONDA_BIN/python3"
+  export PATH="$CONDA_BIN:$PATH"
+fi
+# 前端 Vite 需要 Node 22
+if [ -d /opt/node/node-22/bin ]; then
+  export PATH="/opt/node/node-22/bin:$PATH"
 fi
 
 echo "🚀 启动 HCM 入职管理系统..."
@@ -28,8 +33,8 @@ FRONTEND_PID=$!
 
 echo ""
 echo "✅ HCM 系统已启动"
-echo "   后端 API: http://localhost:8000/docs"
-echo "   前端看板: http://localhost:5173"
+echo "   后端 API: http://0.0.0.0:8000/docs （本机可用 127.0.0.1）"
+echo "   前端看板: http://0.0.0.0:5173"
 echo ""
 echo "按 Ctrl+C 停止所有服务"
 

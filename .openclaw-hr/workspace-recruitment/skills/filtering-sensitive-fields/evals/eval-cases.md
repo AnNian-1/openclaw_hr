@@ -7,7 +7,7 @@
 
 ### 场景 1 · 含多个敏感字段的标准画像
 
-- 输入：张磊的画像 JSON（含顶层 `出生年月`/`性别`/`政治面貌`/`婚育` + `education.school_tier`）
+- 输入：员工1的画像 JSON（含顶层 `出生年月`/`性别`/`政治面貌`/`婚育` + `education.school_tier`）
 - query：这份候选人画像准备进评分了，先做合规过滤
 - expected_behavior：
   - 5 个敏感字段全部被物理删除（顶层 4 个 + education 子层 1 个）

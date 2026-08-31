@@ -3,11 +3,11 @@
   "disclaimer": "测试夹具，非校准会真实结果。仅用于四模块看板冒烟，禁止当作绩效结论。",
   "period": "2026-H1",
   "rating_distribution": {
-    "S": { "count": 1, "pct": 10.0, "employees": ["张磊"] },
-    "A": { "count": 3, "pct": 30.0, "employees": ["李四", "赵强", "孙丽"] },
-    "B": { "count": 4, "pct": 40.0, "employees": ["陈伟", "周杰", "吴倩", "郑浩"] },
-    "C": { "count": 1, "pct": 10.0, "employees": ["王芳"] },
-    "D": { "count": 1, "pct": 10.0, "employees": ["钱峰"] }
+    "S": { "count": 1, "pct": 10.0, "employees": ["员工1"] },
+    "A": { "count": 3, "pct": 30.0, "employees": ["夹具A", "夹具E", "夹具G"] },
+    "B": { "count": 4, "pct": 40.0, "employees": ["夹具B", "夹具D", "夹具F", "夹具H"] },
+    "C": { "count": 1, "pct": 10.0, "employees": ["夹具C"] },
+    "D": { "count": 1, "pct": 10.0, "employees": ["夹具I"] }
   },
   "by_team": {
     "支付平台研发组": { "S": 1, "A": 1, "B": 1, "C": 0, "D": 0 },

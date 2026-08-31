@@ -2,7 +2,7 @@
 
 ## 一句话
 
-我是 HR 数字员工「小慧」的**行政员工关系 Agent**，通过腾讯 IMA 知识库为员工提供 7x24 HR 政策答疑。HR 月报由独立 Agent `er-admin-cron` 按月生成，**飞书通道不提供月报**。
+我是 HR 数字员工「小慧」的**行政员工关系 Agent**，通过腾讯 IMA 知识库为员工提供 7x24 HR 政策答疑。HR 月报由宿主机日检脚本生成，**飞书通道不提供月报**。
 
 ## 系统位置（ASCII）
 
@@ -114,14 +114,14 @@
 
 **逐步说明：**
 
-1. **触发**：OpenClaw Cron 月末唤醒 **`er-admin-cron`**（不要在飞书 `er-admin` 会话里跑）
+1. **触发**：宿主机日检 `/opt/hr-ops/maybe-monthly-report.sh`（明天为 01 才跑 pandas；**不经过 Gateway**）。飞书 `er-admin` 会话里不要跑。运维补跑用 CLI。
 2. **执行**（`exec`）：`bash scripts/er-admin-run.sh monthly-report [YYYY-MM]`（不要直接 `run_monthly_report.sh`）
 3. **内部流程**：conda py312 环境 → pandas 读 6 CSV → 算指标 → 对标 5 项业界基准 → matplotlib 出 4 张图 → 拼单文件 HTML → 打印数字回核表
 4. **落盘**：`report-output/hr-monthly-report-<月份>.html` + `report-output/*-audit.md`
 5. **发布**：复制到 `canvas/documents/hr-monthly-report/index.html`，浏览器访问端口 18999
 6. **不改动数字**：所有数值由 pandas 确定性算出，LLM 不碰数字
 
-**端到端示例**：Cron 唤醒 `er-admin-cron` → `exec` 跑 `er-admin-run.sh monthly-report 2026-05` → pandas 读 6 CSV → 产出 `report-output/hr-monthly-report-2026-05.html` + audit → 发布到 Canvas `hr-monthly-report` → 浏览器 `http://127.0.0.1:18999/__openclaw__/canvas/documents/hr-monthly-report/index.html`。
+**端到端示例**：月末 23:59（Asia/Shanghai）宿主机 cron 调 `maybe-monthly-report.sh` → `run_monthly_report.sh` 守卫确认明天为 01 → pandas 读 6 CSV → 产出 `report-output/hr-monthly-report-<月>.html` + audit → 发布到 Canvas `hr-monthly-report` → 浏览器 `http://127.0.0.1:18999/__openclaw__/canvas/documents/hr-monthly-report/index.html`。
 
 ### 流程 3：IMA 笔记/知识库操作
 
@@ -159,7 +159,7 @@
 
 - **腾讯 IMA**：知识库存储与检索（凭证通过 `IMA_OPENAPI_CLIENTID` / `IMA_OPENAPI_APIKEY` 环境变量）
 - **conda py312**：pandas / matplotlib（月报脚本专用，不使用系统 `/usr/bin/python3`）
-- **DashScope**：text-embedding-v3 向量模型（memorySearch 配置）
+- **SiliconFlow**：`Qwen/Qwen3-Embedding-0.6B`（memorySearch + 人才库 embedding，1024 维）
 - **MiMo / DeepSeek / Qwen**：LLM 推理
 
 **凭证缺失时的失败行为**：IMA 凭证缺失 → `ima_api.cjs` 以退出码 1 退出，stderr 输出 `{code:-100, msg:"未找到 IMA 凭证"}`。**绝不**用 LLM 通用知识冒充公司政策。
@@ -181,7 +181,7 @@ er-admin tools:
 
 ### Cron
 
-- **月报定时任务**：Cron 唤醒 **`er-admin-cron`**（与本工作区共用），`exec` 只跑 `scripts/er-admin-run.sh monthly-report`。飞书绑定的 `er-admin` **没有**该子命令。
+- **月报定时任务**：宿主机 crontab 每天 23:59 跑 `/opt/hr-ops/maybe-monthly-report.sh`，明天不是 01 则 `exit 0`，不唤醒任何 Agent。飞书绑定的 `er-admin` **没有** `monthly-report` 子命令。运维补跑：`bash scripts/er-admin-run.sh monthly-report --force YYYY-MM`（CLI，不要走飞书）。
 - **Heartbeat**：当前 `HEARTBEAT.md` 为空，不用于本职业务
 
 ### 外部系统
@@ -199,7 +199,7 @@ er-admin tools:
 | 飞书私聊 | OpenClaw binding 直接路由到 `er-admin`（`channel:feishu` → `agentId:er-admin`） |
 | 飞书群聊 @我 | 同上，`requireMention: true` |
 | WebChat | 先到 `router`，再由 router `sessions_spawn` 给我 |
-| Cron 孤立会话 | 月末月报走 **`er-admin-cron`**，不是飞书这条 `er-admin` |
+| Cron 孤立会话 | **不要**再用 OpenClaw cron 出月报。飞书 `er-admin` 仍禁止月报 |
 
 ### 交回结果
 

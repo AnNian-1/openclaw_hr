@@ -16,7 +16,7 @@
 | C | `eval-s3-missing-self-wangfang.zip` | 缺自评边界 | ⚠️ 见问题 4 | ✅ 均拒绝 | ✅ 均拒绝 |
 | D | `eval-consensus-chenwei.zip` | 全共识场景 | ✅ 通过 | ✅ 通过 | ✅ 通过 |
 | E | lisi 目录重跑摄入 | 幂等性 | ❌ 见问题 5 | ✅ md5 一致 | ✅ md5 一致 |
-| F | `dirty-zhanglei` 目录 | 脏数据校验 | ✅ 结构合法 | ✅ 正确拒绝 | ✅ 正确拒绝 |
+| F | `dirty-yuangong1` 目录 | 脏数据校验 | ✅ 结构合法 | ✅ 正确拒绝 | ✅ 正确拒绝 |
 
 ---
 
@@ -88,7 +88,7 @@ Skill 的 Python 依赖没有固化为 `requirements.txt`，脚本也没有启�
 
 ### 现象
 
-`eval-s2-dirty-json.zip` 内部只有预解析的 JSON 文件（`dirty-zhanglei/*.json`），没有 DOCX。
+`eval-s2-dirty-json.zip` 内部只有预解析的 JSON 文件（`dirty-yuangong1/*.json`），没有 DOCX。
 
 `ingest_archive.py` 报错：
 ```
@@ -103,7 +103,7 @@ Skill 的 Python 依赖没有固化为 `requirements.txt`，脚本也没有启�
 
 - `ingest_archive.py` 正确拒绝无 DOCX 的 zip ✅
 - 手动解压后 `check_feedback.py` **正确拒绝**脏 JSON（`peer-03.json` 的 collaboration 评分=7 越界 + 缺 growth 维度）✅
-- 注：初测时 `dirty-zhanglei` 目录的 JSON 结构实际合法（"dirty" 指内容质量），复测时 zip 内数据含真正的结构错误，校验逻辑正确拦截。
+- 注：初测时 `dirty-yuangong1` 目录的 JSON 结构实际合法（"dirty" 指内容质量），复测时 zip 内数据含真正的结构错误，校验逻辑正确拦截。
 
 ---
 

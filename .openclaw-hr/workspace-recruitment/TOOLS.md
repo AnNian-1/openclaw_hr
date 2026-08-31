@@ -132,11 +132,11 @@ Add whatever helps you do your job. This is your cheat sheet.
 
 ### ingesting-talent-pool — 候选人向量化入库
 
-- **做什么**：把一批候选人简历批量向量化，建成本地人才库向量库 `talent-pool/talent-pool.json`。两阶段——parse 把简历抽成结构化 JSON（增量落盘 `parsed-all.json`、断点续跑），embed 把结构化数据按教育/经历/技能/行业分维度 + 整份摘要拼文本，送通义 `text-embedding-v3` 转 1024 维向量。每名候选人存 1 个整体向量 + 4 个维度向量。
+- **做什么**：把一批候选人简历批量向量化，建成本地人才库向量库 `talent-pool/talent-pool.json`。两阶段——parse 把简历抽成结构化 JSON（增量落盘 `parsed-all.json`、断点续跑），embed 把结构化数据按教育/经历/技能/行业分维度 + 整份摘要拼文本，送 SiliconFlow `Qwen/Qwen3-Embedding-0.6B` 转 1024 维向量（请求带 `dimensions`）。每名候选人存 1 个整体向量 + 4 个维度向量。
 - **什么时候用**：HR 给一批历史候选人简历、需要建人才库时。这是人才库语义检索的第一步——没有库就没法做「再来一个像张三的」检索。
 - **调用要点**：
   - 命令 `python3 skills/ingesting-talent-pool/scripts/ingest_talent_pool.py all`（parse + embed 连跑）；`parse` 只抽取（增量），`embed` 只向量化。需要 `exec` 工具（`group:runtime` 权限组）。
-  - 依赖 `XIAOMI_API_KEY`（mimo 抽取）+ `DASHSCOPE_API_KEY`（embedding），运行前确认已 `source` 本机 `env.sh`。不要切 DeepSeek。
+  - 依赖 `XIAOMI_API_KEY`（mimo 抽取）+ `SILICONFLOW_API_KEY`（embedding），运行前确认已 `source` 本机 `env.sh`。不要切 DeepSeek / DashScope embedding。
   - 产物固定落 `talent-pool/talent-pool.json`，下游检索 Skill 直接读它。
   - 它只建库，不做检索——检索是 `searching-talent-pool` 的事。
 
@@ -166,7 +166,7 @@ Add whatever helps you do your job. This is your cheat sheet.
   - `bash scripts/recruitment-run.sh python3 skills/transcribing-interviews/scripts/transcribe_diarize.py <音频文件> interview/<转写名>.json`。入口注入 `FUNASR_VENV` 与 `MODELSCOPE_CACHE`（本 workspace `models/`）。
   - `--device auto`：有 NVIDIA 走 `cuda:0`。OOM 再 `--device cpu`。
   - 转写后必须：`bash scripts/recruitment-run.sh node skills/transcribing-interviews/scripts/validate_transcript.js interview/<转写名>.json`。
-  - **本机**：conda `funasr_me`。冒烟 `interview-zhanglei-tech2.wav`（282s）在 RTX 3050 4GB 上 `cuda:0` 约 11s wall、105 段、A/B=31/74，校验通过。
+  - **本机**：conda `funasr_me`。冒烟 `interview-yuangong1-tech2.wav`（282s）在 RTX 3050 4GB 上 `cuda:0` 约 11s wall、105 段、A/B=31/74，校验通过。
 - **为什么不复用旧版 (faster-whisper + 基频聚类)**：旧版写死二分，只对一男一女双峰分得开的合成录音有效；真实面试多说话人 / 同性别相近音色直接失效。FunASR + CAM++ 一次推理自动决定说话人数、零 token、MIT 协议，三难全避开。旧版 `interview/scripts/asr-diarize.py` 仅作为"演示专用降级方案"保留，生产请用本 Skill 的 `transcribe_diarize.py`。
 
 ### generating-minutes — 结构化面试纪要 + 数字回核

@@ -12,8 +12,8 @@ HR 问「某人入职到哪一步了」或「这批新人都到哪了」时跑�
 ## 用法
 
 ```bash
-scripts/query-onboarding-status.sh 李鑫
-scripts/query-onboarding-status.sh 李鑫 lixin
+scripts/query-onboarding-status.sh 员工1
+scripts/query-onboarding-status.sh 员工1 yuangong1
 # 整批（只准念 JSON 里的 name）：
 scripts/query-onboarding-status.sh --all
 ```
@@ -26,7 +26,7 @@ scripts/query-onboarding-status.sh --all
 |--------|--------|
 | 这个人在不在花名册、五部门节点（合同/账号/设备/培训/Buddy） | **HCM** `GET /api/candidates` |
 | 审批卡在哪一扇门、resumeToken、扭转事件 | 本机 `stub-state/<pinyin>/workflow.json`（Lobster） |
-| 试用期跟进是否开通 | 本机 `review-state/reviews.json` 的 `armed`；五节点全绿时本脚本会尝试开通 |
+| 试用期跟进是否开通 | 本机 `review-state/reviews.json` 的 `armed`（本脚本只读，不挂 Cron） |
 
 HCM 挂了 → 退出 **5**，说 API 不可用，**禁止**用 stub 报「全部完成」。  
 花名册没有此人 → 退出 **4**。  

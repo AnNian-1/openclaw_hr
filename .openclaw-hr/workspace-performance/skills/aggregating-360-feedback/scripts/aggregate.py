@@ -3,7 +3,7 @@
 
 用途：aggregating-360-feedback Skill 的核心脚本。读 JSON 目录（通常由
       ingest_archive.py 从 zip/rar 的 DOCX 解析得到，如
-      source_feedback/zhanglei/）下的多份 360 反馈 JSON，按视角
+      source_feedback/yuangong1/）下的多份 360 反馈 JSON，按视角
       （上级/平级/下属/自评）分组，逐维度算平均分、极差，
       产出 aggregated-data.json 并打印四视角对照表 + 离散度判定。
 
@@ -19,7 +19,7 @@
   最终共识/分歧结论交给第二层 LLM 综合分析读评语后定。
 
 CLI：python3 aggregate.py <json_dir> [out_json_path]
-  json_dir      —— 某位被评估人的反馈 JSON 目录（如 source_feedback/zhanglei/）
+  json_dir      —— 某位被评估人的反馈 JSON 目录（如 source_feedback/yuangong1/）
   out_json_path —— 可选；缺省为 <json_dir>/aggregated-data.json
                    （与该人原料同目录：source_feedback/<slug>/）
   退出码 0 = 成功；1 = 数据问题；2 = 用法错误

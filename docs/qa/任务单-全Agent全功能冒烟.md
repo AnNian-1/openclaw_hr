@@ -103,7 +103,7 @@
 
 | ID | 动作 | 绿灯 | 结果 | 证据 |
 |----|------|------|------|------|
-| S-P0 | zhanglei check+aggregate+看板 | json/html 在 | 未测 | |
+| S-P0 | yuangong1 check+aggregate+看板 | json/html 在 | 未测 | |
 | S-P1 | X-06 dirty/缺自评 | check 退出 1 | 未测 | |
 | S-P2 | X-16 对话 | 本轮 mtime；非假路径 | 未测 | |
 | S-P3 | 季度 Cron（E-02 后） | list 里看得到或 dry-run 约定 | 未测 | |

@@ -144,7 +144,7 @@ SPLIT_NOTES = {
     },
     "growth": {
         "title": "学习成长 — 成长定义不一致",
-        "body": "极差 2.00（最大）。自评 5 分 vs 上级 3 分。分歧源于对「成长」的定义不同：上级要的是角色成长（带人、做沉淀、影响团队），张磊认定的是技术深度成长。这是面谈必须对齐的认知 gap。",
+        "body": "极差 2.00（最大）。自评 5 分 vs 上级 3 分。分歧源于对「成长」的定义不同：上级要的是角色成长（带人、做沉淀、影响团队），员工1认定的是技术深度成长。这是面谈必须对齐的认知 gap。",
     },
 }
 
@@ -173,7 +173,7 @@ html = f"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>张磊 2026 上半年 360 反馈聚合看板</title>
+<title>员工1 2026 上半年 360 反馈聚合看板</title>
 <style>
   * {{ margin:0; padding:0; box-sizing:border-box; }}
   body {{ font-family:"PingFang SC","Songti SC",sans-serif; background:#f4f5f7; color:#1f2937; line-height:1.7; }}
@@ -225,11 +225,11 @@ html = f"""<!DOCTYPE html>
     （依据《个人信息保护法》第 24 条 · 公司绩效管理制度第五条）。
   </div>
 
-  <h1>张磊 · 2026 上半年 360 反馈聚合看板</h1>
+  <h1>员工1 · 2026 上半年 360 反馈聚合看板</h1>
   <div class="sub">支付平台研发组 后端开发工程师 · 半年度考核（1-6 月）</div>
 
   <div class="meta">
-    <span><b>评估对象</b>　张磊</span>
+    <span><b>评估对象</b>　员工1</span>
     <span><b>反馈来源</b>　{data['total_feedback_count']} 份（上级 1 + 平级 3 + 下属 2 + 自评 1）</span>
     <span><b>考核周期</b>　{data['period']}</span>
     <span><b>数据性质</b>　模拟数据</span>

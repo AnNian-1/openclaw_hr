@@ -128,6 +128,7 @@ def parse_aggregated_report(report_path):
         r"(?:共识点\s*\d+[：:]|分歧点\s*\d+[：:]|"
         r"共识\s*[·•.\-—]\s*|分歧\s*[·•.\-—]\s*)?"
         r"(目标达成|专业能力|协作沟通|责任心|学习成长)"
+        r"(?:\s*[（(][^）)\n]*[）)])?"
         r"(?:\s*[—\-–]+\s*(.+))?$",
         re.M,
     )
@@ -286,7 +287,10 @@ def main():
         for fpath in [
             "/usr/local/share/fonts/chinese/SourceHanSansSC-Regular.otf",
             "/usr/share/fonts/opentype/chinese/SourceHanSansSC-Regular.otf",
+            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/opentype/noto/NotoSansCJKsc-Regular.otf",
             "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc",
+            "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
             os.path.expanduser("~/.fonts/MicrosoftYaHei.ttc"),
             "/mnt/c/Windows/Fonts/msyh.ttc",
         ]:

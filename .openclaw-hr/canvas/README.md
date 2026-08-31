@@ -29,14 +29,8 @@ if (!/^[A-Za-z0-9._-]+$/.test(rawDocumentId)) throw new Error("canvas document i
 
 | 中文姓名 | ASCII 别名 |
 |---|---|
-| 张磊 | `profile-zhanglei` |
-| 周晓峰 | `profile-zhouxiaofeng` |
-| 林婉清 | `profile-linwanqing`（若已占用则用 `profile-linwanqing-c01`） |
-| 林雨桐 | `profile-linyutong` |
-| 王浩然 | `profile-wanghaoran` |
-| 郑凯文 | `profile-zhengkaiwen` |
-| 陈雅琴 | `profile-chenyaqin` |
-| 其他新人 | `profile-<pinyin(无声调)>`，例：`profile-lisi`、`profile-wangfang` |
+| 员工1 | `profile-yuangong1` |
+| 其他新人 | `profile-<pinyin(无声调)>`，例：`profile-yuangong2` |
 
 > 命名规则：**pinyin without tones** + ASCII 短横线。**禁止**中文、空格、引号。
 
@@ -46,12 +40,12 @@ if (!/^[A-Za-z0-9._-]+$/.test(rawDocumentId)) throw new Error("canvas document i
 
 ```bash
 # 1. 先生成 HTML 到 workspace（任意文件名）
-#    例如：/root/.openclaw-hr/workspace-recruitment/profile/output/profile-zhanglei.html
+#    例如：/root/.openclaw-hr/workspace-recruitment/profile/output/profile-yuangong1.html
 
 # 2. 拷到 Canvas 文档目录（id 必须 ASCII）
-mkdir -p /root/.openclaw-hr/canvas/documents/profile-zhanglei
-cp /root/.openclaw-hr/workspace-recruitment/profile/output/profile-zhanglei.html \
-   /root/.openclaw-hr/canvas/documents/profile-zhanglei/index.html
+mkdir -p /root/.openclaw-hr/canvas/documents/profile-yuangong1
+cp /root/.openclaw-hr/workspace-recruitment/profile/output/profile-yuangong1.html \
+   /root/.openclaw-hr/canvas/documents/profile-yuangong1/index.html
 
 # 3. （可选）触发 Gateway 热加载；如未热加载，手动 restart
 openclaw gateway restart   # 仅当配置改动时需要；纯文件写入不需要

@@ -137,13 +137,13 @@ Reactions are lightweight social signals. Humans use them constantly — they sa
 
 ### HR 月报自动生成（非飞书）
 
-**飞书私聊 / 群聊禁止触发月报。** 用户在飞书要月报时直接拒绝，并说明月报由 Cron 定时生成。
+**飞书私聊 / 群聊禁止触发月报。** 用户在飞书要月报时直接拒绝，并说明月报由宿主机日检脚本生成。
 
-仅在 **Cron 定时唤醒** 或非飞书运维触发时，用 `generating-monthly-report` Skill。Pipeline：pandas 读 6 个 CSV → 算指标 → 出图 → HTML 月报 → Canvas（id=`hr-monthly-report`）。
+生产月报 **不经过 Gateway / Agent**。Pipeline：pandas 读 6 个 CSV → 算指标 → 出图 → HTML 月报 → Canvas（id=`hr-monthly-report`）。
 
-调用时只 `exec`：
+运维 CLI 补跑只 `exec`：
 
-`bash scripts/er-admin-run.sh monthly-report`（可带 `<YYYY-MM>` / `--force` / `--no-publish`）。这条只在 **`er-admin-cron`** 的 exec allowlist 上；飞书绑定的 `er-admin` 只有 `ima-search`。不要直接 `bash skills/.../run_monthly_report.sh`。
+`bash scripts/er-admin-run.sh monthly-report`（可带 `<YYYY-MM>` / `--force` / `--no-publish`）。这条只在 **`er-admin-cron`** 的 exec allowlist 上（供 CLI）；飞书绑定的 `er-admin` 只有 `ima-search`。不要直接 `bash skills/.../run_monthly_report.sh`。
 
 该壳脚本会选用 conda `py312`（带 pandas/matplotlib）。OpenClaw exec 里的裸 `python3` 常是 `/usr/bin/python3`，**不要**因此去 `pip install`，也**不要** `source env.sh`（本 workspace 无此文件）。
 

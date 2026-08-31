@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 按 models/360-feedback-form-blank.docx 模板，
-将 raw/*.json 填成可阅读的 DOCX，输出到 source_feedback/zhanglei/。
+将 raw/*.json 填成可阅读的 DOCX，输出到 source_feedback/yuangong1/。
 """
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from docx.shared import Pt, RGBColor
 ROOT = Path(__file__).resolve().parents[1]
 BLANK = ROOT / "models" / "360-feedback-form-blank.docx"
 RAW = ROOT / "raw"
-OUT = ROOT / "source_feedback" / "zhanglei"
+OUT = ROOT / "source_feedback" / "yuangong1"
 
 FONT_BODY = "宋体"
 FONT_UI = "微软雅黑"
@@ -51,13 +51,13 @@ SCORE_LABEL = {
 
 # raw 文件名 → 输出文件名
 FILE_MAP = [
-    ("manager.json", "360-反馈表-张磊-上级-王建华.docx"),
-    ("peer-01.json", "360-反馈表-张磊-平级-陈思远.docx"),
-    ("peer-02.json", "360-反馈表-张磊-平级-刘婷.docx"),
-    ("peer-03.json", "360-反馈表-张磊-平级-赵宇.docx"),
-    ("report-01.json", "360-反馈表-张磊-下属-孙浩.docx"),
-    ("report-02.json", "360-反馈表-张磊-下属-周琳.docx"),
-    ("self.json", "360-反馈表-张磊-自评.docx"),
+    ("manager.json", "360-反馈表-员工1-上级-王建华.docx"),
+    ("peer-01.json", "360-反馈表-员工1-平级-陈思远.docx"),
+    ("peer-02.json", "360-反馈表-员工1-平级-刘婷.docx"),
+    ("peer-03.json", "360-反馈表-员工1-平级-赵宇.docx"),
+    ("report-01.json", "360-反馈表-员工1-下属-孙浩.docx"),
+    ("report-02.json", "360-反馈表-员工1-下属-周琳.docx"),
+    ("self.json", "360-反馈表-员工1-自评.docx"),
 ]
 
 

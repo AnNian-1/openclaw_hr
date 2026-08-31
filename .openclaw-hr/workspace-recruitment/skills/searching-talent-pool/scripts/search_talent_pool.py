@@ -4,7 +4,7 @@
 人才库语义检索 (openclaw-ai-hr C-3b)
 
 两种检索入口:
-  - 按候选人:   python3 search.py --like 张磊        -> "再来一个像张三的"
+  - 按候选人:   python3 search.py --like 员工1        -> "再来一个像张三的"
   - 按 JD 文本: python3 search.py --jd <jd文件路径>   -> 按职位描述找相似候选人
 
 检索逻辑:
@@ -36,7 +36,13 @@ EMBED_API_KEY = (
     or os.environ.get("DASHSCOPE_API_KEY")
     or ""
 )
-EMBED_MODEL = os.environ.get("EMBEDDING_MODEL", "BAAI/bge-large-zh-v1.5")
+EMBED_MODEL = os.environ.get("EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B")
+EMBED_DIM = int(os.environ.get("EMBEDDING_DIM", "1024"))
+
+
+def embed_wants_dimensions(model):
+    m = (model or "").lower()
+    return "qwen3-embedding" in m or "text-embedding-v3" in m
 
 def cos(a, b):
     dot = sum(x*y for x, y in zip(a, b))
@@ -50,8 +56,9 @@ EMBED_BASE = os.environ.get(
 )
 
 def jd_embed_max_chars():
-    """bge-large-zh 约 512 token；过长会 400。v3 可更长。"""
-    if "text-embedding-v3" in EMBED_MODEL:
+    """SiliconFlow 单条 ≤512 token，Qwen3 / bge 默认截 480 字。
+    仅 DashScope text-embedding-v3 才走超长分支，不要用在 Qwen3 上。"""
+    if "text-embedding-v3" in EMBED_MODEL and "qwen" not in EMBED_MODEL.lower():
         return int(os.environ.get("JD_EMBED_MAX_CHARS", "6000"))
     return int(os.environ.get("JD_EMBED_MAX_CHARS", "480"))
 
@@ -92,8 +99,8 @@ def embed(texts, _retried=False):
         )
         sys.exit(2)
     payload = {"model": EMBED_MODEL, "input": texts}
-    if "text-embedding-v3" in EMBED_MODEL:
-        payload["dimensions"] = int(os.environ.get("EMBEDDING_DIM", "1024"))
+    if embed_wants_dimensions(EMBED_MODEL):
+        payload["dimensions"] = EMBED_DIM
     headers = {"Authorization": f"Bearer {EMBED_API_KEY}", "Content-Type": "application/json"}
     url = f"{EMBED_BASE.rstrip('/')}/embeddings"
     req = urllib.request.Request(

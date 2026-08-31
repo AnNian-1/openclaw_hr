@@ -1,7 +1,7 @@
 {
   "viewport": "1680x780",
   "steps": [
-    {"action": "goto", "url": "file:///root/.openclaw-hr/workspace-onboarding/dashboard-system/onboarding-dashboard.html"},
+    {"action": "goto", "url": "file:///opt/openclaw-hr/.openclaw-hr/workspace-onboarding/dashboard-system/onboarding-dashboard.html"},
     {"action": "wait", "ms": 800},
     {"action": "screenshot", "path": "/Users/hsail/九天智课/courses/openclaw-ai-hr/images/stage-d2-05-dashboard-overview.png"}
   ]

@@ -1,9 +1,9 @@
 {
   "fixture": true,
-  "disclaimer": "测试夹具组织映射。张磊/李四/陈伟/王芳的 360 分数来自现有聚合；其余姓名为编造。",
+  "disclaimer": "测试夹具组织映射。员工1/夹具A/夹具B/夹具C的 360 分数来自现有聚合；其余姓名为编造。",
   "teams": {
     "支付平台研发组": {
-      "members": ["张磊", "李四", "周杰"],
+      "members": ["员工1", "夹具A", "夹具D"],
       "dimensions": {
         "goal_achievement": 4.0,
         "professional_skill": 4.86,
@@ -11,10 +11,10 @@
         "responsibility": 4.57,
         "growth": 3.86
       },
-      "source": "lisi aggregated-data overall（张磊与方案中同口径）"
+      "source": "lisi aggregated-data overall（员工1与方案中同口径）"
     },
     "数据平台组": {
-      "members": ["陈伟", "赵强", "吴倩"],
+      "members": ["夹具B", "夹具E", "夹具F"],
       "dimensions": {
         "goal_achievement": 4.0,
         "professional_skill": 4.14,
@@ -25,7 +25,7 @@
       "source": "chenwei aggregated-data overall"
     },
     "风控引擎组": {
-      "members": ["王芳", "孙丽", "郑浩", "钱峰"],
+      "members": ["夹具C", "夹具G", "夹具H", "夹具I"],
       "dimensions": {
         "goal_achievement": 4.0,
         "professional_skill": 4.75,
@@ -38,7 +38,7 @@
   },
   "heatmap_people": [
     {
-      "name": "张磊",
+      "name": "员工1",
       "team": "支付平台研发组",
       "goal_achievement": 4.0,
       "professional_skill": 4.86,
@@ -48,7 +48,7 @@
       "from_360": true
     },
     {
-      "name": "李四",
+      "name": "夹具A",
       "team": "支付平台研发组",
       "goal_achievement": 4.0,
       "professional_skill": 4.86,
@@ -58,7 +58,7 @@
       "from_360": true
     },
     {
-      "name": "陈伟",
+      "name": "夹具B",
       "team": "数据平台组",
       "goal_achievement": 4.0,
       "professional_skill": 4.14,
@@ -68,7 +68,7 @@
       "from_360": true
     },
     {
-      "name": "王芳",
+      "name": "夹具C",
       "team": "风控引擎组",
       "goal_achievement": 4.0,
       "professional_skill": 4.75,

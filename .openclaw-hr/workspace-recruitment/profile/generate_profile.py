@@ -35,7 +35,7 @@ import numpy as np
 
 # ---- 中文字体（macOS 自带，画像图表里的中文不能是方块）----
 _CN_FONT = None
-for _name in ["Songti SC", "STHeiti", "Heiti TC", "PingFang SC", "PingFang HK", "Arial Unicode MS"]:
+for _name in ["WenQuanYi Micro Hei", "WenQuanYi Micro Hei Mono", "Songti SC", "STHeiti", "Heiti TC", "PingFang SC", "PingFang HK", "Arial Unicode MS"]:
     try:
         font_manager.findfont(_name, fallback_to_default=False)
         _CN_FONT = _name

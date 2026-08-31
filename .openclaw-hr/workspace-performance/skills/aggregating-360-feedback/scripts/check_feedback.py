@@ -3,7 +3,7 @@
 
 用途：aggregating-360-feedback Skill 的质检闭环。在跑聚合之前，先把
       JSON 目录（通常由 ingest_archive.py 从 zip/rar 解压 DOCX 后生成，
-      如 source_feedback/zhanglei/）下的反馈表逐份校验——结构合法、
+      如 source_feedback/yuangong1/）下的反馈表逐份校验——结构合法、
       5 个维度齐全、评分在 1-5 区间。
       聚合脚本默认每份反馈结构都对，所以这一关必须先过：脏数据进了聚合，
       算出来的平均分和极差就不可信。把"数据合不合法"这件确定性的事

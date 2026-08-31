@@ -73,7 +73,7 @@ bash scripts/recruitment-run.sh node skills/transcribing-interviews/scripts/vali
 - **NumPy 版本锁**< 2：torch 2.2.2 是 NumPy 1.x ABI 编译的，环境装 numpy 2.x 会导致 `RuntimeError: Numpy is not available`。装环境时 `pip install "numpy<2"`。
 - 转写产物是面试纪要链路的地基，校验不通过的转写稿不算转写完成，不要直接交给 `generating-minutes`。
 
-## 实测数字（同一条 wav `interview-zhanglei-tech2.wav`, 282.84 s）
+## 实测数字（同一条 wav `interview-yuangong1-tech2.wav`, 282.84 s）
 
 | | CPU (torch 2.2.2 / device=cpu) | GPU V100S 32GB (device=cuda:0) |
 |---|---:|---:|

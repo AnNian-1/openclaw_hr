@@ -7,7 +7,7 @@
 
 ### 场景 1 · 启动一名新员工的入职审批工作流
 
-- 输入：一名新员工的姓名 / 拼音 / 岗位 / 薪资（如 张磊 / zhanglei / 后端工程师 / 32K）
+- 输入：一名新员工的姓名 / 拼音 / 岗位 / 薪资（如 员工1 / yuangong1 / 后端工程师 / 32K）
 - query：为这名新员工启动入职审批流程
 - expected_behavior：
   - 用 lobster 跑 `hr-onboarding.lobster`，候选人信息经 `--args-json` 传入

@@ -1,6 +1,6 @@
 ---
 name: ingesting-talent-pool
-description: Vectorize candidate resumes into a local talent-pool vector store so they become semantically searchable. Use this skill when a batch of candidate resumes needs to be turned into a talent pool, before any "find someone similar to X" search can run. Each candidate is stored as one overall vector plus four dimension vectors (education, experience, skills, industry) using SiliconFlow embeddings (default BAAI/bge-large-zh-v1.5). This is the first step of the talent-pool pipeline; searching the pool is a separate skill (searching-talent-pool).
+description: Vectorize candidate resumes into a local talent-pool vector store so they become semantically searchable. Use this skill when a batch of candidate resumes needs to be turned into a talent pool, before any "find someone similar to X" search can run. Each candidate is stored as one overall vector plus four dimension vectors (education, experience, skills, industry) using SiliconFlow embeddings (default Qwen/Qwen3-Embedding-0.6B, 1024-d). This is the first step of the talent-pool pipeline; searching the pool is a separate skill (searching-talent-pool).
 metadata:
   openclaw:
     requires:
@@ -54,5 +54,5 @@ python3 skills/ingesting-talent-pool/scripts/ingest_talent_pool.py all
 
 - 入库产物固定落 `talent-pool/talent-pool.json`，下游检索 Skill 直接读它。
 - parse 阶段每抽完一份立即落盘，进程挂了重跑会自动续——不要因为「上次没跑完」就从头重抽。
-- 这个 Skill 依赖抽取用的 LLM（`XIAOMI_API_KEY` / `DEEPSEEK_API_KEY`）和 `SILICONFLOW_API_KEY`（embedding，默认 `BAAI/bge-large-zh-v1.5`）。运行前 `source` 本机 `env.sh`（`OPENCLAW_STATE_DIR`）。
+- 这个 Skill 依赖抽取用的 LLM（`XIAOMI_API_KEY` / `DEEPSEEK_API_KEY`）和 `SILICONFLOW_API_KEY`（embedding，默认 `Qwen/Qwen3-Embedding-0.6B`，1024 维；可用 `EMBEDDING_MODEL` / `EMBEDDING_DIM` 覆盖）。运行前 `source` 本机 `env.sh`（`OPENCLAW_STATE_DIR`）。
 - 入库只是建库。检索和解释是 `searching-talent-pool`、`explaining-similarity` 两个独立 Skill。

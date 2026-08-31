@@ -11,6 +11,8 @@
 | 改某一 HR 域 | 该域 `workspace-*/` 下 `*INTRO.md` 与 `SOUL.md` |
 | 入职看板 / HCM API | [`.openclaw-hr/hcm/README.md`](../.openclaw-hr/hcm/README.md) |
 | 换云服务器、续飞书会话、防编码失忆 | [云迁移与记忆交接.md](../.openclaw-hr/docs/云迁移与记忆交接.md) |
+| 主 / 备 / 测试节点谁干什么 | [三节点职责与工作流程.md](三节点职责与工作流程.md)（分册：[主](nodes/主节点.md) / [备](nodes/备节点.md) / [测试](nodes/测试节点.md)） |
+| 比赛脱敏口径 | [脱敏规则.md](脱敏规则.md) |
 | 看测过什么、还剩什么 | [全Agent冒烟修复安排](../.openclaw-hr/docs/qa/全Agent冒烟修复安排-2026-08-30.md) 与各 `workspace-*/docs/` |
 
 ## 不是现行系统文档

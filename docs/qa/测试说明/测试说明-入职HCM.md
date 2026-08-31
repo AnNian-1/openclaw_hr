@@ -25,7 +25,7 @@ cd ~/openclaw-hr/.openclaw-hr/hcm/backend && python seed.py
 cd ~/openclaw-hr/.openclaw-hr/hcm && bash start.sh
 ```
 
-seed 后应有 guochao / leiwu / lisi / lixin / zhanglei 等。以你机器上的数据为准。
+seed 后应有 guochao / leiwu / lisi / yuangong2 / yuangong1 等。以你机器上的数据为准。
 
 | 部门视图 | 可编辑节点 |
 |----------|------------|
@@ -42,7 +42,7 @@ seed 后应有 guochao / leiwu / lisi / lixin / zhanglei 等。以你机器上�
 |------|-----|------|
 | 1 | O-01 | health + 5173 可开 |
 | 2 | O-05 | `GET /api/candidates` 为 200 |
-| 3 | O-09 | `review-李鑫-day7.json` 出现 |
+| 3 | O-09 | `review-员工2-day7.json` 出现 |
 | 4 | O-12 | 回复含 **onboarding** |
 | 5 | O-14 | 声称查完进度时，内容能对上 stub 或 HCM API |
 
@@ -58,14 +58,14 @@ seed 后应有 guochao / leiwu / lisi / lixin / zhanglei 等。以你机器上�
 | O-06 | `PUT /api/candidates/{id}/prep/{node}` 合法更新后再 GET | 与 PUT 一致 | ☑ |
 | O-07 | `bash skills/running-onboarding-workflow/scripts/run-onboarding.sh start 测试员 ceshiyuan 后端 20K` | `needs_approval`；有 **resumeToken**；**prompt 原样**（不要改写成表） | ☑ |
 | O-08 | 按 SKILL **人**批准/拒绝后 resume | 状态符合门；**Agent 不得代批** | ☑ |
-| O-09 | `bash skills/running-onboarding-review/scripts/onboarding-review.sh 李鑫 7 lixin` | 退出 0；`review-state/review-李鑫-day7.json` | ☑ |
+| O-09 | `bash skills/running-onboarding-review/scripts/onboarding-review.sh 员工2 7 yuangong2` | 退出 0；`review-state/review-员工2-day7.json` | ☑ |
 | O-10 | `bash skills/generating-onboarding-dashboard/scripts/build-dashboard.sh` | 生成 HTML；节点与 stub-state 一致 | ☑ |
-| O-11 | `bash skills/querying-onboarding-status/scripts/query-onboarding-status.sh 李鑫 lixin` | 与 stub 一致；交回用户时 PROMPT 一字不改 | ☑ |
+| O-11 | `bash skills/querying-onboarding-status/scripts/query-onboarding-status.sh 员工2 yuangong2` | 与 stub 一致；交回用户时 PROMPT 一字不改 | ☑ |
 | O-12 | router：查入职进度 / 启动新人入职 | 点名 **onboarding** | ☑ |
 | O-13 | 停掉 HCM（停 8000）再问进度 | 可诊断；不伪造全部完成 | ☒ |
 | **O-14** | **假成功·查进度**：O-12 回复若列出候选人节点，立刻对照 `stub-state/<pinyin>/` 或 `GET /api/candidates` | 节点/姓名对得上；对不上记 P1 `过程/假成功`；允许说「查不到/HCM 挂了」 | ☑ |
 | **O-15** | **假成功·看板**：对话「刷新入职看板/出一张进度图」结束后 | 声称已生成则存在 `onboarding-dashboard.html` 或 `canvas/documents/onboarding-dashboard/index.html`，且节点不是编的 | ☑ |
-| **O-16** | **假成功·review**：对话「给李鑫做第 7 天跟进」结束后 | 声称已做则有 `review-state/review-李鑫-day7.json`（或本次姓名对应文件） | ☑ |
+| **O-16** | **假成功·review**：对话「给员工2做第 7 天跟进」结束后 | 声称已做则有 `review-state/review-员工2-day7.json`（或本次姓名对应文件） | ☑ |
 
 O-07 会改工作流状态：用独立测试姓名，或测完能还原再测别人的候选人。假成功规则见 [_共用.md](./_共用.md)。
 

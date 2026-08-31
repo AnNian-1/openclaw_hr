@@ -38,7 +38,7 @@ Skill 的完整用法看各自的 `SKILL.md`，这里是速查。
 - **做什么**：查询某新员工的入职状态（花名册 + 五部门节点来自 HCM，审批门来自本地 workflow.json）。
 - **什么时候用**：HR 问「某人入职到哪一步了」时。
 - **数据来源**：花名册与五部门节点 → HCM API；审批门/resumeToken → 本机 `workflow.json`。
-- **调用要点**：`query-onboarding-status.sh <姓名> [pinyin]`。查到人后会尝试 `sync-reviews-if-ready`（五节点未齐则跳过）。HCM 不可达时 exit 5。
+- **调用要点**：`query-onboarding-status.sh <姓名> [pinyin]`。只读 HCM + 本地 workflow / review 表，**不**注册 Cron。HCM 不可达时 exit 5。
 
 ### running-onboarding-review —— 入职跟进 review
 
@@ -49,9 +49,9 @@ Skill 的完整用法看各自的 `SKILL.md`，这里是速查。
 
 ### generating-onboarding-dashboard —— 入职进度看板
 
-- **做什么**：从 HCM 读取准备节点 + 从本地表读取 review 状态，生成可视化 HTML 看板并发布到 Canvas。
+- **做什么**：从 HCM 读取 5 个准备节点 + 本机 `workflow.json` 审批门角标，生成可视化 HTML 看板并发布到 Canvas。不展示试用期 review。
 - **什么时候用**：需要总览所有新员工入职进度时。
-- **数据来源**：HCM API（五节点，只读）+ 本机 `review-state/reviews.json` + 本机 `workflow.json`（审批门角标）。
+- **数据来源**：HCM API（五节点，只读）+ 本机 `workflow.json`（审批门角标）。试用期 review 在本地表，不进看板；HCM review API 后续作废。
 - **调用要点**：
   - 仅生成：`bash skills/generating-onboarding-dashboard/scripts/build-dashboard.sh`
   - 生成并发布：`bash skills/generating-onboarding-dashboard/scripts/build-dashboard.sh --publish --force`

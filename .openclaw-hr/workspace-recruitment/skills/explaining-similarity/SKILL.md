@@ -13,7 +13,7 @@ metadata:
 
 ## 何时用这个 Skill
 
-`searching-talent-pool` 检索出 Top N 之后、要把结果交给 HR 之前用。检索结果只是「排名 + 分数」——王浩然综合相似度 0.6761、经历 0.772——HR 还是不知道「凭什么说像」。这个 Skill 把分数翻译成人话：「两人都在互联网核心业务线长期深耕，技能栈高度重叠……教育背景差异略大」。
+`searching-talent-pool` 检索出 Top N 之后、要把结果交给 HR 之前用。检索结果只是「排名 + 分数」——候选人D综合相似度 0.6761、经历 0.772——HR 还是不知道「凭什么说像」。这个 Skill 把分数翻译成人话：「两人都在互联网核心业务线长期深耕，技能栈高度重叠……教育背景差异略大」。
 
 它是人才库流水线的第三环、也是最后一环：
 - 建库是 `ingesting-talent-pool` 的事。
@@ -23,10 +23,10 @@ metadata:
 ## 工作流程
 
 ```bash
-python3 skills/explaining-similarity/scripts/explain_similarity.py --search talent-pool/search-张磊.json
+python3 skills/explaining-similarity/scripts/explain_similarity.py --search talent-pool/search-员工1.json
 ```
 
-`--search` 指向 `searching-talent-pool` 落盘的检索结果 JSON。脚本对 Top N 每个候选人调 LLM 生成 2-3 句解释，带解释的结果落盘 `talent-pool/search-张磊-explained.json`，同时在终端打印。
+`--search` 指向 `searching-talent-pool` 落盘的检索结果 JSON。脚本对 Top N 每个候选人调 LLM 生成 2-3 句解释，带解释的结果落盘 `talent-pool/search-员工1-explained.json`，同时在终端打印。
 
 输入输出、防数字串台的设计、解释质量标准的细则见 → `references/explain-method.md`
 

@@ -65,7 +65,7 @@ HCM、Canvas：见 [`docs/项目说明.md`](../docs/项目说明.md) 第 4 节�
 source env.sh
 
 openclaw agent --agent router -m "帮我把 inbox 里的简历批量筛一遍、排个序"
-openclaw agent --agent router -m "从人才库里找几个和张磊背景相似的候选人"
+openclaw agent --agent router -m "从人才库里找几个和员工1背景相似的候选人"
 openclaw agent --agent router -m "员工问年假到年底没休完怎么办？"
 
 # 月报：不要走飞书 / 不要让 router 当入口
@@ -110,6 +110,6 @@ bash scripts/../workspace-er-admin/scripts/er-admin-run.sh monthly-report --forc
 
 ## 七、数据
 
-简历、360、月报 CSV、夹具候选人（张磊等）是教学/测试数据。不要当真实人事，不要编造花名册或绩效等级。把系统接到真实业务前须自行替换数据并做合规评估。
+简历、360、月报 CSV、夹具候选人（员工1等）是教学/测试数据。不要当真实人事，不要编造花名册或绩效等级。把系统接到真实业务前须自行替换数据并做合规评估。
 
 故障与迁云：[项目说明](../docs/项目说明.md)、[交接](docs/云迁移与记忆交接.md)。

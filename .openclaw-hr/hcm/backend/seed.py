@@ -1,21 +1,36 @@
-"""Seed the database from existing stub-state JSON files.
+"""Seed the database from stub-state JSON files.
 
 Usage:
     cd hcm/backend
-    python seed.py
+    python seed.py                    # 生产默认：仅当 workspace stub-state 有数据时导入
+    HCM_SEED_FIXTURES=1 python seed.py  # QA：从 .openclaw-hr/fixtures/onboarding-stub-state 导入
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 from datetime import datetime, timezone
 from database import engine, Base, SessionLocal
 from models import Candidate, PrepNode, Review
 
-# Path to existing stub-state data
-WORKSPACE = Path(__file__).resolve().parent.parent.parent / "workspace-onboarding"
+PROFILE = Path(__file__).resolve().parent.parent.parent
+WORKSPACE = PROFILE / "workspace-onboarding"
+FIXTURES_STUB = PROFILE / "fixtures" / "onboarding-stub-state"
+FIXTURES_REVIEW = PROFILE / "fixtures" / "onboarding-review-state"
 STUB_STATE_DIR = WORKSPACE / "stub-state"
 REVIEW_STATE_DIR = WORKSPACE / "review-state"
+
+
+def resolve_seed_dirs() -> tuple[Path, Path]:
+    """Return (stub-state, review-state) dirs for seeding."""
+    if os.environ.get("HCM_SEED_FIXTURES", "").lower() in ("1", "true", "yes"):
+        return FIXTURES_STUB, FIXTURES_REVIEW
+    stub_override = os.environ.get("HCM_SEED_STUB_STATE")
+    if stub_override:
+        review_override = os.environ.get("HCM_SEED_REVIEW_STATE", str(FIXTURES_REVIEW))
+        return Path(stub_override), Path(review_override)
+    return STUB_STATE_DIR, REVIEW_STATE_DIR
 
 NODE_TYPES = ["contract", "account", "device", "training", "buddy"]
 REVIEW_TYPES = ["day7", "day30", "day60", "day90"]
@@ -34,12 +49,21 @@ def seed():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
-    if not STUB_STATE_DIR.exists():
-        print(f"❌ stub-state 目录不存在: {STUB_STATE_DIR}")
+    stub_dir, review_dir = resolve_seed_dirs()
+
+    if not stub_dir.exists():
+        print(f"❌ stub-state 目录不存在: {stub_dir}")
         sys.exit(1)
 
+    candidate_dirs = [d for d in sorted(stub_dir.iterdir()) if d.is_dir()]
+    if not candidate_dirs:
+        print(f"ℹ️  {stub_dir} 无候选人子目录，跳过 seed。")
+        print("  QA 演示: HCM_SEED_FIXTURES=1 python seed.py")
+        db.close()
+        return
+
     candidates_found = 0
-    for candidate_dir in sorted(STUB_STATE_DIR.iterdir()):
+    for candidate_dir in candidate_dirs:
         if not candidate_dir.is_dir():
             continue
 
@@ -134,7 +158,7 @@ def seed():
         # Create review slots
         for rt in REVIEW_TYPES:
             # Reviews are stored as review-state/review-<中文名>-<type>.json
-            review_path = REVIEW_STATE_DIR / f"review-{name}-{rt}.json"
+            review_path = review_dir / f"review-{name}-{rt}.json"
             if review_path.exists():
                 rv = json.loads(review_path.read_text(encoding="utf-8"))
                 review_status = "completed" if rv.get("status") in ("completed", "已跟进") else "pending"

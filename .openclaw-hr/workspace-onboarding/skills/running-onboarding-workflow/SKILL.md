@@ -56,7 +56,7 @@ SOP：先 HCM 建人 → 再对小惠说「启动某某入职」。
 bash skills/running-onboarding-workflow/scripts/run-onboarding.sh start <姓名> <拼音> <岗位> <薪资>
 ```
 
-例：`run-onboarding.sh start 张磊 zhanglei 后端工程师 32K`。拼音用于生成邮箱前缀（中文进 `tr` 会被破坏，所以单独传拼音），且必须已在 HCM 花名册中。
+例：`run-onboarding.sh start 员工1 yuangong1 后端工程师 32K`。拼音用于生成邮箱前缀（中文进 `tr` 会被破坏，所以单独传拼音），且必须已在 HCM 花名册中。
 
 启动后，prep **只快照 HCM**（不编造部门产出）。合同节点已开始/完成后，流程在**第一个审批门 `contract_gate` 暂停**，返回 JSON。`status` 是 `needs_approval`，`requiresApproval` 里有四样东西，必须交回给人：
 

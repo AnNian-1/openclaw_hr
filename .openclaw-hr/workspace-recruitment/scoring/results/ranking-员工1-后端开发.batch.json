@@ -1,0 +1,127 @@
+{
+  "jd": "jds/jd-bigtech-后端开发工程师.md",
+  "details": [
+    {
+      "parsed": {
+        "name": "员工1",
+        "phone": "138**6021",
+        "email": "yg**01@example.com",
+        "target_position": "后端技术专家 / 后端架构师",
+        "expected_salary": "60K-75K（月薪），可议年包",
+        "expected_city": "上海",
+        "available_date": "一个月内（需办理工作交接）",
+        "education": {
+          "school": "某某大学1",
+          "major": "软件工程",
+          "degree": "硕士",
+          "graduation_year": "2018"
+        },
+        "work_experience": [
+          {
+            "company": "某头部电商集团",
+            "position": "后端技术专家（P7→P8）",
+            "start_date": "2018.04",
+            "end_date": "至今",
+            "industry": "电子商务",
+            "industry_inferred": true
+          },
+          {
+            "company": "某 O2O 生活服务平台",
+            "position": "高级后端工程师 / 后端 Team Leader",
+            "start_date": "2014.07",
+            "end_date": "2018.03",
+            "industry": "本地生活服务",
+            "industry_inferred": true
+          },
+          {
+            "company": "某互联网金融公司",
+            "position": "后端开发工程师",
+            "start_date": "2011.07",
+            "end_date": "2014.06",
+            "industry": "互联网金融",
+            "industry_inferred": true
+          }
+        ],
+        "total_experience_years": 14.8,
+        "job_count": 3,
+        "skills": [
+          "Java（精通，13 年）",
+          "Go（熟练）",
+          "Python（脚本能力）",
+          "Shell",
+          "Spring Boot / Spring Cloud",
+          "Dubbo",
+          "MyBatis",
+          "Netty",
+          "MySQL（精通，含分库分表、索引优化、慢查询治理）",
+          "Redis（精通）",
+          "Elasticsearch",
+          "HBase",
+          "Kafka",
+          "RocketMQ（精通，含顺序消息、事务消息、堆积治理）",
+          "微服务架构",
+          "领域驱动设计",
+          "高并发系统设计",
+          "分布式事务",
+          "服务治理",
+          "全链路压测",
+          "容量规划",
+          "JVM 调优",
+          "故障演练（混沌工程）",
+          "Docker",
+          "Kubernetes",
+          "CI/CD",
+          "Maven",
+          "Git",
+          "Prometheus",
+          "Grafana",
+          "SkyWalking",
+          "ELK"
+        ]
+      },
+      "score": {
+        "candidate_name": "员工1",
+        "dimension_scores": {
+          "专业技能": 5,
+          "经验匹配": 5,
+          "逻辑能力": 4,
+          "学习力": 5,
+          "沟通能力": 4,
+          "协作能力": 4,
+          "抗压能力": 5,
+          "价值观": 3
+        },
+        "dimension_reasons": {
+          "专业技能": "精通Java(13年)、Go熟练，掌握Spring Cloud/Dubbo、MySQL分库分表、Redis、Kafka/RocketMQ等岗位核心技术，并具备JVM调优、K8s、可观测性等进阶能力，技术栈深度与广度远超岗位要求。",
+          "经验匹配": "13 年服务端经验，其中6年+头部电商核心交易链路，直接匹配交易中台订单履约场景；主导过高并发、高可用系统设计，参与过大促峰值保障，经验完全对口且资深。",
+          "逻辑能力": "曾担任技术专家和Team Leader，负责系统架构设计与稳定性建设，简历表述清晰，推断具备优秀的复杂问题拆解和抽象能力。",
+          "学习力": "技术栈从Java扩展至Go，主动跟进Docker、Kubernetes、混沌工程等新技术，在职期间由P7晋升至P8，体现持续学习与提升。",
+          "沟通能力": "有带团队和跨部门协作经验，在大型电商中台需频繁与多方对齐，简历描述简洁明确，无沟通障碍信号。",
+          "协作能力": "任职于11人+团队，参与交易中台多模块治理，过往经历包含Team Leader角色，具备跨团队推动落地的能力。",
+          "抗压能力": "电商大促峰值12.8 万 TPS场景下长期负责核心系统稳定性，多次参与全链路压测和故障演练，抗高压和快节奏能力突出。",
+          "价值观": "简历未体现与价值观直接相关的信息，无法做出明确判断，给予中性评分。"
+        },
+        "jd_match_score": 65,
+        "overall_rating": "C(待定)",
+        "score_reasoning": "候选人技术实力和经验远超P6-P7岗位要求，电商交易链路匹配度极高，但期望薪资(60-75K)超过岗位带宽(25-45K)一倍以上，期望城市为上海而非杭州，且overqualified可能带来稳定性与动力不足的风险，综合匹配度降低。",
+        "highlights": [
+          "头部电商核心交易链路6年+实战，直接对口订单履约场景",
+          "技术栈全面且深入，精通Java/Go及各种高并发中间件，具备P7+水平",
+          "全链路压测、混沌工程、服务治理等高阶稳定性经验丰富"
+        ],
+        "concerns": [
+          "期望月薪60-75K，远超岗位预算25-45K，年包差距显著",
+          "期望城市上海，岗位base杭州，需异地考量",
+          "总经验13 年，目标岗位仅要求3-6年，明显overqualified，可能缺乏长期��任意愿"
+        ],
+        "hard_issues": []
+      }
+    }
+  ],
+  "ranking": [
+    {
+      "name": "员工1",
+      "suggested_action": "建议进入面试候选名单"
+    }
+  ]
+}

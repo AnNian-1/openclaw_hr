@@ -19,9 +19,9 @@ def test_fixture_name():
         "parsed": {"self_evaluation": "测试夹具，非真实候选人。"},
     })
     assert not mod.is_fixture_candidate({
-        "name": "张磊",
+        "name": "员工1",
         "parsed": {"self_evaluation": "交易中台后端。"},
-        "full_text": "姓名:张磊",
+        "full_text": "姓名:员工1",
     })
 
 

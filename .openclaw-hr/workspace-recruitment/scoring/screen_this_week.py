@@ -79,8 +79,7 @@ def score_education(edu):
     score = DEGREE_SCORE.get(edu.get("degree", ""), 40)
     # 学校知名度加分（简单规则：985/211/海外名校）
     school = edu.get("school", "")
-    if any(k in school for k in ["北京", "清华", "上海交通", "复旦", "浙江", "南京", "武汉", "中山",
-                                 "中国科学技术", "哈尔滨工业", "西安交通", "香港", "QS", "双一流"]):
+    if any(k in school for k in ["某某大学", "QS", "双一流"]):
         score += 10
     if "硕士" in edu.get("degree", "") and "博士" not in edu.get("degree", ""):
         score += min(5, score * 0.05)  # 硕士小幅加分
@@ -281,7 +280,7 @@ def get_highlights(parsed, category):
     school = edu.get("school", "")
     if "硕士" in degree:
         highlights.append(f"硕士学历")
-    if any(k in school for k in ["北京", "清华", "复旦", "上海交通", "浙江", "南京", "香港"]):
+    if any(k in school for k in ["某某大学", "QS", "双一流"]):
         highlights.append(f"名校背景")
     
     # 技能亮点

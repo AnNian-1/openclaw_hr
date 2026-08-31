@@ -50,15 +50,40 @@ import matplotlib.pyplot as plt
 from matplotlib import font_manager
 import numpy as np
 
-# ---- 中文字体（macOS 自带，画像图表里的中文不能是方块）----
-_CN_FONT = None
-for _name in ["Microsoft YaHei", "Microsoft YaHei UI", "WenQuanYi Micro Hei", "WenQuanYi Micro Hei Mono", "Songti SC", "STHeiti", "Heiti TC", "PingFang SC", "PingFang HK", "Arial Unicode MS"]:
-    try:
-        font_manager.findfont(_name, fallback_to_default=False)
-        _CN_FONT = _name
-        break
-    except Exception:
-        continue
+# ---- 中文字体：Linux 常见文泉驿 / Noto，macOS 自带宋体；图表里的中文不能是方块 ----
+def _pick_cn_font():
+    for name in (
+        "WenQuanYi Micro Hei",
+        "WenQuanYi Micro Hei Mono",
+        "Noto Sans CJK SC",
+        "Noto Sans CJK JP",
+        "Microsoft YaHei",
+        "Microsoft YaHei UI",
+        "Songti SC",
+        "STHeiti",
+        "Heiti TC",
+        "PingFang SC",
+        "PingFang HK",
+        "Arial Unicode MS",
+    ):
+        try:
+            path = font_manager.findfont(name, fallback_to_default=False)
+        except Exception:
+            continue
+        if path and "dejavu" not in path.lower():
+            return name
+    for fpath in font_manager.findSystemFonts():
+        low = fpath.lower()
+        if any(k in low for k in ("wqy", "microhei", "noto-cjk", "noto_cjk", "sourcehan", "droid-fallback")):
+            try:
+                font_manager.fontManager.addfont(fpath)
+                return font_manager.FontProperties(fname=fpath).get_name()
+            except Exception:
+                continue
+    return None
+
+
+_CN_FONT = _pick_cn_font()
 if _CN_FONT:
     plt.rcParams["font.sans-serif"] = [_CN_FONT]
 plt.rcParams["axes.unicode_minus"] = False

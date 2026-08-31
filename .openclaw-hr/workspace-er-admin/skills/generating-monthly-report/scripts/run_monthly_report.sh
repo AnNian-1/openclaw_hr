@@ -9,10 +9,9 @@
 #   run_monthly_report.sh --no-publish ... 只生成到 report-output/, 不发 Canvas
 #
 # 月末守卫说明:
-#   cron 表达式 "59 23 28-31 * *" 会在每月 28/29/30/31 日各触发一次。
-#   守卫逻辑判断"明天是否为 1 号", 只有真正的月末当天才往下生成,
-#   其余几天空跑退出 —— 这是标准 cron 实现"仅月末触发一次"的通用做法
-#   (cron 的 L 修饰符并非所有调度器都支持)。
+#   宿主机 crontab 每天 23:59 调 /opt/hr-ops/maybe-monthly-report.sh，
+#   明天不是 01 则根本不进本脚本。本守卫仍保留，便于 CLI 无 --force 时防误跑。
+#   （旧方案 OpenClaw cron "59 23 28-31 * *" 已废弃：空跑仍会写 isolated 会话。）
 #
 # Canvas:
 #   默认 --publish --force，落盘 id=hr-monthly-report（覆盖上一期）。

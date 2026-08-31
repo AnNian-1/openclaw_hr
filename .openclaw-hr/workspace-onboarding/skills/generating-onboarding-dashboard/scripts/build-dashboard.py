@@ -5,8 +5,8 @@
 
 数据来源：HCM 系统 API（只读）
   - 花名册与五部门准备节点：GET /api/candidates
-  - review 节点：本机 review-state/reviews.json（入职小慧维护）
   - 审批门角标：本机 stub-state/<pinyin>/workflow.json（HCM 无此字段）
+  - 试用期 review 不进看板（本地 review-state 维护；HCM review API 后续作废）
 
 不向 HCM 写入，不读本地 stub-state 作为准备节点真相源。
 
@@ -17,7 +17,6 @@ import json
 import os
 import sys
 import datetime
-import subprocess
 import urllib.request
 import urllib.error
 from zoneinfo import ZoneInfo
@@ -42,11 +41,6 @@ def hcm_base():
 
 HCM_API_BASE = hcm_base()
 
-REVIEW_SCRIPT_DIR = os.path.join(WS, "skills", "running-onboarding-review", "scripts")
-if REVIEW_SCRIPT_DIR not in sys.path:
-    sys.path.insert(0, REVIEW_SCRIPT_DIR)
-import review_store  # noqa: E402
-
 # 5 个入职准备节点
 PREP_NODES = [
     ("contract", "合同签署"),
@@ -56,9 +50,7 @@ PREP_NODES = [
     ("training", "入职培训"),
 ]
 
-# 4 个 review 节点
-REVIEW_NODES = [7, 30, 60, 90]
-REVIEW_LABEL = {7: "第 7 天", 30: "第 30 天", 60: "第 60 天", 90: "第 90 天"}
+# 看板只展示 5 个准备节点；试用期 review 不进此页
 
 # 状态归类
 DONE_WORDS = (
@@ -206,7 +198,7 @@ def load_workflow(pinyin):
 
 
 def build_employee(candidate):
-    """汇总单个员工的 9 个节点状态 + workflow 角标 + 整体进度。"""
+    """汇总单个员工的 5 个准备节点 + workflow 角标 + 整体进度。"""
     name = candidate.get("name", "")
     pinyin = candidate.get("pinyin", "")
     role = candidate.get("role", "—")
@@ -224,22 +216,8 @@ def build_employee(candidate):
             done_count += 1
         prep.append({"label": label, "raw": display, "cls": cls})
 
-    # 4 个 review 节点（来自本地表）
-    reviews = []
-    rdone = 0
-    review_map = review_store.all_reviews_map(pinyin)
-    for day in REVIEW_NODES:
-        st = review_map.get(f"day{day}", "pending")
-        if st == "completed":
-            reviews.append({"label": REVIEW_LABEL[day], "cls": "done",
-                            "text": "已 review"})
-            rdone += 1
-        else:
-            reviews.append({"label": REVIEW_LABEL[day], "cls": "pending",
-                            "text": "待触发"})
-
-    total = len(PREP_NODES) + len(REVIEW_NODES)
-    pct = round((done_count + rdone) / total * 100)
+    total = len(PREP_NODES)
+    pct = round(done_count / total * 100) if total else 0
 
     wf = load_workflow(pinyin)
     badge = hcm_prep_badge(prep)
@@ -251,9 +229,7 @@ def build_employee(candidate):
         "pinyin": pinyin,
         "hcm_status": candidate.get("status", ""),
         "prep": prep,
-        "reviews": reviews,
         "done_count": done_count,
-        "rdone": rdone,
         "pct": pct,
         "badge": badge,
         "gate_badge": gate,
@@ -278,9 +254,6 @@ def render_card(data):
     prep_html = "\n".join(
         render_node(n["label"], n["cls"], n["raw"])
         for n in data["prep"])
-    rev_html = "\n".join(
-        render_node(n["label"], n["cls"], n["text"])
-        for n in data["reviews"])
     pct = data["pct"]
     bar_cls = "bar-high" if pct >= 80 else ("bar-mid" if pct >= 50 else "bar-low")
     return f"""    <section class="card">
@@ -308,36 +281,7 @@ def render_card(data):
 {prep_html}
         </div>
       </div>
-      <div class="stage">
-        <div class="stage-title">试用期跟进 · 4 个 review 节点
-          <span class="stage-count">{data['rdone']}/4 已 review</span></div>
-        <div class="timeline">
-{rev_html}
-        </div>
-      </div>
     </section>"""
-
-
-def _sync_reviews_if_ready(candidates):
-    """看板刷新时：五节点全绿则开通试用期跟进（已挂过则跳过）。"""
-    script = os.path.join(
-        WS, "skills", "running-onboarding-review", "scripts", "sync-reviews-if-ready.sh"
-    )
-    if not os.path.isfile(script):
-        return
-    for c in candidates:
-        name, pin = c.get("name"), c.get("pinyin")
-        if not name or not pin:
-            continue
-        try:
-            subprocess.run(
-                ["bash", script, name, pin],
-                env={**os.environ, "WORKSPACE": WS, "ONBOARDING_WORKSPACE": WS},
-                timeout=90,
-                capture_output=True,
-            )
-        except (subprocess.TimeoutExpired, OSError) as e:
-            print(f"[dashboard] sync-reviews {pin} 失败：{e}", file=sys.stderr)
 
 
 def main():
@@ -346,7 +290,6 @@ def main():
         print("[dashboard] HCM 花名册为空，无候选人。", file=sys.stderr)
         sys.exit(2)
 
-    _sync_reviews_if_ready(candidates)
     cards = [build_employee(c) for c in candidates]
     now = datetime.datetime.now(SHANGHAI).strftime("%Y-%m-%d %H:%M")
     total_emp = len(cards)
@@ -477,7 +420,7 @@ def main():
     <span><i class="dot pending"></i>待办 / 待审批 / 待触发</span>
   </div>
   <div class="foot">
-    到岗角标按 HCM 5 个准备节点 · 试用期跟进来自本机 review-state（五节点全绿才开通） ·
+    到岗角标按 HCM 5 个准备节点 · 试用期 review 不在本看板（本地表维护） ·
     审批门标记来自本机 stub-state/&lt;pinyin&gt;/workflow.json（halted 满 3 天催办）
   </div>
 </body>
@@ -492,8 +435,7 @@ def main():
         badge = c["badge"]["text"]
         gate = (c.get("gate_badge") or {}).get("text")
         extra = f" · {gate}" if gate else ""
-        print(f"  {c['name']}: [{badge}{extra}] 准备 {c['done_count']}/5 · "
-              f"review {c['rdone']}/4 · 整体 {c['pct']}%")
+        print(f"  {c['name']}: [{badge}{extra}] 准备 {c['done_count']}/5 · 整体 {c['pct']}%")
 
 
 if __name__ == "__main__":

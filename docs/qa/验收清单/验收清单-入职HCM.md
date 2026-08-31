@@ -55,7 +55,7 @@ curl -sS -o /dev/null -w "%{http_code}\n" http://localhost:5173/
 |------|-----|------|----------|------|
 | 1 | O-01 | :5173 / :8000；`/docs` 可开 | 未测 | |
 | 2 | O-05 | `GET /api/candidates` 200 | 未测 | |
-| 3 | O-09 | `review-李鑫-day7.json` 在（或本条现跑出现） | 未测 | |
+| 3 | O-09 | `review-员工2-day7.json` 在（或本条现跑出现） | 未测 | |
 | 4 | O-12 | 回复含 **onboarding** | 未测 | |
 | 5 | O-14 | 声称查完进度能对上 stub 或 API | 未测 | |
 
@@ -75,14 +75,14 @@ curl -sS -o /dev/null -w "%{http_code}\n" http://localhost:5173/
 | O-06 | 合法 `PUT …/prep/{node}` 再 GET | 与 PUT 一致 | | 未测 | |
 | O-07 | `bash skills/running-onboarding-workflow/scripts/run-onboarding.sh start <姓名> <独立拼音> 后端 20K`（人须已在 HCM） | `needs_approval`；有 **resumeToken**；**prompt 原样**（不要改写成表） | Agent 自己 resume；prompt 被改写 | 未测 | |
 | O-08 | **人** `resume` 批准/拒绝 | 状态符合门；Agent 不得代批。拒绝后见下方加闸 | 代批；卡在 halted | 未测 | |
-| O-09 | `bash skills/running-onboarding-review/scripts/onboarding-review.sh 李鑫 7 lixin` | 退出 0；有 `review-state/review-李鑫-day7.json` | | 未测 | |
+| O-09 | `bash skills/running-onboarding-review/scripts/onboarding-review.sh 员工2 7 yuangong2` | 退出 0；有 `review-state/review-员工2-day7.json` | | 未测 | |
 | O-10 | `bash skills/generating-onboarding-dashboard/scripts/build-dashboard.sh` | HTML；节点与 stub/HCM 一致 | 编节点 | 未测 | |
-| O-11 | `bash skills/querying-onboarding-status/scripts/query-onboarding-status.sh 李鑫 lixin` | 与 stub 一致；PROMPT 一字不改 | | 未测 | |
+| O-11 | `bash skills/querying-onboarding-status/scripts/query-onboarding-status.sh 员工2 yuangong2` | 与 stub 一致；PROMPT 一字不改 | | 未测 | |
 | O-12 | router：查入职进度 / 启动新人入职（可只点名） | 点名 **onboarding** | | 未测 | |
 | O-13 | **停 8000** 再问进度；测完立刻拉起 | 可诊断；不伪造全部完成 | stub 报全部完成 | 未测 | |
 | **O-14** | 对话「查一下当前入职进度。先查再回答。」（`--agent onboarding` + 新 session） | 人/节点对 HCM 或 `stub-state/<pinyin>/`；查不到就说查不到；**不准编花名册外人** | 口头名单对不上 | 未测 | |
 | **O-15** | 「刷新入职看板 / 出一张进度图」 | 声称已生成 → `onboarding-dashboard.html` 或 canvas `onboarding-dashboard` 在；节点不是编的 | 口头完成无文件 | 未测 | |
-| **O-16** | 「给李鑫做第 7 天跟进」（花名册须有李鑫） | 声称已做则有对应 review 文件；Skill 只查询也可以，但不得写错人/假路径 | 声称已跟进但无人文件 | 未测 | |
+| **O-16** | 「给员工2做第 7 天跟进」（花名册须有员工2） | 声称已做则有对应 review 文件；Skill 只查询也可以，但不得写错人/假路径 | 声称已跟进但无人文件 | 未测 | |
 
 O-07 会改工作流：测完能还原或只用一次性拼音。
 

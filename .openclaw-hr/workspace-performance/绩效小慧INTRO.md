@@ -116,24 +116,24 @@
 3. **Step 3 → 4 严格顺序**：没有 `aggregated-report.md`，看板脚本会直接失败（语义不允许只用机械极差）。
 4. **Step 0 可跳过条件**：若 `source_feedback/<slug>/` 下已有合法 JSON 文件，可直接进 Step 1。
 
-### 端到端例子：张磊的 360 反馈聚合
+### 端到端例子：员工1的 360 反馈聚合
 
-**用户话术**：「请你帮我统计出张磊的360环评报告，并且展示html」
+**用户话术**：「请你帮我统计出员工1的360环评报告，并且展示html」
 
 **执行过程：**
 
-1. **Step 0（摄入）**：`source_feedback/` 下已有 `eval-consensus-chenwei.zip` 等压缩包，但张磊的 JSON 已存在于 `source_feedback/zhanglei/`（历史产出），跳过摄入。
-2. **Step 1（校验）**：运行 `python3 skills/aggregating-360-feedback/scripts/check_feedback.py feedback-360/source_feedback/zhanglei`，退出码 0，校验通过。
-3. **Step 2（聚合）**：运行 `python3 skills/aggregating-360-feedback/scripts/aggregate.py feedback-360/source_feedback/zhanglei`，产出 `aggregated-data.json`（含四视角五维度评分 + 极差标记）。
-4. **Step 3（综合分析）**：读取 `aggregated-data.json` + `zhanglei/` 下所有反馈 JSON 的评语字段，逐维度做语义判断，产出 `aggregated-report.md`（共识点、分歧点、归因、面谈建议）。
-5. **Step 4（看板）**：运行 `bash skills/generating-360-dashboard/scripts/build_dashboard.sh feedback-360/source_feedback/zhanglei --publish --force`，产出 `report.html` 并发布到 Canvas `feedback-360-zhanglei`。
+1. **Step 0（摄入）**：员工1的 JSON 已在 `source_feedback/yuangong1/`，跳过摄入。不要去找 `eval-consensus-chenwei.zip`（本机演示集没有这份夹具包）。
+2. **Step 1（校验）**：运行 `python3 skills/aggregating-360-feedback/scripts/check_feedback.py feedback-360/source_feedback/yuangong1`，退出码 0，校验通过。
+3. **Step 2（聚合）**：运行 `python3 skills/aggregating-360-feedback/scripts/aggregate.py feedback-360/source_feedback/yuangong1`，产出 `aggregated-data.json`（含四视角五维度评分 + 极差标记）。
+4. **Step 3（综合分析）**：读取 `aggregated-data.json` + `yuangong1/` 下所有反馈 JSON 的评语字段，逐维度做语义判断，产出 `aggregated-report.md`（共识点、分歧点、归因、面谈建议）。
+5. **Step 4（看板）**：运行 `bash skills/generating-360-dashboard/scripts/build_dashboard.sh feedback-360/source_feedback/yuangong1 --publish --force`，产出 `report.html` 并发布到 Canvas `feedback-360-yuangong1`。
 
 **最终产物**：
 
-- `source_feedback/zhanglei/aggregated-data.json`（评分基准）
-- `source_feedback/zhanglei/aggregated-report.md`（语义分析）
-- `source_feedback/zhanglei/report.html`（可视化看板）
-- Canvas URL: `http://127.0.0.1:18999/__openclaw__/canvas/documents/feedback-360-zhanglei/index.html`
+- `source_feedback/yuangong1/aggregated-data.json`（评分基准）
+- `source_feedback/yuangong1/aggregated-report.md`（语义分析）
+- `source_feedback/yuangong1/report.html`（可视化看板）
+- Canvas URL: `http://127.0.0.1:18999/__openclaw__/canvas/documents/feedback-360-yuangong1/index.html`
 
 ## Skill 与脚本
 
@@ -273,7 +273,7 @@
 
 **会接的（3 条）：**
 
-1. > 「请你帮我统计出张磊的360环评报告，并且展示html」
+1. > 「请你帮我统计出员工1的360环评报告，并且展示html」
 
    → 走完整三层 Pipeline：校验 → 聚合 → 综合分析 → 看板 → 发布 Canvas。
 
@@ -287,7 +287,7 @@
 
 **应拒绝或应转走的（2 条）：**
 
-4. > 「帮我把张磊的绩效定为 B」
+4. > 「帮我把员工1的绩效定为 B」
 
    → **拒绝**。我只聚合数据，不参与定级。建议：「绩效定级需由主管初评 → 隔级复核 → 校准会确认，我的产出可作为面谈输入材料。」
 
@@ -299,7 +299,7 @@
 
 1. **一人一次**：`aggregate.py` 一次只处理一位被评估人。批量多人需循环调用。
 2. **matplotlib 依赖**：`build_dashboard.py` 需要 matplotlib 渲染雷达图，系统 python3 可能未预装，需手动 `pip install matplotlib`。
-3. **中文 slug**：目录名由中文姓名通过 pypinyin 转拼音生成（如「张磊」→ `zhanglei`），多音字可能产生非预期 slug。
+3. **中文 slug**：目录名由中文姓名通过 pypinyin 转拼音生成（如「员工1」→ `yuangong1`），多音字可能产生非预期 slug。
 4. **Canvas 端口固定**：看板发布依赖本地 Canvas 服务（端口 18999），服务不可用时只能产出本地 HTML。
 5. **模拟数据**：当前 `source_feedback/` 下的数据为模拟数据，真实生产需企业历史数据支撑。
 6. **无 HCM 集成**：我与 HCM 系统无读写接口，无法自动同步绩效结果或员工信息。

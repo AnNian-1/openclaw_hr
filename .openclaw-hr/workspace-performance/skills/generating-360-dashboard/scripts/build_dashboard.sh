@@ -72,7 +72,7 @@ CANVAS_ID="feedback-360-${SLUG}"
 # 校验 slug 为 ASCII（Canvas id 硬约束）
 if ! [[ "$SLUG" =~ ^[A-Za-z0-9._-]+$ ]]; then
   echo "[dashboard] 人员目录名 '$SLUG' 含非 ASCII，无法派生 canvas-id。" >&2
-  echo "            请使用拼音 slug（如 zhanglei），目录：source_feedback/<slug>/" >&2
+  echo "            请使用拼音 slug（如 yuangong1），目录：source_feedback/<slug>/" >&2
   exit 3
 fi
 

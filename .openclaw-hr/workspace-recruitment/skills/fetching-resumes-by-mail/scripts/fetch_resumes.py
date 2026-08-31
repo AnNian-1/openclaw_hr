@@ -9,7 +9,7 @@ fetch_resumes.py — 收件箱拉简历附件 → 落盘到 ./inbox（仅保留 
      其他后缀（png/jpg/html/md/txt/...）一律丢弃，**不写盘**。
   2. ZIP/RAR 必须解压缩，**只从中提取 pdf / docx**；其余成员（jpg/htm/...）丢弃。
   3. 姓名 / 岗位识别：**v2.2 起只读简历文件正文**（PDF/DOCX 抽文本 → LLM）。
-     **不看**邮件主题 / 正文 / 附件文件名（避免「张三简历投送」但 PDF 实为张磊 这类误导）。
+     **不看**邮件主题 / 正文 / 附件文件名（避免「张三简历投送」但 PDF 实为员工1 这类误导）。
      LLM 为默认（DeepSeek V4 Flash）；--no-llm 时对抽出的正文做启发式。
      缓存 key = 文件内容 sha256，同内容不重复调。
   4. 身份：姓名 + 电话（或邮箱）认定同一人则覆盖旧 PDF，并作废 parsed/clean/score；
@@ -333,7 +333,8 @@ class LiveImapBackend(MailBackend):
                 return
             for i in range(0, len(keep_uids), 50):
                 chunk = keep_uids[i : i + 50]
-                for m in mb.fetch(mark_seen=False, uid_list=chunk):
+                # imap-tools 1.13 无 uid_list；用 AND(uid=...) 精确拉窗口内 UID。
+                for m in mb.fetch(AND(uid=chunk), mark_seen=False, bulk=50):
                     yield self._summary_from_imap(m)
 
 
@@ -789,7 +790,7 @@ def _person_name_from_saved(filename: str) -> str:
     """从落盘文件名尽量抽出姓名（兼容新旧两种命名）。
 
     新格式：姓名-岗位.ext → 取首段
-    旧格式：resume-tech-01-张磊-后端开发.ext → 无法只靠首段，返回空，交给段匹配
+    旧格式：resume-tech-01-员工1-后端开发.ext → 无法只靠首段，返回空，交给段匹配
     """
     stem = Path(filename).stem
     if "-" not in stem:
@@ -805,9 +806,9 @@ def _filename_has_person_name(filename: str, person_name: str) -> bool:
     """判断落盘文件名是否已包含该姓名。
 
     兼容：
-      - 新：张磊-后端技术专家.pdf
-      - 旧：resume-tech-01-张磊-后端开发.pdf
-      - 带 uuid：resume-product-02-林婉清-数据产品经理---uuid.docx
+      - 新：员工1-后端技术专家.pdf
+      - 旧：resume-tech-01-员工1-后端开发.pdf
+      - 带 uuid：resume-product-02-候选人G-数据产品经理---uuid.docx
     规则：按 '-' 切段后任一段与姓名完全相等；或新格式以「姓名-」开头。
     """
     want = (person_name or "").strip()

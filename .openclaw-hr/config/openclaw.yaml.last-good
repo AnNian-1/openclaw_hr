@@ -317,8 +317,8 @@
       {
         "id": "recruitment",
         "name": "recruitment",
-        "workspace": "/home/yhwz/openclaw-hr/.openclaw-hr/workspace-recruitment",
-        "agentDir": "/home/yhwz/openclaw-hr/.openclaw-hr/agent-dirs/recruitment",
+        "workspace": "/opt/openclaw-hr/.openclaw-hr/workspace-recruitment",
+        "agentDir": "/opt/openclaw-hr/.openclaw-hr/agent-dirs/recruitment",
         "tools": {
           "allow": [
             "group:memory",
@@ -362,8 +362,8 @@
       {
         "id": "onboarding",
         "name": "onboarding",
-        "workspace": "/home/yhwz/openclaw-hr/.openclaw-hr/workspace-onboarding",
-        "agentDir": "/home/yhwz/openclaw-hr/.openclaw-hr/agent-dirs/onboarding",
+        "workspace": "/opt/openclaw-hr/.openclaw-hr/workspace-onboarding",
+        "agentDir": "/opt/openclaw-hr/.openclaw-hr/agent-dirs/onboarding",
         "subagents": {
           "allowAgents": []
         }
@@ -371,8 +371,8 @@
       {
         "id": "training",
         "name": "training",
-        "workspace": "/home/yhwz/openclaw-hr/.openclaw-hr/workspace-training",
-        "agentDir": "/home/yhwz/openclaw-hr/.openclaw-hr/agent-dirs/training",
+        "workspace": "/opt/openclaw-hr/.openclaw-hr/workspace-training",
+        "agentDir": "/opt/openclaw-hr/.openclaw-hr/agent-dirs/training",
         "tools": {
           "allow": [
             "group:memory",
@@ -390,8 +390,8 @@
       {
         "id": "performance",
         "name": "performance",
-        "workspace": "/home/yhwz/openclaw-hr/.openclaw-hr/workspace-performance",
-        "agentDir": "/home/yhwz/openclaw-hr/.openclaw-hr/agent-dirs/performance",
+        "workspace": "/opt/openclaw-hr/.openclaw-hr/workspace-performance",
+        "agentDir": "/opt/openclaw-hr/.openclaw-hr/agent-dirs/performance",
         "tools": {
           "allow": [
             "group:memory",
@@ -409,8 +409,8 @@
       {
         "id": "er-admin",
         "name": "er-admin",
-        "workspace": "/home/yhwz/openclaw-hr/.openclaw-hr/workspace-er-admin",
-        "agentDir": "/home/yhwz/openclaw-hr/.openclaw-hr/agent-dirs/er-admin",
+        "workspace": "/opt/openclaw-hr/.openclaw-hr/workspace-er-admin",
+        "agentDir": "/opt/openclaw-hr/.openclaw-hr/agent-dirs/er-admin",
         "tools": {
           "allow": [
             "exec",
@@ -513,8 +513,8 @@
       {
         "id": "er-admin-cron",
         "name": "er-admin-cron",
-        "workspace": "/home/yhwz/openclaw-hr/.openclaw-hr/workspace-er-admin",
-        "agentDir": "/home/yhwz/openclaw-hr/.openclaw-hr/agent-dirs/er-admin-cron",
+        "workspace": "/opt/openclaw-hr/.openclaw-hr/workspace-er-admin",
+        "agentDir": "/opt/openclaw-hr/.openclaw-hr/agent-dirs/er-admin-cron",
         "tools": {
           "allow": [
             "exec"
@@ -539,8 +539,8 @@
       {
         "id": "router",
         "name": "router",
-        "workspace": "/home/yhwz/openclaw-hr/.openclaw-hr/workspace-router",
-        "agentDir": "/home/yhwz/openclaw-hr/.openclaw-hr/agent-dirs/router",
+        "workspace": "/opt/openclaw-hr/.openclaw-hr/workspace-router",
+        "agentDir": "/opt/openclaw-hr/.openclaw-hr/agent-dirs/router",
         "tools": {
           "allow": [
             "*"
@@ -603,7 +603,7 @@
           "enabled": true
         },
         "session-memory": {
-          "enabled": true
+          "enabled": false
         }
       }
     }
@@ -717,7 +717,7 @@
     "tts": {
       "providers": {
         "tts-local-cli": {
-          "command": "/home/yhwz/openclaw-hr/.openclaw-hr/workspace-recruitment/interview/scripts/tts-say.sh",
+          "command": "/opt/openclaw-hr/.openclaw-hr/workspace-recruitment/interview/scripts/tts-say.sh",
           "args": [
             "{{Text}}",
             "{{OutputPath}}"

@@ -118,7 +118,7 @@ def clean_comment(text: str) -> str:
 def subject_slug(subject: str) -> str:
     """被评估人 → 落盘子目录名（ASCII，供路径与 Canvas id）。
 
-    从 DOCX「被评估人」字段抽取，中文名转拼音拼接（如 张磊→zhanglei），
+    从 DOCX「被评估人」字段抽取，中文名转拼音拼接（如 员工1→yuangong1），
     不维护姓名白名单。已是拉丁字母的名字则直接清洗小写。
     """
     subject = (subject or "").strip()

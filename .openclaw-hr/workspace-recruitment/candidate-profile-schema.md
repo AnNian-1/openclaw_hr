@@ -91,7 +91,7 @@ inbox 简历
 **规则：**
 
 - 简历列多段学历时，`education` **只取最高学历**那一段。
-- 例：爱丁堡大学硕士 + 武汉大学本科 → 取硕士。
+- 例：某某大学3硕士 + 某某大学4本科 → 取硕士。
 
 ---
 
@@ -260,7 +260,7 @@ inbox 简历
 
 | 字段 | 说明 |
 |------|------|
-| `_resume_file` | 来源简历文件名（如 `resume-tech-01-张磊-后端开发.md`） |
+| `_resume_file` | 来源简历文件名（如 `resume-tech-01-员工1-后端开发.md`） |
 | `resume_json` | ranking 明细中指向结构化文件的路径/名 |
 | `audited_at` / `audited/*.audit.json` | 抽取核对产物时间与报告 |
 
@@ -270,17 +270,17 @@ inbox 简历
 
 ## 附录 A · 最小合法 JSON 示例
 
-对齐 `parsed/resume-tech-01-张磊-后端开发.json` 的形状（节选）：
+对齐 `parsed/resume-tech-01-员工1-后端开发.json` 的形状（节选）：
 
 ```json
 {
-  "name": "张磊",
+  "name": "员工1",
   "target_position": "后端技术专家 / 后端架构师",
   "expected_salary": "60K-75K",
   "expected_city": "上海",
   "available_date": "一个月内",
   "education": {
-    "school": "上海交通大学",
+    "school": "某某大学1",
     "major": "软件工程",
     "degree": "硕士",
     "graduation_year": "2018",
@@ -300,7 +300,7 @@ inbox 简历
   "job_count": 1,
   "skills": ["Java", "Go", "微服务架构"],
   "self_evaluation": "……",
-  "_resume_file": "resume-tech-01-张磊-后端开发.md"
+  "_resume_file": "resume-tech-01-员工1-后端开发.md"
 }
 ```
 

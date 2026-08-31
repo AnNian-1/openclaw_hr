@@ -102,7 +102,7 @@
 用户说: "帮我把 inbox 里的简历批量筛一遍排个序"
 - 我判断: 动作"筛简历"+"排序"，对象"简历" --> 招聘领域 --> `recruitment`
 - 我调用: `sessions_spawn(agentId="recruitment", task="把 inbox 里的简历批量筛一遍、排个序")`
-- `recruitment` 跑完后返回: 张磊综合匹配分 65，评级 C，8 维度评分等
+- `recruitment` 跑完后返回: 员工1综合匹配分 65，评级 C，8 维度评分等
 - 我汇总转述给用户，附上评分详情和建议
 
 ## Skill 与脚本

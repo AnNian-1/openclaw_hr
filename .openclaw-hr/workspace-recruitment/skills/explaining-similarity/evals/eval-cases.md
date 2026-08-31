@@ -5,15 +5,15 @@
 
 ## 评测场景
 
-### 场景 1 · 为「像张磊的」检索结果生成解释
+### 场景 1 · 为「像员工1的」检索结果生成解释
 
-- 输入：`searching-talent-pool` 落盘的 `talent-pool/search-张磊.json`（Top 5 + 4 维度相似度）
-- query：为这份检索结果生成解释——说清每个候选人为什么像张磊
+- 输入：`searching-talent-pool` 落盘的 `talent-pool/search-员工1.json`（Top 5 + 4 维度相似度）
+- query：为这份检索结果生成解释——说清每个候选人为什么像员工1
 - expected_behavior：
   - 对 Top 5 每人生成 2-3 句 HR 可读解释，点出「哪个维度最像、为什么」
-  - 解释里引用的维度分数与 `search-张磊.json` 里的分数**完全一致**——LLM 只能引用，不能改动、不能编造新分数
+  - 解释里引用的维度分数与 `search-员工1.json` 里的分数**完全一致**——LLM 只能引用，不能改动、不能编造新分数
   - 解释里引用的事实（学校、技能、公司、经历）均来自结构化字段，无编造
-  - 带解释的结果落盘 `talent-pool/search-张磊-explained.json`
+  - 带解释的结果落盘 `talent-pool/search-员工1-explained.json`
 
 ### 场景 2 · 解释要诚实标出差异维度
 

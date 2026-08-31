@@ -14,7 +14,7 @@
   - 阶段 B（embed）把结构化数据向量化，落盘 `talent-pool/talent-pool.json`
   - 人才库 `candidate_count = 28`，四类（function/operations/product/tech）各 7 份
   - 每名候选人有 1 个整体向量（`vector`，1024 维）+ 4 个维度向量（`dim_vectors`：education/experience/skills/industry）
-  - `embedding_model = text-embedding-v3`、`dimension = 1024`
+  - `embedding_model = Qwen/Qwen3-Embedding-0.6B`、`dimension = 1024`
 
 ### 场景 2 · 断点续跑（已抽部分简历）
 

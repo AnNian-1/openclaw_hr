@@ -120,7 +120,7 @@ tr.sep th{{border-top:3px solid #5b8def}}
 <body>
 <div class="banner">测试夹具 · 非校准会真实结果 · 禁止用于调薪/晋升决策 · {ratings["disclaimer"]}</div>
 <h1>组织绩效看板 {ratings["period"]}</h1>
-<p>模块 A 评级与编造员工为夹具；模块 B/D 中张磊、李四、陈伟、王芳分数取自现有 360 聚合或方案摘录。</p>
+<p>模块 A 评级与编造员工为夹具；模块 B/D 中员工1、夹具A、夹具B、夹具C分数取自现有 360 聚合或方案摘录。</p>
 
 <h2>模块 A · 等级分布</h2>
 {''.join(bars_a)}

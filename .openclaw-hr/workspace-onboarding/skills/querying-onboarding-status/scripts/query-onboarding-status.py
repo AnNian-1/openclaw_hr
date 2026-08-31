@@ -395,31 +395,6 @@ def _summarize_workflow(name, pinyin, wf, token_source=None):
     return "\n".join(lines)
 
 
-def _sync_reviews_if_ready(workspace, name, pinyin):
-    """五节点全绿则 ensure + 挂 Cron；未齐或已挂过则跳过。查询/催办路径也可开通跟进。"""
-    script = os.path.join(
-        workspace, "skills", "running-onboarding-review", "scripts", "sync-reviews-if-ready.sh"
-    )
-    if not os.path.isfile(script):
-        return
-    try:
-        proc = subprocess.run(
-            ["bash", script, name, pinyin],
-            env={
-                **os.environ,
-                "WORKSPACE": workspace,
-                "ONBOARDING_WORKSPACE": workspace,
-            },
-            timeout=90,
-        )
-        if proc.returncode not in (0,):
-            sys.stderr.write(
-                f"[query-onboarding-status] sync-reviews-if-ready 退出码 {proc.returncode}\n"
-            )
-    except (subprocess.TimeoutExpired, OSError) as e:
-        sys.stderr.write(f"[query-onboarding-status] sync-reviews-if-ready 失败：{e}\n")
-
-
 def dump_hcm_roster(hcm_api, workspace):
     """整批进度：只输出 HCM 花名册，禁止 Agent 手编姓名。"""
     ok, data = hcm_api.fetch_candidates()
@@ -434,10 +409,6 @@ def dump_hcm_roster(hcm_api, workspace):
     for c in data:
         if not isinstance(c, dict):
             continue
-        n = c.get("name")
-        p = c.get("pinyin")
-        if n and p:
-            _sync_reviews_if_ready(workspace, n, p)
         rows.append({
             "name": c.get("name"),
             "pinyin": c.get("pinyin"),
@@ -507,8 +478,6 @@ def main():
     if not pinyin:
         sys.stderr.write("[query-onboarding-status] HCM 记录缺少 pinyin。\n")
         sys.exit(4)
-
-    _sync_reviews_if_ready(workspace, hcm_candidate.get("name") or name, pinyin)
 
     stub_scripts_dir = _resolve_stub_scripts_dir()
     hcm_block = _summarize_hcm(hcm_candidate)

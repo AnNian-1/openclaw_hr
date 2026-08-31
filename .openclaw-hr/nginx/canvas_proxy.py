@@ -10,8 +10,11 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 GATEWAY = os.environ.get("OPENCLAW_GATEWAY_URL", "http://127.0.0.1:18790").rstrip("/")
 TOKEN = os.environ.get("OPENCLAW_GATEWAY_TOKEN", "")
-HOST = os.environ.get("CANVAS_PROXY_HOST", "127.0.0.1")
+HOST = os.environ.get("CANVAS_PROXY_HOST", "0.0.0.0")
 PORT = int(os.environ.get("CANVAS_PROXY_PORT", "18999"))
+# 公网只反代 Canvas 文档，不把整个 Gateway（Control UI / API）裸放到 18999
+CANVAS_PREFIX = "/__openclaw__/canvas"
+HEALTHZ = "/__openclaw__/healthz"
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -27,7 +30,8 @@ class Handler(BaseHTTPRequestHandler):
         self._proxy(head=True)
 
     def _proxy(self, head: bool = False) -> None:
-        if self.path.split("?", 1)[0] == "/__openclaw__/healthz":
+        path_only = self.path.split("?", 1)[0]
+        if path_only == HEALTHZ:
             body = b"canvas-proxy ok\n"
             self.send_response(200)
             self.send_header("Content-Type", "text/plain; charset=utf-8")
@@ -35,6 +39,17 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             if not head:
                 self.wfile.write(body)
+            return
+        if not path_only.startswith(CANVAS_PREFIX + "/") and path_only != CANVAS_PREFIX:
+            msg = (
+                b"canvas-proxy: only /__openclaw__/canvas/... is public\n"
+            )
+            self.send_response(404)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Content-Length", str(len(msg)))
+            self.end_headers()
+            if not head:
+                self.wfile.write(msg)
             return
         if not TOKEN:
             self.send_error(500, "OPENCLAW_GATEWAY_TOKEN missing")

@@ -34,18 +34,18 @@ ASR 用 **Paraformer-zh**（ModelScope `iic/speech_seaco_paraformer_large_asr_na
 
 **funasr / Paraformer-zh 的优势**：
 
-- **中文首选**：在 ModelScope 中文公开榜单上的 CER（字错率）显著好于 Whisper / faster-whisper。Whisper 是英文/多语种派生模型，对中文数字量级（"80 万行" / "12.8 万 TPS"）、专业术语（"扣减" / "履约"）、中文姓名（"张磊"）的鲁棒性差一截。
+- **中文首选**：在 ModelScope 中文公开榜单上的 CER（字错率）显著好于 Whisper / faster-whisper。Whisper 是英文/多语种派生模型，对中文数字量级（"80 万行" / "12.8 万 TPS"）、专业术语（"扣减" / "履约"）、中文姓名（"员工1"）的鲁棒性差一截。
 - **免认证**：模型从 ModelScope 国内直下载，零 token，零用户协议——比 HuggingFace 系模型（whisper / pyannote）省一道认证墙。
 - **本地运行**：转写全程在本机，面试录音不出本地——招聘场景的硬要求（候选人是隐私数据源）。
 - **MIT 协议**：可以商用、可以改、可以嵌入本 Skill 分发，没有 CC-BY-4.0 gated terms 那道坎。
 
 **faster-whisper 的真实痛点**：
 
-- `small` 模型在中文场景把"张磊"听成"张蕾"、"80 万行"听成"80 万型"、"扣减"听成"扣检"是结构性问题——这不致命（下游 LLM 能从上下文纠），但每一处都要花一次纠错的 token 开销。
+- `small` 模型在中文场景把"员工1"听成"张蕾"、"80 万行"听成"80 万型"、"扣减"听成"扣检"是结构性问题——这不致命（下游 LLM 能从上下文纠），但每一处都要花一次纠错的 token 开销。
 - `medium` / `large-v3` 中文好一点，但前者在 CPU 上慢 ~3 倍，后者在国内下载不稳定、显存吃紧。
 - 即使换 `large-v3`，仍需面对说话人分离这道独立的难关（见 §3）。
 
-**实测对比**（同一条 wav `interview-zhanglei-tech2.wav`，282.84 s）：FunASR + Paraformer-zh 在 CPU 上 RTF = 0.131（7.6× 实时），GPU (V100S) RTF = 0.031（32.6× 实时），三跑 v1/v2/v3 输出严格确定（105 段、说话人 A=31 / B=74、文本逐字 0 字符差）。详见 `playground/1.step_6_arc/reports/cpu-vs-gpu.md`。
+**实测对比**（同一条 wav `interview-yuangong1-tech2.wav`，282.84 s）：FunASR + Paraformer-zh 在 CPU 上 RTF = 0.131（7.6× 实时），GPU (V100S) RTF = 0.031（32.6× 实时），三跑 v1/v2/v3 输出严格确定（105 段、说话人 A=31 / B=74、文本逐字 0 字符差）。详见 `playground/1.step_6_arc/reports/cpu-vs-gpu.md`。
 
 ## 3. 为什么说话人分离用 CAM++，不用 pyannote-audio / 基频聚类
 

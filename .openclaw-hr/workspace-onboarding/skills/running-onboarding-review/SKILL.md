@@ -57,7 +57,7 @@ bash skills/running-onboarding-review/scripts/review-store.sh get <pinyin> <day>
 bash skills/running-onboarding-review/scripts/review-store.sh ensure <姓名> <pinyin>
 ```
 
-工作流归档或查询/看板刷新时，`sync-reviews-if-ready.sh` 仅在五节点全绿时 `ensure` + 挂 Cron（已挂过则跳过）。**不要**在节点未齐时直接跑 `schedule-onboarding-reviews.sh`。
+工作流**归档**（lobster complete）或 HR 显式执行时，`sync-reviews-if-ready.sh` 仅在五节点全绿时 `ensure` + 挂 Cron（已挂过则跳过）。查询进度与看板刷新**不**挂 Cron。**不要**在节点未齐时直接跑 `schedule-onboarding-reviews.sh`。
 
 ## 跟进重点（按入职天数）
 

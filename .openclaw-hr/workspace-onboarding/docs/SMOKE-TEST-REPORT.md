@@ -86,7 +86,7 @@ account 节点的顶层 `status` 字段和 `data.status` 字段矛盾。review �
 - `o08rejb-contract.json` + `o08rejb-account.json`（拒测O08b，已 cancelled）
 - `jufuce-contract.json` + `jufuce-account.json`（拒测夹具，已 cancelled）
 - `jufuyanshou-contract.json` + `jufuyanshou-account.json`（拒测验收，已 cancelled）
-- `zhanglei-contract.json` + `zhanglei-account.json`（张磊，已 cancelled）
+- `yuangong1-contract.json` + `yuangong1-account.json`（员工1，已 cancelled）
 - `maomaodou-contract.json`（**maomaodou 已不在 HCM 花名册中**，纯孤立文件）
 
 **影响**：查询 Skill 对已取消流程仍可能显示"pending-approvals 附加"信息，造成混淆。
@@ -176,14 +176,14 @@ run-onboarding.sh 内部的 `require_hcm_candidate()` 用 `HCM_API_BASE`，但�
 | 1.10 | resume 非法decision | exit 3 | ✅ | |
 | 1.11 | resume 无效token | lobster parse_error exit 2 | ✅ | |
 | 1.12 | VERBATIM标记块完整性 | PROMPT原样 + token完整 | ✅ | |
-| 1.13 | resumeToken独立性 | 2次halt 2个不同token | ✅ | 验证lixin/ceshiyuan/lisi |
+| 1.13 | resumeToken独立性 | 2次halt 2个不同token | ✅ | 验证yuangong2/ceshiyuan/lisi |
 | 1.14 | HCM花名册校验 | start只读GET不写HCM | ✅ | contract.sh确认"不向HCM写入" |
 
 ### 二、入职状态查询（querying-onboarding-status）
 
 | # | 场景 | 期望 | 结果 | 备注 |
 |---|------|------|------|------|
-| 2.1 | 单人查询 - 已完成 | HCM+workflow=completed | ✅ | lixin |
+| 2.1 | 单人查询 - 已完成 | HCM+workflow=completed | ✅ | yuangong2 |
 | 2.2 | 单人查询 - 审批门halt | 显示halt+PROMPT+token | ✅ | ceshi（第一轮start后） |
 | 2.3 | 单人查询 - 已取消 | 显示cancelled | ✅ | ceshi（拒绝后） |
 | 2.4 | 单人查询 - 无工作流 | 只报HCM，说明未启动 | ✅ | zhangsan |
@@ -296,7 +296,7 @@ run-onboarding.sh 内部的 `require_hcm_candidate()` 用 `HCM_API_BASE`，但�
 
 | # | 场景 | 期望 | 结果 | 备注 |
 |---|------|------|------|------|
-| 2.1 | 单人查询 - 已完成 | HCM+workflow=completed | ✅ | lixin |
+| 2.1 | 单人查询 - 已完成 | HCM+workflow=completed | ✅ | yuangong2 |
 | 2.2 | 单人查询 - 审批门halt | 显示halt+PROMPT+token | ✅ | zhouming |
 | 2.3 | 单人查询 - 已取消 | 显示cancelled | ✅ | liming |
 | 2.4 | 单人查询 - 无工作流 | 只报HCM，说明未启动 | ✅ | zhangsan |

@@ -20,8 +20,8 @@ args:
     default: 面议
 
 env:
-  STUB: /root/.openclaw-hr/workspace-onboarding/stub-system
-  STATE: /root/.openclaw-hr/workspace-onboarding/stub-state
+  STUB: /opt/openclaw-hr/.openclaw-hr/workspace-onboarding/stub-system
+  STATE: /opt/openclaw-hr/.openclaw-hr/workspace-onboarding/stub-state
 
 steps:
   # ── 节点 1 · 4 路并行准备 ──────────────────────────────

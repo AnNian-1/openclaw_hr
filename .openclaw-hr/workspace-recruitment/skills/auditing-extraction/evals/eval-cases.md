@@ -7,18 +7,18 @@
 
 ### 场景 1 · 干净产出（迭代后的标准件，应通过）
 
-- 输入：`parsed/resume-tech-03-郑凯文-前端开发.json` + `inbox/resume-tech-03-郑凯文-前端开发.md`
+- 输入：`parsed/resume-tech-03-候选人E-前端开发.json` + `inbox/resume-tech-03-候选人E-前端开发.md`
 - query：核对这份解析产出，确认每个字段都真来自简历
 - expected_behavior：
   - 18 个硬提取字段 100% 可逐字回溯到原文
   - 2 个软推断字段（industry）均带 `industry_inferred: true`、推断依据（公司名）成立
   - 2 个派生字段计算依据成立
   - 核对通过，退出码 0
-  - 产出核对报告 `audited/resume-tech-03-郑凯文-前端开发.audit.json`
+  - 产出核对报告 `audited/resume-tech-03-候选人E-前端开发.audit.json`
 
 ### 场景 2 · 软推断字段漏标注（应报错）
 
-- 输入：`parsed/resume-tech-02-林雨桐.json` + `inbox/resume-tech-02-林雨桐-算法工程师.md`
+- 输入：`parsed/resume-tech-02-候选人A.json` + `inbox/resume-tech-02-候选人A-算法工程师.md`
 - 说明：这份 JSON 是 CP1 迭代前的产出，`work_experience` 里的 `industry`（内容社区 / 短视频）没有带 `industry_inferred` 标志
 - query：核对这份解析产出的真实性
 - expected_behavior：

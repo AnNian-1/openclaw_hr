@@ -12,7 +12,7 @@
   - 解释里引用的事实(学校/技能/经历) 必须来自结构化数据, prompt 明确约束
   - 不让 LLM 自由发挥, 给定锚点和候选人的真实字段, 只让它"对比说人话"
 
-用法: python3 explain.py --search talent-pool/search-张磊.json
+用法: python3 explain.py --search talent-pool/search-员工1.json
 """
 import os, sys, json, argparse
 import urllib.request

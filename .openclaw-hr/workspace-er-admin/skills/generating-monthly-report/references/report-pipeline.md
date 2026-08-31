@@ -47,20 +47,18 @@ HR 月报是给管理层做判断用的，数字错一个、下游判断就跟�
 
 ## Cron 投产配置
 
-月报真正投产由 OpenClaw Cron 月末定时唤醒 er-admin 执行。生产注册命令：
+月报真正投产由**宿主机 crontab** 日检，不唤醒 OpenClaw Agent：
 
-    openclaw cron add \
-      --name "hr-monthly-report" \
-      --cron "59 23 28-31 * *" \
-      --tz "Asia/Shanghai" \
-      --session isolated \
-      --agent er-admin \
-      --message "运行月报 Skill 的 run_monthly_report.sh 生成本月 HR 月报并发布到 Canvas"
+    CRON_TZ=Asia/Shanghai
+    59 23 * * * /opt/hr-ops/maybe-monthly-report.sh
 
-两个细节：
+`maybe-monthly-report.sh` 判断「明天是否为 1 号」；不是则 `exit 0`。是月末才调用 `run_monthly_report.sh`（脚本内守卫仍在）。时区必须 `Asia/Shanghai`（本容器默认 UTC）。
 
-- 月末守卫：59 23 28-31 * * 在每月 28-31 日各触发一次，但 run_monthly_report.sh 的月末守卫判断「明天是否 1 号」，只有真月末当天才生成、其余空跑退出。这是标准 cron 实现「仅月末跑一次」的可移植做法（cron 的 L 修饰符并非所有调度器都支持）。
-- 时区：必须带 --tz "Asia/Shanghai"，否则 23:59 按 UTC 理解会变成北京时间次日 07:59。且 cron 求值时区要和守卫脚本读的系统时区一致。
+不要再注册 OpenClaw `59 23 28-31 * *` + `agentTurn`：非月末空跑仍会开 isolated 会话，污染记忆。
+
+运维补跑：
+
+    bash workspace-er-admin/scripts/er-admin-run.sh monthly-report --force 2026-07
 
 ## 非 macOS 环境（中文字体 / Python）
 

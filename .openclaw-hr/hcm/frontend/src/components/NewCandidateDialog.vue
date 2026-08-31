@@ -40,13 +40,13 @@ function handleSubmit() {
 
       <div class="form-field">
         <label>姓名 <span class="required">*</span></label>
-        <input v-model="name" placeholder="如：张磊" />
+        <input v-model="name" placeholder="如：员工1" />
         <span v-if="errors.name" class="error">{{ errors.name }}</span>
       </div>
 
       <div class="form-field">
         <label>拼音标识 <span class="required">*</span></label>
-        <input v-model="pinyin" placeholder="如：zhanglei（小写字母）" />
+        <input v-model="pinyin" placeholder="如：yuangong1（小写字母）" />
         <span v-if="errors.pinyin" class="error">{{ errors.pinyin }}</span>
       </div>
 

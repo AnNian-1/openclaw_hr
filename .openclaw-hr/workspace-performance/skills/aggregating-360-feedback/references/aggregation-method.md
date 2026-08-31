@@ -21,8 +21,8 @@
 
 | 文件 | 路径示例 | 说明 |
 |---|---|---|
-| `aggregated-data.json` | `source_feedback/zhanglei/aggregated-data.json` | `aggregate.py` 缺省产出 |
-| `aggregated-report.md` | `source_feedback/zhanglei/aggregated-report.md` | 第二层综合分析约定产出 |
+| `aggregated-data.json` | `source_feedback/yuangong1/aggregated-data.json` | `aggregate.py` 缺省产出 |
+| `aggregated-report.md` | `source_feedback/yuangong1/aggregated-report.md` | 第二层综合分析约定产出 |
 
 校验 / 聚合加载目录时须跳过上述聚合产物，只读单份反馈 JSON。
 

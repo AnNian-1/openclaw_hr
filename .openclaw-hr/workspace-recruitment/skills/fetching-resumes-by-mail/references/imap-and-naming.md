@@ -41,7 +41,7 @@ UNSEEN + (可选) SINCE <date>
 
 QQ 网页端/客户端常把简历标成 **`Content-Disposition: inline`**，有时只有 `Content-Type` 的 `name=`、甚至没有文件名。脚本 **walk 整封 MIME**，不依赖 `attachment` 或 imap-tools 的 `m.attachments`（后者会漏掉「无 filename 且无 Content-ID」的 part）。按后缀 / Content-Type / 文件头识别；内嵌图片、正文 html 仍丢弃。
 
-**QQ 超大附件（文件中转站）**：主题像 `张娜_….pdf`，HTML 里是 `QQMailBigAttach` + `wx.mail.qq.com/ftn/download`，**MIME 里没有 PDF**。IMAP 授权码下不了中转站文件（链接打开是网页登录页）。脚本会记 `skipped_files.reason = qq-ftn-not-in-mime`。请发信方改用「普通附件」，不要用超大附件。
+**QQ 超大附件（文件中转站）**：主题像 `候选人H_….pdf`，HTML 里是 `QQMailBigAttach` + `wx.mail.qq.com/ftn/download`，**MIME 里没有 PDF**。IMAP 授权码下不了中转站文件（链接打开是网页登录页）。脚本会记 `skipped_files.reason = qq-ftn-not-in-mime`。请发信方改用「普通附件」，不要用超大附件。
 
 - 直接附件或内嵌 pdf/docx → 识别后落盘
 - zip/rar → 安全解压后只提内层 pdf/docx（防 zip-slip / zip-bomb）

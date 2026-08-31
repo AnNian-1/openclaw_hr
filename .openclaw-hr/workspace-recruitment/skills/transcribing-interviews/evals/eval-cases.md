@@ -7,7 +7,7 @@
 
 ### 场景 1 · 标准面试录音（一男一女，音高差异明显）
 
-- 输入：`interview/interview-zhanglei-tech2.wav`（282.8s / 16kHz 单声道，面试官女声 + 候选人低音调，TTS 造的模拟二面录音）
+- 输入：`interview/interview-yuangong1-tech2.wav`（282.8s / 16kHz 单声道，面试官女声 + 候选人低音调，TTS 造的模拟二面录音）
 - query：把这段面试录音转成按发言人组织的转写稿
 - expected_behavior：
   - FunASR + Paraformer-zh 转写成功，产出 ~105 个片段

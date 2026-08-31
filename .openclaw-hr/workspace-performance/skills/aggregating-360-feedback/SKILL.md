@@ -29,7 +29,7 @@ metadata:
 ```
 feedback-360/source_feedback/
   ├── <任意名>.zip|.rar            # 顶层投放压缩包（名字随意）
-  └── <slug>/                      # 如 zhanglei/，由 DOCX「被评估人」自动转拼音
+  └── <slug>/                      # 如 yuangong1/，由 DOCX「被评估人」自动转拼音
         ├── *.docx                 # 解压出的反馈表
         ├── manager.json …         # 解析出的单份反馈
         ├── aggregated-data.json   # 机械聚合产出
@@ -57,9 +57,9 @@ source_feedback/<slug>/report.html
 
 | 文件 | 路径示例 | 谁写 |
 |---|---|---|
-| 评分聚合 | `source_feedback/zhanglei/aggregated-data.json` | `aggregate.py` |
-| 综合分析 | `source_feedback/zhanglei/aggregated-report.md` | 第二层 Agent |
-| HTML 看板 | `source_feedback/zhanglei/report.html` | `generating-360-dashboard` |
+| 评分聚合 | `source_feedback/yuangong1/aggregated-data.json` | `aggregate.py` |
+| 综合分析 | `source_feedback/yuangong1/aggregated-report.md` | 第二层 Agent |
+| HTML 看板 | `source_feedback/yuangong1/report.html` | `generating-360-dashboard` |
 
 ## 为什么聚合层用脚本，不用 LLM
 
@@ -89,7 +89,7 @@ python3 skills/aggregating-360-feedback/scripts/ingest_archive.py \
 
 ```bash
 python3 skills/aggregating-360-feedback/scripts/check_feedback.py \
-  feedback-360/source_feedback/zhanglei
+  feedback-360/source_feedback/yuangong1
 ```
 
 （会自动跳过同目录的 `aggregated-data.json`。）
@@ -98,14 +98,14 @@ python3 skills/aggregating-360-feedback/scripts/check_feedback.py \
 
 ```bash
 python3 skills/aggregating-360-feedback/scripts/aggregate.py \
-  feedback-360/source_feedback/zhanglei
+  feedback-360/source_feedback/yuangong1
 ```
 
-**缺省产出**：`source_feedback/zhanglei/aggregated-data.json`。缺自评（self）或上级（manager）时与 `check_feedback.py` 一样拒绝，不静默聚合。
+**缺省产出**：`source_feedback/yuangong1/aggregated-data.json`。缺自评（self）或上级（manager）时与 `check_feedback.py` 一样拒绝，不静默聚合。
 
 ### 第 3 步（衔接）· 综合分析报告
 
-写到同目录：`source_feedback/zhanglei/aggregated-report.md`。
+写到同目录：`source_feedback/yuangong1/aggregated-report.md`。
 
 ## 关键规则
 

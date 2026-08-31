@@ -4,16 +4,16 @@
 
 ## 目录
 
-- 1. 看板汇总的 9 个节点 + 流程角标
+- 1. 看板汇总的 5 个准备节点 + 流程角标
 - 2. 节点状态怎么归类
 - 3. 整体进度怎么算
 - 4. 数据从哪来
-- 5. 自动发现机制与边界情况
+- 5. 花名册来源与边界情况
 - 6. 发布到 Canvas
 
-## 1. 看板汇总的 9 个节点 + 流程角标
+## 1. 看板汇总的 5 个准备节点 + 流程角标
 
-每名新员工一张卡片：右上角 **流程角标** + 两段共 9 个节点。
+每名新员工一张卡片：右上角 **流程角标** + **入职准备 5 节点**。试用期 7/30/60/90 review **不进本看板**（本地 `review-state/` 维护；HCM review API 后续作废）。
 
 **流程角标（主角标，读 HCM 5 个准备节点）**：
 
@@ -25,76 +25,58 @@
 
 **审批门标记（单独一枚，读 `workflow.json`）**：halted 显示门名称 + 停留天数；满 3 天加「请催办」。cancelled 显示「审批已取消」。workflow `completed` **不再**把主角标打成「已完成」——那只表示审批走完，不代表人已到岗。
 
-**入职准备 · 5 节点**（HCM `nodes[]`，分类优先 `data.status`）：
+**入职准备 · 5 节点**（HCM `GET /api/candidates` 的 `nodes[]`，分类优先 `data.status`）：
 
-| 节点 | 含义 | 数据文件 |
+| 节点 | 含义 | 真相源 |
 |---|---|---|
-| 合同签署 | 劳动合同审批与签署 | `stub-state/<pinyin>/contract.json` |
-| IT 账号 | 邮箱、办公系统账号开通 | `stub-state/<pinyin>/account.json` |
-| 行政设备 | 电脑、工位等设备配齐 | `stub-state/<pinyin>/device.json` |
-| Buddy 匹配 | 入职伙伴 / 导师匹配 | `stub-state/<pinyin>/buddy.json` |
-| 入职培训 | 入职培训排期 | `stub-state/<pinyin>/training.json` |
+| 合同签署 | 劳动合同审批与签署 | HCM `node_type=contract` |
+| IT 账号 | 邮箱、办公系统账号开通 | HCM `node_type=account` |
+| 行政设备 | 电脑、工位等设备配齐 | HCM `node_type=device` |
+| Buddy 匹配 | 入职伙伴 / 导师匹配 | HCM `node_type=buddy` |
+| 入职培训 | 入职培训排期 | HCM `node_type=training` |
 
-（旧结构 `stub-state-<姓名>/` 下文件名相同。）
-
-**试用期跟进 · 4 个 review 节点**：
-
-| 节点 | 含义 | 数据文件 |
-|---|---|---|
-| 第 7 天 | 报到第一周跟进 | `review-state/review-<姓名>-day7.json` |
-| 第 30 天 | 入职第一个月跟进 | `review-state/review-<姓名>-day30.json` |
-| 第 60 天 | 入职第二个月跟进 | `review-state/review-<姓名>-day60.json` |
-| 第 90 天 | 入职第三个月跟进 | `review-state/review-<姓名>-day90.json` |
+本机 `stub-state/<pinyin>/` 里的合同/账号等 JSON **不是**看板准备节点的真相源；看板只拿该目录下的 `workflow.json` 做审批门角标。
 
 ## 2. 节点状态怎么归类
 
-`stub-state*` 里的准备节点状态文案归到 3 个标准态：
+HCM 节点文案归到 3 个标准态：
 
-- **done（已完成）** —— 「已审批 / 已通过 / 已开通 / 已配齐 / 已匹配 / 已完成 / 已签署 / 已排期」。绿色。
+- **done（已完成）** —— 「已审批 / 已通过 / 已开通 / 已配齐 / 已匹配 / 已完成 / 已签署 / 已排期」或顶层 `completed`。绿色。
   - 「已排期」也算 done——培训排好日期即办妥。
   - 「已通过」与「已审批」同义，均表示 HiTL 门已批过。
 - **pending（待办）** —— 「待审批 / 待办 / 待制 / 待分配 / 待排期 / 待开通 / 未就绪」，或以「待」字开头。灰色。
   - 「待审批」= 已进审批门、等真人批（与角标 `halted` 对应）。
 - **progress（进行中）** —— 不属于上面两类的（如「起草中」）。橙色。
 
-review 4 节点：对应 JSON 存在 = 「已 review」（done），不存在 = 「待触发」（pending）。
-
 ## 3. 整体进度怎么算
 
 ```
-整体进度 % = (准备节点 done 数 + review 节点 done 数) / 9 × 100
+整体进度 % = 准备节点 done 数 / 5 × 100
 ```
 
 进度条：≥80% 绿、50%-79% 橙、<50% 红。顶部「平均进度」= 所有员工整体进度的算术平均。
 
-整体进度**不**把 workflow 角标单独计入——角标是定性提示（卡在哪扇门），进度条仍按 9 节点 done 占比。
+整体进度**不**把 workflow 角标单独计入——角标是定性提示（卡在哪扇门），进度条按 5 个准备节点 done 占比。
 
 ## 4. 数据从哪来
 
-| 目录 / 文件 | 谁写的 | 看板读什么 |
+| 来源 | 谁写的 | 看板读什么 |
 |---|---|---|
-| `stub-state/<pinyin>/`（或旧 `stub-state-*`）| `running-onboarding-workflow` | 5 个准备节点、姓名 / 岗位 |
-| 同目录 `workflow.json` | `update-workflow.py`（lobster 各节点调用）| 流程角标（status / current_step）|
-| `review-state/` | `running-onboarding-review` | 4 个 review 是否已 review |
+| HCM `GET /api/candidates` | 各部门在 HCM 填写 | 花名册、5 个准备节点 |
+| `stub-state/<pinyin>/workflow.json` | `update-workflow.py`（lobster 各节点调用） | 审批门角标（status / current_step） |
+| `review-state/` | `running-onboarding-review` | **不读**（跟进不进本页） |
 
-脚本靠 `ONBOARDING_WORKSPACE` 或「自身位置向上三级」定位 workspace 根。
+脚本靠 `HCM_API_URL` / `HCM_API_BASE`（默认 `http://localhost:8000`）和 `ONBOARDING_WORKSPACE` 定位。HCM 不可达时直接退出，不拿本地 stub 冒充准备节点。
 
-## 5. 自动发现机制与边界情况
+## 5. 花名册来源与边界情况
 
-**自动发现**：扫描所有以 `stub-state` 开头的目录。
-
-- 新结构：`stub-state/<pinyin>/` 每个有效子目录一名员工。
-- 旧结构：无子目录时，目录本身一名员工。
-- **有效目录**：至少存在 `contract.json` 或 `workflow.json`（空壳跳过）。
-- **同名去重**：优先保留 `stub-state/<pinyin>/`。
-
-姓名优先 `contract.json.candidate`，其次 `workflow.json.candidate`，再目录名兜底。
+**花名册**：HCM 返回的候选人列表，不是扫描 `stub-state*`。
 
 **边界情况**：
 
-- 缺部分节点 JSON → 显示「未就绪」，卡片照常生成。
-- 无任何 review → 4 个节点全「待触发」。
-- 无任何有效 `stub-state*` → 退出码 2，「还没有员工跑过入职工作流」。
+- HCM 节点缺失 → 显示「未就绪」，卡片照常生成。
+- 无 `workflow.json` → 无审批门角标，准备节点仍展示。
+- HCM 无候选人 / API 失败 → 退出（API 失败 exit 5）。
 - 准备节点已绿但角标仍 `halted` → 正常：材料已备、审批未过。
 
 ## 6. 发布到 Canvas

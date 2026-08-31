@@ -34,7 +34,7 @@ python3 skills/generating-360-dashboard/scripts/publish_to_canvas.py \
 
 | 用途 | ASCII id |
 |---|---|
-| 某人 360 看板 | `feedback-360-<slug>`（例 `feedback-360-zhanglei`） |
+| 某人 360 看板 | `feedback-360-<slug>`（例 `feedback-360-yuangong1`） |
 
 按人一份；`<slug>` 取人员目录名（拼音，已是 ASCII）。**禁止**中文 id。
 
@@ -47,16 +47,16 @@ python3 skills/generating-360-dashboard/scripts/publish_to_canvas.py \
 5. 落盘：tempfile + `os.replace` 原子写入；默认不覆盖，需 `--force`
 6. 浏览器看图用 **18999** 反代（无需 Bearer）；直连 18790 会被拦
 
-推荐 URL（张磊示例）：
+推荐 URL（员工1示例）：
 
 ```
-http://127.0.0.1:18999/__openclaw__/canvas/documents/feedback-360-zhanglei/index.html
+http://127.0.0.1:18999/__openclaw__/canvas/documents/feedback-360-yuangong1/index.html
 ```
 
 ## 3. Chat embed（可选）
 
 ```
-[embed ref="feedback-360-zhanglei" type="canvas/document"]
+[embed ref="feedback-360-yuangong1" type="canvas/document"]
 ```
 
 WebChat 通常不渲染 embed，以 18999 URL 为主。

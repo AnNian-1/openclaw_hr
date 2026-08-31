@@ -93,7 +93,7 @@ python3 scripts/publish_to_canvas.py <profile.html> profile-<pinyin-no-tones>
 **正确形态**（basePath 是 `__openclaw__` —— **双下划线**夹 openclaw 全文小写）：
 
 ```text
-http://127.0.0.1:18999/__openclaw__/canvas/documents/profile-zhanglei/index.html
+http://127.0.0.1:18999/__openclaw__/canvas/documents/profile-yuangong1/index.html
                    ──────────
                    ↑ 双下划线 + 全小写, 这是 Canvas 路由硬编码的 basePath
 ```
@@ -145,7 +145,7 @@ Canvas 路由 throw 400、BOM 让 Nginx sub_filter 锚点错位、目录穿越�
   看清楚，不替 HR 做淘汰。这是合规边界，不要移除。
 - **发布到 Canvas 时 `<id>` 必须纯 ASCII**。中文 / 全角 / emoji 在 Canvas
   host 的 `normalizeCanvasDocumentId()` 会被直接 throw，**整个发布白做**。
-  约定前缀 `profile-<pinyin-no-tones>`，例：`profile-zhanglei`。重名场景加
+  约定前缀 `profile-<pinyin-no-tones>`，例：`profile-yuangong1`。重名场景加
   `-c01` / `-c02` 后缀。重发同一 id 默认需要 `--force`，防误覆盖旧版本。
   命名约定 + 事故复盘 → `references/canvas-publishing.md`。
 - 数据真实性核对（评分数字逐项回溯简历原文）是 `auditing-numbers` 的事。

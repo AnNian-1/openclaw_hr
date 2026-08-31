@@ -38,7 +38,7 @@
 
 ### 事故复盘
 
-2026-07-11: 用户意图发布候选人「张磊」画像, 习惯性传 `profile-张磊` 做 `<id>`。
+2026-07-11: 用户意图发布候选人「员工1」画像, 习惯性传 `profile-员工1` 做 `<id>`。
 Canvas 路由 `normalizeCanvasDocumentId()` 在 `install/node_modules/openclaw/dist/server-DXKfnO2y.js` 里:
 
 ```js
@@ -47,7 +47,7 @@ if (!/^[A-Za-z0-9._-]+$/.test(rawDocumentId)) {
 }
 ```
 
-直接 `throw`—— HTTP 立刻 400, 浏览器拿不到文档。本地 mkdir `profile-张磊/` 目录是成功
+直接 `throw`—— HTTP 立刻 400, 浏览器拿不到文档。本地 mkdir `profile-员工1/` 目录是成功
 了(文件系统支持 UTF-8), 但 Canvas **不会用这个路径 serve**。
 
 ### 解决
@@ -56,22 +56,15 @@ if (!/^[A-Za-z0-9._-]+$/.test(rawDocumentId)) {
 
 | 中文姓名 | ASCII 别名 |
 |---|---|
-| 张磊 | `profile-zhanglei` |
-| 周晓峰 | `profile-zhouxiaofeng` |
-| 林婉清 | `profile-linwanqing` |
-| 林婉清 (冲突) | `profile-linwanqing-c01` |
-| 林雨桐 | `profile-linyutong` |
-| 王浩然 | `profile-wanghaoran` |
-| 郑凯文 | `profile-zhengkaiwen` |
-| 陈雅琴 | `profile-chenyaqin` |
+| 员工1 | `profile-yuangong1` |
 | 其他新人 | `profile-<pinyin-no-tones>` |
 
 ### 脚本报错形态
 
 ```
-[3/9] id 'profile-张磊' 含非 ASCII / 全角 / emoji 字符: ['张', '磊'].
+[3/9] id 'profile-员工1' 含非 ASCII / 全角 / emoji 字符: ['员', '工', '1'].
        Canvas 路由 normalizeCanvasDocumentId() 只接 [A-Za-z0-9._-].
-       约定 ASCII 别名: 'profile-<pinyin-no-tones>', 如 'profile-zhanglei'.
+       约定 ASCII 别名: 'profile-<pinyin-no-tones>', 如 'profile-yuangong1'.
 exit=3
 ```
 
@@ -83,7 +76,7 @@ exit=3
 
 ### 事故复盘 (错把 HR 习惯带过来)
 
-2026-07-11 排错时, HR 习惯把生成的 HTML 命名为 `张磊-简历.html` 直接传给 Canvas 路径。
+2026-07-11 排错时, HR 习惯把生成的 HTML 命名为 `员工1-简历.html` 直接传给 Canvas 路径。
 Canvas 路由按**硬编码模板**拼路径:
 
 ```
@@ -99,7 +92,7 @@ $OPENCLAW_STATE_DIR/canvas/documents/<id>/index.html
 `publish_to_canvas.py` 强制把任何传入文件**复制到固定 `index.html`**。
 不传 `<output_name>`, 你给的就是源路径, 落盘名字一律 `index.html`。
 
-> 这条对你"看起来多余"是因为"如果加上 `?file=张磊.html` 的 query string 不行吗"
+> 这条对你"看起来多余"是因为"如果加上 `?file=员工1.html` 的 query string 不行吗"
 > —— Canvas 路由**不解析 query string**, 文件名必须是 `<id>/index.html` 的字面形态。
 
 ---
@@ -193,7 +186,7 @@ Nginx `sub_filter` 锚点 `</head>` 在被截 HTML 里找不到或重复, 注入
 
 ### 事故复盘
 
-HR 让 agent 重新生成"张磊"画像 (因为来源数据更新), agent 直接 cp 覆盖了 `profile-zhanglei/index.html`。
+HR 让 agent 重新生成"员工1"画像 (因为来源数据更新), agent 直接 cp 覆盖了 `profile-yuangong1/index.html`。
 第二天复盘"为什么 1 周前的版本没了, 我对比一下"——没了。没有 version control, 没有备份。
 
 ### 解决
@@ -201,26 +194,26 @@ HR 让 agent 重新生成"张磊"画像 (因为来源数据更新), agent 直接
 `publish_to_canvas.py` 默认**拒绝覆盖**:
 
 ```
-[8/9] 目标已存在: /.../profile-zhanglei/index.html. 重发同名 ID 需要显式 --force
+[8/9] 目标已存在: /.../profile-yuangong1/index.html. 重发同名 ID 需要显式 --force
 ```
 
 要覆盖**必须显式传 `--force`**:
 
 ```bash
-python3 publish_to_canvas.py profile-zhanglei-v2.html profile-zhanglei --force
+python3 publish_to_canvas.py profile-yuangong1-v2.html profile-yuangong1 --force
 ```
 
 或者**用版本号 ID**:
 
 ```
-profile-zhanglei          # 第一次生成
-profile-zhanglei-v2       # 重生成时加后缀
-profile-zhanglei-v3       # ...
+profile-yuangong1          # 第一次生成
+profile-yuangong1-v2       # 重生成时加后缀
+profile-yuangong1-v3       # ...
 ```
 
 旧 ID 留在文件系统里不删, 供追溯——Canvas 路由读谁由 `[embed ref=...]` 或浏览器最近 open 决定。
 
-> agent 在 audit-by-date 类任务里**应该**用 ID 命名空间区分 (如 `profile-zhanglei-2026-07-11`)
+> agent 在 audit-by-date 类任务里**应该**用 ID 命名空间区分 (如 `profile-yuangong1-2026-07-11`)
 > —— Canvas 路由对 namespace 不敏感, `[A-Za-z0-9._-]+` 全包。
 
 ---
@@ -288,7 +281,7 @@ os.replace(tmp, target)   # rename(2) 在同一文件系统下是 atomic
 2026-07-11: HR 通过 WebChat 让 agent 发候选人画像, agent 输出:
 
 ```
-[embed ref="profile-zhanglei" type="canvas/document" url="..."]
+[embed ref="profile-yuangong1" type="canvas/document" url="..."]
 ```
 
 WebChat 直接显示 `[embed ref=...]` 原字符串——看起来像"渲染失败"。
@@ -335,7 +328,7 @@ HR 没法自己手动加 token (她不知道 token)。
 HR 在浏览器里用 18999 端口:
 
 ```
-http://127.0.0.1:18999/__openclaw__/canvas/documents/profile-zhanglei/index.html
+http://127.0.0.1:18999/__openclaw__/canvas/documents/profile-yuangong1/index.html
 ```
 
 (SSH 隧道映射 `ssh -p 23 -L 18999:127.0.0.1:18999 ...`)
@@ -343,10 +336,10 @@ http://127.0.0.1:18999/__openclaw__/canvas/documents/profile-zhanglei/index.html
 `publish_to_canvas.py` 落盘后输出会**主动打印这俩 URL**, HR 直接复制粘贴:
 
 ```
-[ok]   local:    /root/.openclaw-hr/canvas/documents/profile-zhanglei/index.html
+[ok]   local:    /root/.openclaw-hr/canvas/documents/profile-yuangong1/index.html
   size:     200510 bytes
-  nginx:    http://127.0.0.1:18999/__openclaw__/canvas/documents/profile-zhanglei/index.html   (推荐)
-  gateway:  http://127.0.0.1:18790/__openclaw__/canvas/documents/profile-zhanglei/index.html   (需 Bearer)
+  nginx:    http://127.0.0.1:18999/__openclaw__/canvas/documents/profile-yuangong1/index.html   (推荐)
+  gateway:  http://127.0.0.1:18790/__openclaw__/canvas/documents/profile-yuangong1/index.html   (需 Bearer)
 ```
 
 ---
@@ -357,14 +350,8 @@ http://127.0.0.1:18999/__openclaw__/canvas/documents/profile-zhanglei/index.html
 
 | 中文姓名 | ASCII 别名 | 备注 |
 |---|---|---|
-| 张磊 | `profile-zhanglei` | 现有 |
-| 周晓峰 | `profile-zhouxiaofeng` | 现有 |
-| 林婉清 | `profile-linwanqing` | 首条 |
-| 林婉清 (重名场景) | `profile-linwanqing-c01` | 现有 |
-| 林雨桐 | `profile-linyutong` | 现有 |
-| 王浩然 | `profile-wanghaoran` | 现有 |
-| 郑凯文 | `profile-zhengkaiwen` | 现有 |
-| 其他新人 | `profile-<pinyin-no-tones>` | 例: `profile-wangfang` |
+| 员工1 | `profile-yuangong1` | 现有 |
+| 其他新人 | `profile-<pinyin-no-tones>` | 例: `profile-yuangong3` |
 
 命名规则:
 

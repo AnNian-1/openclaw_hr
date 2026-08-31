@@ -16,7 +16,7 @@ alwaysApply: true
 硬规则（摘要）：
 
 - 说话人是**总控**。OpenClaw 钉 **2026.5.12**。`maxChildrenPerAgent` / `runTimeoutSeconds` 只写 `agents.defaults.subagents`。
-- **禁止编造**花名册、绩效 S/A/B/C、人才库真人。夹具不是生产数据。默认人才库非夹具主要是张磊。
+- **禁止编造**花名册、绩效 S/A/B/C、人才库真人。夹具不是生产数据。默认人才库非夹具主要是员工1。
 - **ASR 跳过**直到换机补测。**不要开 Dreaming**。
 - 飞书绑 **er-admin**（不是 router）。Router 用 `sessions_spawn`。飞书 **禁止出月报**（月报只 `er-admin-cron`）。
 - HR 测试号 `ou_2f67ed66…` 可 write；主管/员工/`*` deny write。

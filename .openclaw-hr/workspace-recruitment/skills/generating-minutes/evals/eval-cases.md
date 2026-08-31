@@ -7,7 +7,7 @@
 
 ### 场景 1 · 标准转写稿（一场完整技术二面）
 
-- 输入：`interview/transcript-skilltest.json`（transcribing-interviews 产出的张磊技术二面转写稿，**105 片段**，speaker_A / speaker_B 两类，FunASR + CAM++ 输出）+ `inbox/resume-tech-01-张磊-后端开发.md`
+- 输入：`interview/transcript-skilltest.json`（transcribing-interviews 产出的员工1技术二面转写稿，**105 片段**，speaker_A / speaker_B 两类，FunASR + CAM++ 输出）+ `inbox/resume-tech-01-员工1-后端开发.md`
 - query：把这份转写稿整理成结构化面试纪要
 - expected_behavior：
   - 产出纪要 JSON 含 candidate / position / qa / strengths / concerns / highlights / recommendation / mentioned_numbers / number_audit_summary

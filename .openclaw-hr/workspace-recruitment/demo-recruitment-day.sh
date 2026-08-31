@@ -22,25 +22,25 @@ echo "===== 场景一 · 批量筛简历 + 候选人画像 ====="
 # 复用 C-2 数字回核修正版评分结果，展示 7 名 tech 候选人按 JD 匹配分排序
 python3 scoring/show_ranking.py scoring/results/ranking-后端开发.json
 # 为「强匹配 / 偏科 / 带硬伤」3 名典型候选人各生成一份 HTML 画像
-for N in 张磊 林雨桐 周晓峰; do
+for N in 员工1; do
   python3 profile/generate_profile.py \
     scoring/results/ranking-后端开发.json "$N" "profile/output/demo-$N.html"
 done
 
-echo "===== 场景二 · 人才库语义检索「再来一个像张磊的」====="
-python3 talent-pool/search.py --like 张磊 --topn 5
-python3 talent-pool/explain.py --search talent-pool/search-张磊.json
+echo "===== 场景二 · 人才库语义检索「再来一个像员工1的」====="
+python3 talent-pool/search.py --like 员工1 --topn 5
+python3 talent-pool/explain.py --search talent-pool/search-员工1.json
 
 echo "===== 场景三 · 面试录音 → 转写说话人分离 → 结构化纪要 ====="
 ~/.openclaw-hr/venv-asr/bin/python3 interview/scripts/asr-diarize.py \
-  interview/interview-zhanglei-tech2.wav interview/transcript-h1.json
+  interview/interview-yuangong1-tech2.wav interview/transcript-h1.json
 python3 interview/scripts/gen-minutes.py \
-  interview/transcript-h1.json inbox/resume-tech-01-张磊-后端开发.md \
+  interview/transcript-h1.json inbox/resume-tech-01-员工1-后端开发.md \
   interview/minutes-h1.json interview/minutes-h1.md
 
 echo "===== 三场景演示完成 ====="
 echo "产出物："
 echo "  评分排序  scoring/results/ranking-后端开发.json"
-echo "  HTML 画像 profile/output/demo-{张磊,林雨桐,周晓峰}.html"
-echo "  检索结果  talent-pool/search-张磊-explained.json"
+echo "  HTML 画像 profile/output/demo-员工1.html"
+echo "  检索结果  talent-pool/search-员工1-explained.json"
 echo "  面试纪要  interview/minutes-h1.md"

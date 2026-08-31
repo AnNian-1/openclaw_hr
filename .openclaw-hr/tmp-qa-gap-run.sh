@@ -42,7 +42,7 @@ done
 curl -sS -m 3 http://127.0.0.1:18790/health || true
 echo
 
-# --- 2. talent-pool.json with only 张磊 ---
+# --- 2. talent-pool.json with only 员工1 ---
 python3 - <<'PY'
 import json, os, glob, time, importlib.util
 from pathlib import Path
@@ -50,12 +50,12 @@ ws = Path(os.path.expanduser("~/openclaw-hr/.openclaw-hr/workspace-recruitment")
 pool_dir = ws / "talent-pool"
 pool_dir.mkdir(parents=True, exist_ok=True)
 
-# find a parsed/clean 张磊 json
+# find a parsed/clean 员工1 json
 cands = []
 for p in [
-    ws / "scoring/clean-张磊-后端开发.json",
-    *glob.glob(str(ws / "scoring/**/*张磊*.json"), recursive=True),
-    *glob.glob(str(ws / "profile/**/*张磊*.json"), recursive=True),
+    ws / "scoring/clean-员工1-后端开发.json",
+    *glob.glob(str(ws / "scoring/**/*员工1*.json"), recursive=True),
+    *glob.glob(str(ws / "profile/**/*员工1*.json"), recursive=True),
 ]:
     p = Path(p)
     if p.is_file() and "node_modules" not in str(p):
@@ -71,7 +71,7 @@ for p in cands:
         continue
     # unwrap common wrappers
     obj = data.get("parsed") if isinstance(data, dict) and "parsed" in data else data
-    if isinstance(obj, dict) and (obj.get("name") == "张磊" or "张磊" in p.name):
+    if isinstance(obj, dict) and (obj.get("name") == "员工1" or "员工1" in p.name):
         parsed = obj if obj.get("name") else data
         # some ranking files are not resume parse
         if "target_position" in parsed or "work_experience" in parsed or "skills" in parsed:
@@ -82,13 +82,13 @@ for p in cands:
 if parsed is None:
     # minimal structured record from resume md if present
     md = None
-    for p in glob.glob(str(ws / "inbox/**/*张磊*"), recursive=True):
+    for p in glob.glob(str(ws / "inbox/**/*员工1*"), recursive=True):
         if "node_modules" not in p:
             md = Path(p)
             break
     print("fallback md", md)
     parsed = {
-        "name": "张磊",
+        "name": "员工1",
         "target_position": "后端开发",
         "expected_salary": "",
         "expected_city": "",
@@ -107,7 +107,7 @@ if parsed is None:
 print("using src", src)
 print("parsed keys", list(parsed.keys())[:20], "name", parsed.get("name"))
 
-parsed_all = {"张磊-tech-后端.md": parsed}
+parsed_all = {"员工1-tech-后端.md": parsed}
 (pool_dir / "parsed-all.json").write_text(json.dumps(parsed_all, ensure_ascii=False, indent=2), encoding="utf-8")
 print("wrote parsed-all.json")
 PY
@@ -117,7 +117,7 @@ python3 "$PROFILE/workspace-recruitment/skills/ingesting-talent-pool/scripts/ing
 python3 - <<'PY'
 import json
 from pathlib import Path
-p=Path("/home/yhwz/openclaw-hr/.openclaw-hr/workspace-recruitment/talent-pool/talent-pool.json")
+p=Path("/opt/openclaw-hr/.openclaw-hr/workspace-recruitment/talent-pool/talent-pool.json")
 d=json.loads(p.read_text())
 names=[c.get("name") for c in d.get("candidates",[])]
 print("pool_count", d.get("candidate_count"), "names", names, "model", d.get("embedding_model"), "dim", d.get("dimension"), "bytes", p.stat().st_size)
@@ -150,15 +150,15 @@ python3 - <<'PY'
 import os, time
 from pathlib import Path
 paths = [
-  Path("/home/yhwz/openclaw-hr/.openclaw-hr/workspace-performance/feedback-360/source_feedback/dirty-zhanglei/aggregated-data.json"),
-  Path("/home/yhwz/openclaw-hr/.openclaw-hr/workspace-performance/feedback-360/source_feedback/dirty-zhanglei/report.html"),
-  Path("/home/yhwz/openclaw-hr/.openclaw-hr/canvas/documents/feedback-360-zhanglei/index.html"),
-  Path("/home/yhwz/openclaw-hr/.openclaw-hr/canvas/documents/feedback-360-dirty-zhanglei/index.html"),
-  Path("/home/yhwz/openclaw-hr/.openclaw-hr/workspace-er-admin/report-output/hr-monthly-report-2026-05.html"),
-  Path("/home/yhwz/openclaw-hr/.openclaw-hr/workspace-er-admin/report-output/hr-monthly-report-2026-05-audit.md"),
+  Path("/opt/openclaw-hr/.openclaw-hr/workspace-performance/feedback-360/source_feedback/dirty-yuangong1/aggregated-data.json"),
+  Path("/opt/openclaw-hr/.openclaw-hr/workspace-performance/feedback-360/source_feedback/dirty-yuangong1/report.html"),
+  Path("/opt/openclaw-hr/.openclaw-hr/canvas/documents/feedback-360-yuangong1/index.html"),
+  Path("/opt/openclaw-hr/.openclaw-hr/canvas/documents/feedback-360-dirty-yuangong1/index.html"),
+  Path("/opt/openclaw-hr/.openclaw-hr/workspace-er-admin/report-output/hr-monthly-report-2026-05.html"),
+  Path("/opt/openclaw-hr/.openclaw-hr/workspace-er-admin/report-output/hr-monthly-report-2026-05-audit.md"),
 ]
 # training eight files
-td = Path("/home/yhwz/openclaw-hr/.openclaw-hr/workspace-training/training-materials/信息安全意识")
+td = Path("/opt/openclaw-hr/.openclaw-hr/workspace-training/training-materials/信息安全意识")
 if td.is_dir():
     paths.extend(sorted(td.glob("*.md")))
 print("==== mtimes BEFORE ====")
@@ -172,10 +172,10 @@ PY
 # Dialogues: sequential to avoid router session mixing.
 # Use unique --session-id. Expand execution, then disk-check.
 
-P360='把张磊的 360 反馈聚合并出看板。请交给 performance 实际执行。完成后明确说已生成或失败，并给出 aggregated-data.json 和看板 HTML 或 canvas 的磁盘路径。不要只说已分发。'
+P360='把员工1的 360 反馈聚合并出看板。请交给 performance 实际执行。完成后明确说已生成或失败，并给出 aggregated-data.json 和看板 HTML 或 canvas 的磁盘路径。不要只说已分发。'
 TTRAIN='生成一套新人培训物料：主题为信息安全意识。请交给 training 实际执行。请在回复里给出是否已开始/已完成/失败，并列出落盘的真实磁盘路径。不要只说已分发。'
 XMAY='出一份 2026-05 的 HR 月报。请交给 er-admin 实际执行，指定月份 2026-05，不要生成本月报告。完成后明确说已生成或失败，并给出 HTML 与 audit 的磁盘路径。不要只说已分发。'
-R14='从人才库里找几个和张磊背景相似的候选人。请交给 recruitment 实际执行。完成后明确说匹配到了谁，或明确无法匹配。禁止编造库中不存在的姓名。不要只说已分发。'
+R14='从人才库里找几个和员工1背景相似的候选人。请交给 recruitment 实际执行。完成后明确说匹配到了谁，或明确无法匹配。禁止编造库中不存在的姓名。不要只说已分发。'
 
 # 360 can take a few minutes
 run_agent P-D-001 router 420 "$P360"
@@ -195,10 +195,10 @@ from pathlib import Path
 
 print("==== mtimes AFTER ====")
 roots = [
-  Path("/home/yhwz/openclaw-hr/.openclaw-hr/workspace-performance"),
-  Path("/home/yhwz/openclaw-hr/.openclaw-hr/workspace-training"),
-  Path("/home/yhwz/openclaw-hr/.openclaw-hr/workspace-er-admin/report-output"),
-  Path("/home/yhwz/openclaw-hr/.openclaw-hr/canvas/documents"),
+  Path("/opt/openclaw-hr/.openclaw-hr/workspace-performance"),
+  Path("/opt/openclaw-hr/.openclaw-hr/workspace-training"),
+  Path("/opt/openclaw-hr/.openclaw-hr/workspace-er-admin/report-output"),
+  Path("/opt/openclaw-hr/.openclaw-hr/canvas/documents"),
 ]
 for root in roots:
     if not root.exists():
@@ -212,7 +212,7 @@ for root in roots:
         if age < 3600 and p.suffix.lower() in {".json", ".html", ".md"}:
             print(f"newish {time.strftime('%F %T', time.localtime(p.stat().st_mtime))} {p}")
 
-pool = Path("/home/yhwz/openclaw-hr/.openclaw-hr/workspace-recruitment/talent-pool/talent-pool.json")
+pool = Path("/opt/openclaw-hr/.openclaw-hr/workspace-recruitment/talent-pool/talent-pool.json")
 if pool.exists():
     d=json.loads(pool.read_text())
     print("POOL", d.get("candidate_count"), [c.get("name") for c in d.get("candidates",[])])
@@ -240,10 +240,10 @@ for name in ["P-D-001", "T-D-001", "X-D-003", "R-D-004"]:
         if not exp.startswith("/"):
             # try common prefixes
             guesses = [
-                Path("/home/yhwz/openclaw-hr/.openclaw-hr") / exp,
-                Path("/home/yhwz/openclaw-hr/.openclaw-hr/workspace-performance") / exp,
-                Path("/home/yhwz/openclaw-hr/.openclaw-hr/workspace-training") / exp,
-                Path("/home/yhwz/openclaw-hr/.openclaw-hr/workspace-er-admin") / exp,
+                Path("/opt/openclaw-hr/.openclaw-hr") / exp,
+                Path("/opt/openclaw-hr/.openclaw-hr/workspace-performance") / exp,
+                Path("/opt/openclaw-hr/.openclaw-hr/workspace-training") / exp,
+                Path("/opt/openclaw-hr/.openclaw-hr/workspace-er-admin") / exp,
             ]
         else:
             guesses = [Path(exp)]

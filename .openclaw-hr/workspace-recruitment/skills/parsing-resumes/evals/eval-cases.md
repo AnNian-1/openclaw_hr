@@ -7,19 +7,19 @@
 
 ### 场景 1 · PDF 转出的简历（缩进纯文本结构）
 
-- 输入：`inbox/resume-tech-02-林雨桐-算法工程师.md`（由 office-to-md 从 PDF 转出，特征：标题层级丢失，全是缩进纯文本行）
+- 输入：`inbox/resume-tech-02-候选人A-算法工程师.md`（由 office-to-md 从 PDF 转出，特征：标题层级丢失，全是缩进纯文本行）
 - query：把这份简历抽取成结构化候选人数据
 - expected_behavior：
   - 产出 JSON 覆盖 schema 的基础信息 / 教育背景 / 工作经历 / 技能 / 派生字段五个字段组
   - 基础信息 7 字段（name/phone/email/target_position/expected_salary/expected_city/available_date）逐字段从原文提取
-  - 教育背景取最高学历（爱丁堡大学硕士，略过武大本科）
+  - 教育背景取最高学历（某某大学3硕士，略过某某大学4本科）
   - 派生字段 total_experience_years / job_count 按工作经历计算
   - **合规字段不进 JSON**：出生年月、性别不出现在输出（schema §9 红线）
   - 软推断字段（industry）显式标注来源是"推断"
 
 ### 场景 2 · 原生 Markdown 简历（标准 markdown 结构）
 
-- 输入：`inbox/resume-operations-01-许嘉宁-内容运营.md`（运营岗，标准 markdown：## 标题 + - 列表）
+- 输入：`inbox/resume-operations-01-候选人B-内容运营.md`（运营岗，标准 markdown：## 标题 + - 列表）
 - query：把这份简历抽取成结构化候选人数据
 - expected_behavior：
   - 同场景 1 字段覆盖

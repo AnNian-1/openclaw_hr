@@ -9,7 +9,7 @@ metadata:
 
 # searching-talent-pool
 
-从人才库 `talent-pool.json` 检索出与锚点最相似的 Top N 候选人——回答业务部门那句「再找几个像张磊的」。
+从人才库 `talent-pool.json` 检索出与锚点最相似的 Top N 候选人——回答业务部门那句「再找几个像员工1的」。
 
 ## 何时用这个 Skill
 
@@ -26,7 +26,7 @@ metadata:
 ### 按候选人检索（「再来一个像张三的」）
 
 ```bash
-python3 skills/searching-talent-pool/scripts/search_talent_pool.py --like 张磊 --topn 5
+python3 skills/searching-talent-pool/scripts/search_talent_pool.py --like 员工1 --topn 5
 ```
 
 锚点是库里已有的某个候选人，返回与他最相似的 Top N。
@@ -42,7 +42,7 @@ python3 skills/searching-talent-pool/scripts/search_talent_pool.py --jd <JD文�
 ### 加关键词检索对照
 
 ```bash
-python3 skills/searching-talent-pool/scripts/search_talent_pool.py --like 张磊 --topn 5 --compare-keyword
+python3 skills/searching-talent-pool/scripts/search_talent_pool.py --like 员工1 --topn 5 --compare-keyword
 ```
 
 `--compare-keyword` 额外跑一遍朴素关键词检索，并打印差异分析——用来说清「为什么向量检索能找到关键词搜不到的相似的人」。

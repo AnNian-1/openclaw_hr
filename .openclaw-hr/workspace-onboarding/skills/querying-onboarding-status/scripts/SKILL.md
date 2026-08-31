@@ -12,9 +12,9 @@ HR 在工作流 halt 之后不确定"现在该不该 resume"时，用本 Skill �
 ## 用法
 
 ```bash
-scripts/query-onboarding-status.sh 毛毛豆
+scripts/query-onboarding-status.sh 员工1
 # 或显式拼音：
-scripts/query-onboarding-status.sh 毛毛豆 maomaodou
+scripts/query-onboarding-status.sh 员工1 yuangong1
 ```
 
 拼音可省：会先查内置表，再扫 `stub-state/*/workflow.json` 的 `candidate` 字段自动匹配。
