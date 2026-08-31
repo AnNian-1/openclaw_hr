@@ -1,4 +1,4 @@
-#!/usr/local/miniconda3/envs/py312/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 HTML 候选人画像生成器  ·  openclaw-ai-hr 阶段 C 招聘子 Agent
@@ -18,15 +18,32 @@ HTML 候选人画像生成器  ·  openclaw-ai-hr 阶段 C 招聘子 Agent
 数据真实性铁律：所有字段值取自 ranking JSON，脚本不编造任何内容。
 
 用法：
-  python3 generate_profile.py <ranking.json> <候选人姓名> <输出 HTML 路径>
+  python3 generate_profile.py <ranking.json|score.json> <候选人姓名> <输出 HTML 路径> [parsed.json]
+  单份评分 JSON（无 details）时须带 parsed，或能在 parsed/、scoring/clean-<名>.json 找到画像数据。
 """
 import sys
+import os
 import json
 import base64
 import io
 import re
 from datetime import datetime
+from pathlib import Path
 
+
+def _reexec_openclaw_hr():
+    try:
+        import matplotlib  # noqa: F401
+        import numpy  # noqa: F401
+        return
+    except ImportError:
+        pass
+    py = os.path.expanduser("~/miniconda3/envs/openclaw-hr/bin/python3")
+    if os.path.isfile(py) and os.path.realpath(py) != os.path.realpath(sys.executable):
+        os.execv(py, [py] + sys.argv)
+
+
+_reexec_openclaw_hr()
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -323,33 +340,118 @@ HTML_TMPL = """<!DOCTYPE html>
 </html>"""
 
 
+def suggested_action_from_score(score):
+    if score.get("hard_issues"):
+        return "建议人工复核简历硬伤后再定"
+    s = float(score.get("jd_match_score") or 0)
+    if s >= 80:
+        return "建议优先安排面试"
+    if s >= 60:
+        return "建议进入面试候选名单"
+    return "建议人工复核是否纳入"
+
+
+def _workspace():
+    return Path(__file__).resolve().parents[3]
+
+
+def autoload_parsed(target_name):
+    ws = _workspace()
+    name = str(target_name)
+    cands = [
+        ws / "parsed" / f"{name}.json",
+        ws / "scoring" / f"clean-{name}.json",
+    ]
+    parsed_dir = ws / "parsed"
+    if parsed_dir.is_dir():
+        for p in sorted(parsed_dir.glob("*.json")):
+            if name in p.stem:
+                cands.append(p)
+    seen = set()
+    for p in cands:
+        rp = str(p.resolve()) if p.exists() else ""
+        if not rp or rp in seen:
+            continue
+        seen.add(rp)
+        try:
+            data = json.load(open(p, encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if data.get("name") == name:
+            return data
+    return None
+
+
+def load_record(data, target_name, extra_parsed_path, ranking_path):
+    """兼容 ranking（details[]）与 score_candidate 扁平 JSON。"""
+    action = ""
+
+    def action_from_ranking(score):
+        for r in data.get("ranking") or []:
+            if r.get("name") == target_name:
+                return r.get("suggested_action") or ""
+        return suggested_action_from_score(score)
+
+    details = data.get("details")
+    if isinstance(details, list) and details:
+        for d in details:
+            parsed = d.get("parsed")
+            if not parsed and d.get("resume_json"):
+                p = Path(d["resume_json"])
+                if not p.is_file():
+                    p = _workspace() / d["resume_json"]
+                if not p.is_file():
+                    p = Path(ranking_path).resolve().parent / d["resume_json"]
+                if p.is_file():
+                    parsed = json.load(open(p, encoding="utf-8"))
+            name = (parsed or {}).get("name") or d.get("name")
+            if name != target_name:
+                continue
+            score = d.get("score") or {}
+            if not parsed:
+                parsed = autoload_parsed(target_name)
+            if not parsed or "dimension_scores" not in score:
+                break
+            return parsed, score, action_from_ranking(score)
+        print("错误：在 {} 中找不到候选人「{}」".format(ranking_path, target_name))
+        names = []
+        for d in details:
+            names.append((d.get("parsed") or {}).get("name") or d.get("name"))
+        print("可选：", names)
+        sys.exit(2)
+
+    if "dimension_scores" in data:
+        score = data
+        parsed = None
+        if extra_parsed_path:
+            parsed = json.load(open(extra_parsed_path, encoding="utf-8"))
+        if parsed is None:
+            parsed = autoload_parsed(target_name)
+        if parsed is None:
+            print("错误：这是单份评分 JSON，缺少 parsed。请再传 parsed.json，"
+                  "或把文件放到 parsed/<姓名>.json / scoring/clean-<姓名>.json")
+            sys.exit(2)
+        if parsed.get("name") and parsed.get("name") != target_name:
+            print("错误：parsed 里的姓名是「{}」，参数是「{}」".format(
+                parsed.get("name"), target_name))
+            sys.exit(2)
+        return parsed, score, suggested_action_from_score(score)
+
+    print("错误：{} 既不是 ranking（无 details），也不是单份评分（无 dimension_scores）".format(
+        ranking_path))
+    sys.exit(2)
+
+
 def main():
-    if len(sys.argv) != 4:
-        print("用法: python3 generate_profile.py <ranking.json> <候选人姓名> <输出 HTML 路径>")
+    if len(sys.argv) not in (4, 5):
+        print("用法: python3 generate_profile.py <ranking.json|score.json> "
+              "<候选人姓名> <输出 HTML 路径> [parsed.json]")
         sys.exit(1)
 
     ranking_path, target_name, out_path = sys.argv[1], sys.argv[2], sys.argv[3]
+    extra_parsed = sys.argv[4] if len(sys.argv) == 5 else None
     data = json.load(open(ranking_path, encoding="utf-8"))
-
-    # 从 details 里找目标候选人 + 从 ranking 里取 suggested_action
-    detail = None
-    for d in data.get("details", []):
-        if d.get("parsed", {}).get("name") == target_name:
-            detail = d
-            break
-    if detail is None:
-        print("错误：在 {} 中找不到候选人「{}」".format(ranking_path, target_name))
-        print("可选：", [d.get("parsed", {}).get("name") for d in data.get("details", [])])
-        sys.exit(2)
-
-    action = ""
-    for r in data.get("ranking", []):
-        if r.get("name") == target_name:
-            action = r.get("suggested_action", "")
-            break
-
-    parsed = detail["parsed"]
-    score = detail["score"]
+    parsed, score, action = load_record(data, target_name, extra_parsed, ranking_path)
     edu = parsed.get("education", {})
     rating = norm_rating(score.get("overall_rating", "C"))
 

@@ -1,0 +1,19 @@
+# 通用 Skill 环境（禁止装 FunASR/torch：与 numpy 2.x 冲突）
+# 覆盖：收信/解析、画像雷达图、月报、360 DOCX、office-to-md PPT
+# rarfile 还要 unrar 二进制：conda-forge 无 linux-64 包。
+# 跑 scripts/ensure-rar-tools.sh，把 rarlab unrar/rar 放进本 env 的 bin/。
+name: openclaw-hr
+channels:
+  - defaults
+dependencies:
+  - python>=3.11
+  - pip
+  - pip:
+      - numpy>=2.0
+      - pandas
+      - matplotlib
+      - imap-tools
+      - pdfminer.six
+      - python-docx
+      - python-pptx
+      - rarfile

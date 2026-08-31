@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-hcm_api.py — HCM 系统 API 客户端（只读 + 节点更新）
+hcm_api.py — HCM 系统 API 客户端（只读）
 
 所有入职脚本通过此模块调用 HCM API，不再直接读写本地 JSON 文件。
 数据真相来源是 HCM 系统（SQLite），不是本地 stub-state/。
 
-环境变量：
-  HCM_API_URL — API 地址，默认 http://localhost:8000
+环境变量（二者等价，先读 URL）：
+  HCM_API_URL / HCM_API_BASE — API 地址，默认 http://localhost:8000
 
 原则：
   · GET 读取候选人数据（小慧只读）
@@ -18,12 +18,32 @@ import sys
 import urllib.request
 import urllib.error
 
-HCM_API_BASE = os.environ.get("HCM_API_URL", "http://localhost:8000")
+def hcm_base():
+    return (
+        os.environ.get("HCM_API_URL")
+        or os.environ.get("HCM_API_BASE")
+        or "http://localhost:8000"
+    ).rstrip("/")
+
+
+HCM_API_BASE = hcm_base()
+
+PREP_NODE_TYPES = ("contract", "account", "device", "training", "buddy")
+NODE_LABELS = {
+    "contract": "合同签署",
+    "account": "IT账号",
+    "device": "行政设备",
+    "training": "入职培训",
+    "buddy": "Buddy匹配",
+}
+# 审批门：部门已开始填或已完成即可读材料。试用期跟进：必须五节点 completed。
+GATE_READY_STATUSES = frozenset({"completed", "in_progress"})
+DONE_STATUSES = frozenset({"completed"})
 
 
 def _request(method, path, body=None):
     """发起 HTTP 请求，返回 (status_code, parsed_json)。"""
-    url = f"{HCM_API_BASE}{path}"
+    url = f"{hcm_base()}{path}"
     data = None
     if body is not None:
         data = json.dumps(body, ensure_ascii=False).encode("utf-8")
@@ -86,6 +106,58 @@ def get_prep_node_data(pinyin, node_type):
     if node:
         return node.get("data", {})
     return {}
+
+
+def summarize_prep(pinyin):
+    """五部门节点状态。"""
+    code, data = _request("GET", "/api/candidates")
+    if code != 200 or not isinstance(data, list):
+        return {
+            "ok": False,
+            "hcm_up": False,
+            "found": False,
+            "nodes": {},
+            "pending": list(PREP_NODE_TYPES),
+            "all_completed": False,
+            "gate_ready": {t: False for t in PREP_NODE_TYPES},
+        }
+    candidate = next((c for c in data if c.get("pinyin") == pinyin), None)
+    if candidate is None:
+        return {
+            "ok": False,
+            "hcm_up": True,
+            "found": False,
+            "nodes": {},
+            "pending": list(PREP_NODE_TYPES),
+            "all_completed": False,
+            "gate_ready": {t: False for t in PREP_NODE_TYPES},
+        }
+    node_map = {n.get("node_type"): n for n in (candidate.get("nodes") or [])}
+    nodes = {}
+    pending = []
+    gate_ready = {}
+    for t in PREP_NODE_TYPES:
+        n = node_map.get(t) or {}
+        st = n.get("status") or "pending"
+        nodes[t] = {
+            "status": st,
+            "label": NODE_LABELS.get(t, t),
+            "data": n.get("data") or {},
+        }
+        gate_ready[t] = st in GATE_READY_STATUSES
+        if st not in DONE_STATUSES:
+            pending.append(t)
+    return {
+        "ok": True,
+        "hcm_up": True,
+        "found": True,
+        "name": candidate.get("name"),
+        "pinyin": candidate.get("pinyin", pinyin),
+        "nodes": nodes,
+        "pending": pending,
+        "all_completed": len(pending) == 0,
+        "gate_ready": gate_ready,
+    }
 
 
 def get_candidate_info(pinyin):

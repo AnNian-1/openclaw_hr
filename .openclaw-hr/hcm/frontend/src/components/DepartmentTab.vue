@@ -1,95 +1,64 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { useCandidatesStore } from '../stores/candidates'
-import { DEPARTMENTS } from '../types'
+import { DEPARTMENTS, NODE_LABELS } from '../types'
 
 const store = useCandidatesStore()
-const expanded = ref(false)
 
-const nodeLabel: Record<string, string> = {
-  contract: '合同信息',
-  account: 'IT账号',
-  device: '行政设备',
-  training: '培训安排',
-  buddy: 'Buddy匹配',
+function pendingCount(nodeType: string) {
+  return store.candidates.filter(c => {
+    const node = c.nodes.find(n => n.node_type === nodeType)
+    return node && (node.status === 'pending' || node.status === 'in_progress')
+  }).length
 }
+
+const deptItems = computed(() =>
+  DEPARTMENTS.map(dept => ({
+    ...dept,
+    nodeLabel: NODE_LABELS[dept.nodeType] ?? dept.nodeType,
+    pending: pendingCount(dept.nodeType),
+  }))
+)
 </script>
 
 <template>
-  <div class="dept-panel">
-    <button class="dept-trigger" @click="expanded = !expanded">
-      <span class="trigger-icon">{{ store.currentDeptConfig.icon }}</span>
-      <span class="trigger-label">{{ store.currentDeptConfig.label }}</span>
-      <span class="trigger-arrow" :class="{ open: expanded }">▼</span>
-    </button>
-
-    <transition name="slide">
-      <div v-if="expanded" class="dept-list">
-        <button
-          v-for="dept in DEPARTMENTS"
-          :key="dept.key"
-          :class="['dept-item', { active: store.currentDepartment === dept.key }]"
-          @click="store.setDepartment(dept.key); expanded = false"
-        >
-          <span class="dept-icon">{{ dept.icon }}</span>
-          <div class="dept-info">
-            <span class="dept-name">{{ dept.label }}</span>
-            <span class="dept-hint" v-if="dept.nodeType">
-              编辑: {{ nodeLabel[dept.nodeType] ?? dept.nodeType }}
-            </span>
-            <span class="dept-hint" v-else>全局只读视图</span>
-          </div>
-          <span v-if="store.currentDepartment === dept.key" class="dept-check">✓</span>
-        </button>
+  <aside class="dept-sidebar">
+    <div class="sidebar-title">部门视图</div>
+    <button
+      v-for="dept in deptItems"
+      :key="dept.key"
+      :class="['dept-item', { active: store.currentDepartment === dept.key }]"
+      @click="store.setDepartment(dept.key)"
+    >
+      <span class="dept-icon">{{ dept.icon }}</span>
+      <div class="dept-info">
+        <span class="dept-name">{{ dept.label }}</span>
+        <span class="dept-hint">{{ dept.nodeLabel }}</span>
       </div>
-    </transition>
-  </div>
+      <span v-if="dept.pending > 0" class="dept-badge">{{ dept.pending }}</span>
+    </button>
+  </aside>
 </template>
 
 <style scoped>
-.dept-panel {
-  position: relative;
-  padding: 12px 16px;
-  background: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.dept-trigger {
+.dept-sidebar {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  flex-direction: column;
+  width: 220px;
+  min-width: 220px;
   background: white;
-  cursor: pointer;
-  font-size: 14px;
-  min-width: 180px;
-  transition: all 0.2s;
+  border-right: 1px solid #e0e0e0;
+  padding: 16px 12px;
+  gap: 4px;
 }
 
-.dept-trigger:hover { border-color: #2196f3; }
-
-.trigger-icon { font-size: 18px; }
-.trigger-label { flex: 1; text-align: left; font-weight: 500; }
-.trigger-arrow {
-  font-size: 10px;
+.sidebar-title {
+  font-size: 11px;
+  font-weight: 600;
   color: #999;
-  transition: transform 0.2s;
-}
-.trigger-arrow.open { transform: rotate(180deg); }
-
-.dept-list {
-  position: absolute;
-  top: 100%;
-  left: 16px;
-  z-index: 100;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-  min-width: 260px;
-  overflow: hidden;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 0 8px 8px;
 }
 
 .dept-item {
@@ -97,25 +66,60 @@ const nodeLabel: Record<string, string> = {
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 10px 14px;
+  padding: 12px 10px;
   border: none;
-  background: white;
+  border-radius: 8px;
+  background: transparent;
   cursor: pointer;
   text-align: left;
   transition: background 0.15s;
-  border-bottom: 1px solid #f0f0f0;
 }
 
-.dept-item:last-child { border-bottom: none; }
-.dept-item:hover { background: #e3f2fd; }
-.dept-item.active { background: #e3f2fd; }
+.dept-item:hover {
+  background: #f5f5f5;
+}
 
-.dept-icon { font-size: 20px; }
-.dept-info { flex: 1; display: flex; flex-direction: column; gap: 1px; }
-.dept-name { font-size: 14px; font-weight: 500; }
-.dept-hint { font-size: 11px; color: #999; }
-.dept-check { color: #2196f3; font-weight: 700; }
+.dept-item.active {
+  background: #e3f2fd;
+  box-shadow: inset 3px 0 0 #2196f3;
+}
 
-.slide-enter-active, .slide-leave-active { transition: all 0.2s ease; }
-.slide-enter-from, .slide-leave-to { opacity: 0; transform: translateY(-4px); }
+.dept-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.dept-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dept-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.dept-hint {
+  font-size: 11px;
+  color: #888;
+}
+
+.dept-badge {
+  flex-shrink: 0;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: #ff9800;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 </style>

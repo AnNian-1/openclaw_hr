@@ -34,9 +34,21 @@ import sys
 import time
 import urllib.request
 
-API_URL = "https://api.deepseek.com/v1/chat/completions"
-MODEL = "deepseek-v4-pro"
-API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
+
+def resolve_llm():
+    model = os.environ.get("LLM_MODEL") or "mimo-v2.5-pro"
+    is_mimo = "mimo" in model or "xiaomi" in (os.environ.get("LLM_BASE_URL") or "")
+    base = os.environ.get("LLM_BASE_URL") or (
+        "https://token-plan-cn.xiaomimimo.com/v1" if is_mimo else "https://api.deepseek.com/v1"
+    )
+    url = base.rstrip("/") + "/chat/completions"
+    key = (
+        os.environ.get("LLM_API_KEY")
+        or (os.environ.get("XIAOMI_API_KEY") if is_mimo or "xiaomi" in base else "")
+        or os.environ.get("DEEPSEEK_API_KEY")
+        or ""
+    )
+    return model, url, key
 
 # 评分产出里需要回核的自由文本字段（LLM 生成、有复述漂移风险）
 TEXT_FIELDS = ["highlights", "concerns", "score_reasoning"]
@@ -52,8 +64,11 @@ NUM_PATTERN = re.compile(
 
 def call_deepseek(system_prompt, user_prompt, max_tokens=1500,
                   temperature=0.0, json_mode=False, retries=3):
+    model, api_url, api_key = resolve_llm()
+    if not api_key:
+        raise RuntimeError("未设置 XIAOMI_API_KEY / LLM_API_KEY")
     payload = {
-        "model": MODEL,
+        "model": model,
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -68,8 +83,8 @@ def call_deepseek(system_prompt, user_prompt, max_tokens=1500,
     for attempt in range(1, retries + 1):
         try:
             req = urllib.request.Request(
-                API_URL, data=data,
-                headers={"Authorization": f"Bearer {API_KEY}",
+                api_url, data=data,
+                headers={"Authorization": f"Bearer {api_key}",
                          "Content-Type": "application/json"},
             )
             with urllib.request.urlopen(req, timeout=120) as resp:
@@ -79,7 +94,7 @@ def call_deepseek(system_prompt, user_prompt, max_tokens=1500,
             last_err = e
             if attempt < retries:
                 time.sleep(3 * attempt)
-    raise RuntimeError(f"DeepSeek 调用 {retries} 次均失败：{last_err}")
+    raise RuntimeError(f"LLM 调用 {retries} 次均失败：{last_err}")
 
 
 def _norm(text):

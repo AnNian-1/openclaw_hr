@@ -1,0 +1,16 @@
+{
+  "fixture": true,
+  "disclaimer": "测试夹具，非校准会真实结果。2025 期次为编造趋势点，仅用于模块 C。",
+  "periods": ["2025-H1", "2025-H2", "2026-H1"],
+  "department_trend": {
+    "goal_achievement":    [3.80, 3.90, 4.00],
+    "professional_skill":  [4.40, 4.50, 4.65],
+    "collaboration":       [3.40, 3.45, 3.57],
+    "responsibility":      [4.20, 4.30, 4.38],
+    "growth":              [3.50, 3.60, 3.74]
+  },
+  "events": [
+    { "period": "2025-H2", "label": "编造：协作专项培训（夹具）", "type": "training" },
+    { "period": "2026-H1", "label": "360 反馈评估启动", "type": "milestone" }
+  ]
+}

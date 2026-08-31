@@ -56,7 +56,10 @@ from pathlib import Path
 
 
 # 模型注册表 — 4 个核心模型来自 ModelScope, 落地后路径形如
-#   ~/.openclaw-hr/workspace-recruitment/models/iic--speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch/
+#   workspace-recruitment/models/models/iic--speech_seaco_paraformer_...
+_WORKSPACE = Path(__file__).resolve().parents[3]
+DEFAULT_MODELS_CACHE = _WORKSPACE / "models"
+
 MODELS = {
     "asr_paraformer": "iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch",
     "vad":            "iic/speech_fsmn_vad_zh-cn-16k-common-pytorch",  # 注意 -pytorch 后缀 (老 ID 404)
@@ -73,20 +76,39 @@ def parse_args(argv):
     p.add_argument("--device", default="auto",
                    help="auto (默认, 自动检测 GPU) | cpu | cuda:0")
     p.add_argument("--cache", default=None,
-                   help="MODELSCOPE 缓存目录 (默认 ~/.openclaw-hr/workspace-recruitment/models)")
+                   help="MODELSCOPE 缓存目录（默认本 workspace 的 models/）")
     p.add_argument("--batch-size-s", type=int, default=10,
                    help="流式分段秒数 (default: 10)")
     p.add_argument("--venv", default=None,
-                   help="若 funasr 没装在当前 python, 指向 <venv>/bin/python 让脚本重跑")
+                   help="若 funasr 没装在当前 python, 指向 conda 环境根或 .../bin（默认自动找 funasr_me）")
     return p.parse_args(argv)
+
+
+def default_funasr_venv():
+    env = os.environ.get("FUNASR_VENV")
+    if env:
+        return env
+    home = Path.home()
+    for p in (
+        home / "miniconda3" / "envs" / "funasr_me",
+        Path("/usr/local/miniconda3/envs/funasr_me"),
+        home / ".local" / "miniconda3" / "envs" / "funasr_me",
+    ):
+        if (p / "bin" / "python3").is_file() or (p / "bin" / "python").is_file():
+            return str(p)
+    return None
 
 
 def reexec_in_venv(venv, argv):
     """funasr 不在当前 python, 用指定 venv 的 python 重跑自己 (避免无限递归)."""
     if venv.endswith("bin"):
         py = os.path.join(venv, "python3")
+        py_alt = os.path.join(venv, "python")
     else:
         py = os.path.join(venv, "bin", "python3")
+        py_alt = os.path.join(venv, "bin", "python")
+    if not os.path.isfile(py):
+        py = py_alt
     if not os.path.isfile(py):
         sys.stderr.write(f"[error] --venv 指定的虚拟环境无 python3: {py}\n")
         sys.exit(2)
@@ -115,7 +137,7 @@ def main():
     # --- 设置 MODELSCOPE_CACHE ---
     cache = args.cache
     if cache is None:
-        cache = str(Path.home() / ".openclaw-hr" / "workspace-recruitment" / "models")
+        cache = os.environ.get("MODELSCOPE_CACHE") or str(DEFAULT_MODELS_CACHE)
     cache_path = Path(cache).expanduser().resolve()
     os.environ["MODELSCOPE_CACHE"] = str(cache_path)
     sys.stderr.write(f"[info] MODELSCOPE_CACHE={cache_path}\n")
@@ -124,12 +146,13 @@ def main():
     try:
         from funasr import AutoModel  # noqa: F401
     except ImportError:
-        if args.venv:
-            sys.stderr.write(f"[info] funasr 未装, 用 --venv 重跑: {args.venv}\n")
-            reexec_in_venv(args.venv, sys.argv)
+        venv = args.venv or default_funasr_venv()
+        if venv:
+            sys.stderr.write(f"[info] funasr 未装, 切到 conda 环境重跑: {venv}\n")
+            reexec_in_venv(venv, sys.argv)
             return  # 重 exec 后不会回这里
-        sys.stderr.write("[error] funasr 未装, 见 SKILL.md §环境前置 安装; "
-                         "或用 --venv <venv-path> 指定已装的虚拟环境 (conda activate funasr_me 后 <venv-path>=~/.local/miniconda3/envs/funasr_me/)\n")
+        sys.stderr.write("[error] funasr 未装。请创建 conda 环境 funasr_me（见 conda/environment-funasr-me.yml），"
+                         "或设 FUNASR_VENV / --venv 指向该环境根目录。\n")
         sys.exit(3)
 
     # --- 自动检测 GPU/CPU ---
@@ -157,6 +180,7 @@ def main():
             punc_model=MODELS["punc"],
             spk_model=MODELS["spk_campplus"],
             device=device,
+            disable_update=True,
         )
     except Exception as e:
         sys.stderr.write(f"[error] AutoModel 构造失败: {e}\n")

@@ -32,7 +32,23 @@ RANKING = os.path.join(WORKSPACE, "scoring/results/ranking-后端开发.json")
 PARSED_ALL = os.path.join(POOL_DIR, "parsed-all.json")
 OUT = os.path.join(POOL_DIR, "talent-pool.json")
 
-DEEPSEEK_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
+
+def resolve_llm():
+    model = os.environ.get("LLM_MODEL") or "mimo-v2.5-pro"
+    is_mimo = "mimo" in model or "xiaomi" in (os.environ.get("LLM_BASE_URL") or "")
+    base = os.environ.get("LLM_BASE_URL") or (
+        "https://token-plan-cn.xiaomimimo.com/v1" if is_mimo else "https://api.deepseek.com"
+    )
+    url = base.rstrip("/") + "/chat/completions"
+    key = (
+        os.environ.get("LLM_API_KEY")
+        or (os.environ.get("XIAOMI_API_KEY") if is_mimo or "xiaomi" in base else "")
+        or os.environ.get("DEEPSEEK_API_KEY")
+        or ""
+    )
+    return model, url, key
+
+
 EMBED_API_KEY = (
     os.environ.get("SILICONFLOW_API_KEY")
     or os.environ.get("SF_API_KEY")
@@ -69,14 +85,17 @@ industry 可从公司名/业务描述合理推断。只输出 JSON, 不要任何
 
 def parse_resume_llm(resume_text):
     prompt = PARSE_PROMPT_HEAD + resume_text + "\n---"
+    model, url, key = resolve_llm()
+    if not key:
+        raise RuntimeError("未设置 XIAOMI_API_KEY / LLM_API_KEY")
     payload = {
-        "model": "deepseek-v4-pro",
+        "model": model,
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0,
         "response_format": {"type": "json_object"},
     }
-    headers = {"Authorization": f"Bearer {DEEPSEEK_KEY}", "Content-Type": "application/json"}
-    r = post_json("https://api.deepseek.com/chat/completions", payload, headers, timeout=90)
+    headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+    r = post_json(url, payload, headers, timeout=90)
     return json.loads(r["choices"][0]["message"]["content"])
 
 def load_tech_parsed():
@@ -120,7 +139,8 @@ def stage_parse():
                 try:
                     t0 = time.time()
                     parsed_all[base] = parse_resume_llm(resume_text)
-                    log(f"  [{i}/{len(resume_files)}] {base} <- DeepSeek 抽取 ({time.time()-t0:.1f}s)")
+                    model, _, _ = resolve_llm()
+                    log(f"  [{i}/{len(resume_files)}] {base} <- {model} 抽取 ({time.time()-t0:.1f}s)")
                     ok = True
                     break
                 except Exception as e:

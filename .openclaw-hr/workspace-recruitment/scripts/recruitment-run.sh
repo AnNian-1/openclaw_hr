@@ -73,4 +73,25 @@ done < <(
 )
 
 cd "$ROOT"
+
+# IMAP / 模型 Key 由 Gateway 启动时注入；exec 闸禁止 source && 和 $(date)。
+# 脚本内 source，Agent 只需：bash scripts/recruitment-run.sh python3 skills/...
+if [[ -f "$PROFILE/env.sh" ]]; then
+  set +u
+  # shellcheck disable=SC1091
+  source "$PROFILE/env.sh"
+  set -u
+fi
+
+# env.sh 的 python3 是 conda base。通用 Skill 走 openclaw-hr；转写脚本会自行切 funasr_me。
+OC_PY_BIN="$HOME/miniconda3/envs/openclaw-hr/bin"
+if [[ -x "$OC_PY_BIN/python3" ]]; then
+  export PATH="$OC_PY_BIN:$PATH"
+fi
+export FUNASR_VENV="${FUNASR_VENV:-$HOME/miniconda3/envs/funasr_me}"
+export MODELSCOPE_CACHE="${MODELSCOPE_CACHE:-$ROOT/models}"
+
+export LLM_MODEL="${LLM_MODEL:-mimo-v2.5-pro}"
+export LLM_BASE_URL="${LLM_BASE_URL:-https://token-plan-cn.xiaomimimo.com/v1}"
+
 exec "$@"

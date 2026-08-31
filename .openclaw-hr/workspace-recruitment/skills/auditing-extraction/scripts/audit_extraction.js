@@ -188,10 +188,19 @@ function main() {
   for (const k of DERIVED_FIELDS) {
     if (!(k in data)) continue;
     const we = Array.isArray(data.work_experience) ? data.work_experience : [];
-    const ok = we.length > 0;
+    const jobs = Number(data.job_count);
+    const years = Number(data.total_experience_years);
+    const emptyOk =
+      we.length === 0 &&
+      (Number.isNaN(jobs) || jobs === 0) &&
+      (Number.isNaN(years) || years === 0);
+    const ok = we.length > 0 || emptyOk;
     push(k, 'derived', data[k], ok,
-      ok ? `派生字段，计算依据为 ${we.length} 段 work_experience，依据成立`
-         : '派生字段但缺 work_experience，计算依据不成立');
+      we.length > 0
+        ? `派生字段，计算依据为 ${we.length} 段 work_experience，依据成立`
+        : (emptyOk
+          ? '无工作经历（空数组），job_count/年限为 0，计算依据成立'
+          : '派生字段但缺 work_experience，计算依据不成立'));
   }
 
   // ── 统计

@@ -102,6 +102,8 @@ def _load_hcm_api():
     """与 review 脚本共用 hcm_api.py。HCM_API_BASE 与 HCM_API_URL 等价。"""
     if os.environ.get("HCM_API_BASE") and not os.environ.get("HCM_API_URL"):
         os.environ["HCM_API_URL"] = os.environ["HCM_API_BASE"].rstrip("/")
+    if os.environ.get("HCM_API_URL") and not os.environ.get("HCM_API_BASE"):
+        os.environ["HCM_API_BASE"] = os.environ["HCM_API_URL"].rstrip("/")
     here = os.path.dirname(os.path.abspath(__file__))
     review_scripts = os.path.normpath(
         os.path.join(here, "..", "..", "running-onboarding-review", "scripts")
@@ -119,6 +121,7 @@ NODE_LABELS = {
     "training": "培训",
     "buddy": "Buddy",
 }
+HALT_REMIND_DAYS = 3
 
 
 def _summarize_hcm(candidate):
@@ -145,10 +148,22 @@ def _summarize_hcm(candidate):
             if isinstance(data, dict) and data.get("note"):
                 note = f" · note={data['note']}"
             lines.append(f"     {label}（{nt}）：{st}{note}")
-    reviews = candidate.get("reviews") or []
-    if reviews:
-        bits = [f"{r.get('review_type')}={r.get('status')}" for r in reviews]
-        lines.append(" · HCM reviews：" + ", ".join(bits))
+    pinyin = candidate.get("pinyin", "")
+    if pinyin:
+        try:
+            review_dir = os.path.join(
+                os.environ.get("WORKSPACE") or os.environ.get("ONBOARDING_WORKSPACE", ""),
+                "skills", "running-onboarding-review", "scripts",
+            )
+            if review_dir not in sys.path:
+                sys.path.insert(0, review_dir)
+            import review_store  # noqa: WPS433
+
+            bits = [f"{k}={v}" for k, v in sorted(review_store.all_reviews_map(pinyin).items())]
+            if bits:
+                lines.append(" · 试用期跟进（本地表）：" + ", ".join(bits))
+        except Exception:
+            pass
     return "\n".join(lines)
 
 
@@ -331,6 +346,10 @@ def _summarize_workflow(name, pinyin, wf, token_source=None):
             lines.append(f" · 已在 {step} 停留 {days} 天（halt 于 {halted_at}，{age}）")
         else:
             lines.append(f" · 已在 {step} 停留（halt 于 {halted_at}，{age}）")
+        if days is not None and days >= HALT_REMIND_DAYS:
+            lines.append(
+                f" · 超时提醒：审批门已停留 {days} 天，请催办 HR 主管或升级人工（不会自动批准）"
+            )
         if wf.get("approval_id"):
             src = f"（来源：{token_source}）" if token_source else ""
             lines.append(f" · approval_id：{wf['approval_id']}{src}")
@@ -343,8 +362,11 @@ def _summarize_workflow(name, pinyin, wf, token_source=None):
             lines.append("   （workflow.json 无记录，~/.lobster/state 也无有效快照）")
     elif status == "completed":
         lines.append(f" · 完成于：{wf.get('completed_at')}")
+        lines.append(" · 审批走通 ≠ 五部门已完成；试用期跟进仅在 HCM 五节点均为 completed 时开通")
     elif status == "cancelled":
         lines.append(" · 流程已取消（审批拒绝）")
+    elif status == "waiting_departments":
+        lines.append(" · 等待部门在 HCM 填写准备节点，尚未进入审批门")
     elif status == "started":
         lines.append(f" · 启动于：{wf.get('started_at')} · 进行中")
 
@@ -361,16 +383,44 @@ def _summarize_workflow(name, pinyin, wf, token_source=None):
     lines.append("→ 现状决策指引：")
     if status == "halted":
         lines.append("  流程卡在审批门·先查 stub_changed_after_halt，再决定 resume yes/no。")
+        lines.append("  若 prompt 写明 HCM 节点仍为 pending，不要建议批准，先催对应部门。")
     elif status == "completed":
-        lines.append("  流程已结束，等待候选人报到当天签约。无需 resume。")
+        lines.append("  审批工作流已结束。试用期跟进是否开通看本地表 armed / 五节点是否全绿。")
     elif status == "cancelled":
         lines.append("  流程已取消·如需重开，请 run-onboarding.sh start 重新启动。")
+    elif status == "waiting_departments":
+        lines.append("  合同等节点未齐·催对应部门在 HCM 填写后再次 start。不要 resume。")
     else:
         lines.append("  流程进行中·尚未 halt，耐心等待下一个审批门。")
     return "\n".join(lines)
 
 
-def dump_hcm_roster(hcm_api):
+def _sync_reviews_if_ready(workspace, name, pinyin):
+    """五节点全绿则 ensure + 挂 Cron；未齐或已挂过则跳过。查询/催办路径也可开通跟进。"""
+    script = os.path.join(
+        workspace, "skills", "running-onboarding-review", "scripts", "sync-reviews-if-ready.sh"
+    )
+    if not os.path.isfile(script):
+        return
+    try:
+        proc = subprocess.run(
+            ["bash", script, name, pinyin],
+            env={
+                **os.environ,
+                "WORKSPACE": workspace,
+                "ONBOARDING_WORKSPACE": workspace,
+            },
+            timeout=90,
+        )
+        if proc.returncode not in (0,):
+            sys.stderr.write(
+                f"[query-onboarding-status] sync-reviews-if-ready 退出码 {proc.returncode}\n"
+            )
+    except (subprocess.TimeoutExpired, OSError) as e:
+        sys.stderr.write(f"[query-onboarding-status] sync-reviews-if-ready 失败：{e}\n")
+
+
+def dump_hcm_roster(hcm_api, workspace):
     """整批进度：只输出 HCM 花名册，禁止 Agent 手编姓名。"""
     ok, data = hcm_api.fetch_candidates()
     if not ok:
@@ -384,6 +434,10 @@ def dump_hcm_roster(hcm_api):
     for c in data:
         if not isinstance(c, dict):
             continue
+        n = c.get("name")
+        p = c.get("pinyin")
+        if n and p:
+            _sync_reviews_if_ready(workspace, n, p)
         rows.append({
             "name": c.get("name"),
             "pinyin": c.get("pinyin"),
@@ -418,7 +472,7 @@ def main():
 
     hcm_api = _load_hcm_api()
     if sys.argv[1] in ("--all", "--roster"):
-        dump_hcm_roster(hcm_api)
+        dump_hcm_roster(hcm_api, workspace)
         return
 
     name = sys.argv[1]
@@ -453,6 +507,8 @@ def main():
     if not pinyin:
         sys.stderr.write("[query-onboarding-status] HCM 记录缺少 pinyin。\n")
         sys.exit(4)
+
+    _sync_reviews_if_ready(workspace, hcm_candidate.get("name") or name, pinyin)
 
     stub_scripts_dir = _resolve_stub_scripts_dir()
     hcm_block = _summarize_hcm(hcm_candidate)

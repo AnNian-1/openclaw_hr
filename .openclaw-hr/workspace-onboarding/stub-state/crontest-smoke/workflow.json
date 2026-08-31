@@ -1,0 +1,64 @@
+{
+  "candidate": "测Cron",
+  "pinyin": "crontest-smoke",
+  "role": "测试",
+  "salary": "1K",
+  "status": "completed",
+  "current_step": "complete",
+  "started_at": "2026-08-30T12:56:39+08:00",
+  "updated_at": "2026-08-30T12:57:02+08:00",
+  "halted_at": null,
+  "completed_at": "2026-08-30T12:56:54+08:00",
+  "approval_id": null,
+  "resume_token": null,
+  "events": [
+    {
+      "at": "2026-08-30T12:56:39+08:00",
+      "step": "prep",
+      "action": "started",
+      "note": "入职流程启动：测Cron（测试, 1K）"
+    },
+    {
+      "at": "2026-08-30T12:56:39+08:00",
+      "step": "prep",
+      "action": "completed",
+      "note": "4 路并行准备全部完成"
+    },
+    {
+      "at": "2026-08-30T12:56:39+08:00",
+      "step": "contract_gate",
+      "action": "halted",
+      "note": "等待 HR 主管审批合同"
+    },
+    {
+      "at": "2026-08-30T12:56:46+08:00",
+      "step": "contract_gate",
+      "action": "approved",
+      "note": "合同审批已通过"
+    },
+    {
+      "at": "2026-08-30T12:56:47+08:00",
+      "step": "account_gate",
+      "action": "halted",
+      "note": "等待 IT 安全审批账号"
+    },
+    {
+      "at": "2026-08-30T12:56:54+08:00",
+      "step": "account_gate",
+      "action": "approved",
+      "note": "账号权限审批已通过"
+    },
+    {
+      "at": "2026-08-30T12:56:54+08:00",
+      "step": "buddy",
+      "action": "completed",
+      "note": "Buddy 匹配完成"
+    },
+    {
+      "at": "2026-08-30T12:56:54+08:00",
+      "step": "complete",
+      "action": "completed",
+      "note": "入职审批工作流完成"
+    }
+  ]
+}

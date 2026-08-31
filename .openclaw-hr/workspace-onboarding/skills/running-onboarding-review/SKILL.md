@@ -1,6 +1,6 @@
 ---
 name: running-onboarding-review
-description: Run a probation-period follow-up review for a new hire at a given onboarding day milestone (7, 30, 60, or 90 days). Use this skill when a scheduled onboarding review is triggered, or when someone asks to follow up on a new hire's onboarding progress. It queries the HCM system API for the latest preparation-node status and review status, then outputs a structured report for the agent to notify HR/management. Does not write to HCM or local files.
+description: Run a probation-period follow-up review for a new hire at day 7/30/60/90. Use when a scheduled review fires, or when asked to follow up. Prep nodes come from HCM (read-only). Reviews live in the local table and are armed only after all 5 HCM nodes are completed. Query does not auto-complete; HR confirmation uses review-store.sh mark-done.
 metadata:
   openclaw:
     requires:
@@ -21,12 +21,14 @@ metadata:
 ## 数据来源
 
 - **花名册与五部门准备节点**：HCM `GET /api/candidates`（只读）
-- **review 状态**：HCM 返回的 `candidate.reviews` 字段（只读）
-- **不向 HCM 写入**，不写本地 `review-state/`——review 记录由 HR/主管在 HCM 维护。
+- **review 状态**：本机 `review-state/reviews.json`（入职小慧经 `review-store.sh` 维护）
+- **不向 HCM 写入**；到点只催办，**不自动标 completed**
 
-HCM 不可达时脚本退出 **5**，花名册无此人退出 **4**，都不会用本地数据冒充，也**不写** `review-state/`。
+HCM 不可达时脚本退出 **5**，花名册无此人退出 **4**。
 
 ## 工作流程
+
+### 查询（Cron / 手动）
 
 ```bash
 bash skills/running-onboarding-review/scripts/onboarding-review.sh <姓名> <入职天数> [pinyin]
@@ -34,13 +36,28 @@ bash skills/running-onboarding-review/scripts/onboarding-review.sh <姓名> <入
 
 `<入职天数>` 取 7 / 30 / 60 / 90。例：`onboarding-review.sh 郭超 7`。
 
-脚本输出：
-- **stdout**：结构化 JSON（供小慧解析后通知 HR）
-- **stderr**：人话摘要（供直接展示）
+JSON 中 `action` 字段：
+- `"not_armed"` —— 试用期跟进尚未开通（HCM 五节点未全部 `completed`）。只催部门，**不要** `ensure` / 挂 Cron。
+- `"already_reviewed"` —— 本地表该天已是 completed
+- `"needs_review"` —— 已开通且待 HR/主管跟进，小慧应通知
 
-JSON 中 `action` 字段指示下一步：
-- `"already_reviewed"` —— 该天数 review 已由 HR/主管完成，无需操作
-- `"needs_review"` —— review 待触发，小慧应通知 HR/主管
+### HR 确认已跟进（HiTL）
+
+HR 在飞书确认后，入职小慧执行：
+
+```bash
+bash skills/running-onboarding-review/scripts/review-store.sh mark-done <姓名> <pinyin> <7|30|60|90> [--content "纪要..."]
+```
+
+### 本地表维护
+
+```bash
+bash skills/running-onboarding-review/scripts/review-store.sh list [--pending] [--pinyin <pinyin>]
+bash skills/running-onboarding-review/scripts/review-store.sh get <pinyin> <day>
+bash skills/running-onboarding-review/scripts/review-store.sh ensure <姓名> <pinyin>
+```
+
+工作流归档或查询/看板刷新时，`sync-reviews-if-ready.sh` 仅在五节点全绿时 `ensure` + 挂 Cron（已挂过则跳过）。**不要**在节点未齐时直接跑 `schedule-onboarding-reviews.sh`。
 
 ## 跟进重点（按入职天数）
 
@@ -51,7 +68,7 @@ JSON 中 `action` 字段指示下一步：
 
 ## 关键规则
 
-- review 的跟进重点对应固定的入职天数节点（7/30/60/90），不要传别的天数。
-- **本脚本只查询、不写入。** review 记录的维护权归 HR/主管，小慧只负责查询状态并通知。
-- 如果 HCM 中某准备节点显示「未就绪」，如实报告，不要编造状态。
-- 入职跟进的天数节点为什么是 7/30/60/90，见 → `references/review-milestones.md`。
+- review 天数只允许 7/30/60/90。
+- **查询脚本不标完成、不偷偷 ensure。** 只有五节点全绿才开通；只有 HR 确认后跑 `mark-done`。
+- 准备节点未就绪时如实报告，不编造。
+- 入职跟进的天数节点说明见 → `references/review-milestones.md`。

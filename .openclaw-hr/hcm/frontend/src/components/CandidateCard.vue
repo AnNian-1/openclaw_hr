@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { Candidate } from '../types'
-import { NODE_LABELS, STATUS_COLORS } from '../types'
+import { NODE_LABELS, STATUS_COLORS, STATUS_LABELS } from '../types'
 import NodeStatus from './NodeStatus.vue'
 import { useCandidatesStore } from '../stores/candidates'
+
+const NODE_ORDER = ['contract', 'account', 'device', 'training', 'buddy'] as const
 
 const props = defineProps<{
   candidate: Candidate
@@ -15,20 +17,16 @@ const editName = ref('')
 const editRole = ref('')
 const editSalary = ref('')
 
-const editableNodeType = computed(() => store.currentDeptConfig.nodeType)
+const isHrView = computed(() => store.currentDepartment === 'hr')
+const currentNodeType = computed(() => store.currentDeptConfig.nodeType)
 
-const orderedNodes = computed(() => {
-  const order = ['contract', 'account', 'device', 'training', 'buddy']
-  return [...props.candidate.nodes].sort((a, b) => order.indexOf(a.node_type) - order.indexOf(b.node_type))
-})
+const currentNode = computed(() =>
+  props.candidate.nodes.find(n => n.node_type === currentNodeType.value) ?? null
+)
 
-const reviews = computed(() => {
-  const order = ['day7', 'day30', 'day60', 'day90']
-  return [...props.candidate.reviews].sort((a, b) => order.indexOf(a.review_type) - order.indexOf(b.review_type))
-})
-
-function handleNodeUpdate(nodeType: string, status: string, data?: Record<string, any>) {
-  store.updatePrepNode(props.candidate.id, nodeType, status, data)
+function handleNodeUpdate(status: string, data?: Record<string, any>) {
+  if (!currentNode.value) return
+  store.updatePrepNode(props.candidate.id, currentNode.value.node_type, status, data)
 }
 
 function startEditCandidate() {
@@ -49,54 +47,26 @@ function saveCandidate() {
   editing.value = false
 }
 
-const statusLabel = computed(() => {
-  const map: Record<string, string> = {
-    onboarding: '入职中',
-    completed: '已完成',
-    cancelled: '已取消',
-  }
-  return map[props.candidate.status] ?? props.candidate.status
-})
-
-// ── Review editing ──────────────────────────────
-const editingReview = ref<string | null>(null)
-const reviewStatus = ref('pending')
-const reviewContent = ref('')
-
-const REVIEW_LABELS: Record<string, string> = {
-  day7: '7天跟进',
-  day30: '30天跟进',
-  day60: '60天跟进',
-  day90: '90天跟进',
-}
-
-function startEditReview(reviewType: string) {
-  const r = props.candidate.reviews.find(r => r.review_type === reviewType)
-  if (!r) return
-  reviewStatus.value = r.status
-  reviewContent.value = r.content ?? ''
-  editingReview.value = reviewType
-}
-
-function saveReview(reviewType: string) {
-  store.updateReview(
-    props.candidate.id,
-    reviewType,
-    reviewStatus.value,
-    reviewContent.value.trim() || undefined,
-  )
-  editingReview.value = null
-}
-
-function cancelEditReview() {
-  editingReview.value = null
-}
+const nodeDots = computed(() =>
+  NODE_ORDER.map(type => {
+    const node = props.candidate.nodes.find(n => n.node_type === type)
+    const status = node?.status ?? 'pending'
+    return {
+      type,
+      label: NODE_LABELS[type] ?? type,
+      status,
+      statusLabel: STATUS_LABELS[status] ?? status,
+      color: STATUS_COLORS[status] ?? '#9e9e9e',
+      current: type === currentNodeType.value,
+    }
+  })
+)
 </script>
 
 <template>
   <div class="candidate-card">
     <div class="card-header">
-      <div class="candidate-info" v-if="!editing">
+      <div class="candidate-info" v-if="!editing || !isHrView">
         <span class="candidate-name">{{ candidate.name }}</span>
         <span class="candidate-role">{{ candidate.role }}</span>
         <span class="candidate-pinyin">{{ candidate.pinyin }}</span>
@@ -106,10 +76,25 @@ function cancelEditReview() {
         <input v-model="editRole" class="edit-role" placeholder="岗位" />
       </div>
 
-      <div class="candidate-meta" v-if="!editing">
+      <div class="candidate-meta" v-if="!editing || !isHrView">
         <span class="salary">{{ candidate.salary }}</span>
-        <span :class="['status-badge', candidate.status]">{{ statusLabel }}</span>
-        <button class="btn-edit-candidate" @click="startEditCandidate" title="编辑基本信息">✏️</button>
+        <div class="node-dots" aria-label="五部门节点状态">
+          <span
+            v-for="dot in nodeDots"
+            :key="dot.type"
+            class="node-dot"
+            :class="{ current: dot.current }"
+            :style="{ background: dot.color }"
+            :title="`${dot.label}：${dot.statusLabel}`"
+          />
+        </div>
+        <span v-if="candidate.status === 'cancelled'" class="status-badge cancelled">已取消</span>
+        <button
+          v-if="isHrView"
+          class="btn-edit-candidate"
+          @click="startEditCandidate"
+          title="编辑基本信息"
+        >✏️</button>
       </div>
       <div class="candidate-meta editing" v-else>
         <input v-model="editSalary" class="edit-salary" placeholder="薪资" />
@@ -120,55 +105,15 @@ function cancelEditReview() {
       </div>
     </div>
 
-    <div class="section-label">入职准备</div>
-    <div class="nodes-row">
+    <div class="section-label">{{ store.currentDeptConfig.label }} · 入职节点</div>
+    <div class="node-area" v-if="currentNode">
       <NodeStatus
-        v-for="node in orderedNodes"
-        :key="node.node_type"
-        :node="node"
-        :editable="editableNodeType === node.node_type"
-        @update="(status, data) => handleNodeUpdate(node.node_type, status, data)"
+        :node="currentNode"
+        :editable="true"
+        @update="handleNodeUpdate"
       />
     </div>
-
-    <div class="section-label">试用期跟进</div>
-    <div class="reviews-row">
-      <div
-        v-for="review in reviews"
-        :key="review.review_type"
-        :class="['review-chip', review.status, { editing: editingReview === review.review_type }]"
-      >
-        <!-- Read-only view -->
-        <template v-if="editingReview !== review.review_type">
-          <span class="review-type">{{ REVIEW_LABELS[review.review_type] ?? review.review_type }}</span>
-          <span class="review-status">{{ review.status === 'completed' ? '✅' : '⚪' }}</span>
-          <button class="btn-review-edit" @click.stop="startEditReview(review.review_type)" title="编辑跟进">✏️</button>
-        </template>
-        <!-- Edit form -->
-        <template v-else>
-          <div class="review-edit-form">
-            <div class="review-edit-row">
-              <select class="review-select" v-model="reviewStatus">
-                <option value="pending">⚪ 未跟进</option>
-                <option value="completed">✅ 已跟进</option>
-              </select>
-            </div>
-            <div class="review-edit-row">
-              <textarea
-                class="review-textarea"
-                v-model="reviewContent"
-                placeholder="跟进内容..."
-                rows="2"
-              ></textarea>
-            </div>
-            <div class="review-edit-actions">
-              <button class="btn-sm btn-cancel" @click="cancelEditReview">取消</button>
-              <button class="btn-sm btn-save" @click="saveReview(review.review_type)">保存</button>
-            </div>
-          </div>
-        </template>
-      </div>
-    </div>
+    <div v-else class="node-missing">该候选人暂无此部门节点</div>
   </div>
 </template>
 
@@ -276,24 +221,31 @@ function cancelEditReview() {
 .btn-cancel { background: #f5f5f5; color: #666; }
 .btn-save { background: #2196f3; color: white; }
 
-.status-badge {
+.node-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0;
+}
+
+.node-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.node-dot.current {
+  outline: 2px solid #1565c0;
+  outline-offset: 2px;
+}
+
+.status-badge.cancelled {
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 10px;
   font-weight: 500;
-}
-
-.status-badge.onboarding {
-  background: #e3f2fd;
-  color: #1565c0;
-}
-
-.status-badge.completed {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.status-badge.cancelled {
   background: #ffebee;
   color: #c62828;
 }
@@ -306,108 +258,20 @@ function cancelEditReview() {
   letter-spacing: 1px;
 }
 
-.nodes-row {
+.node-area {
   display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
 }
 
-.reviews-row {
-  display: flex;
-  gap: 8px;
-}
-
-.review-chip {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  background: #f5f5f5;
-  transition: all 0.2s;
-}
-
-.review-chip.completed {
-  background: #e8f5e9;
-}
-
-.review-chip.editing {
-  flex-direction: column;
-  align-items: stretch;
-  padding: 8px;
-  min-width: 200px;
-  background: white;
-  border: 1px solid #2196f3;
-}
-
-.review-type {
-  font-weight: 600;
-}
-
-.btn-review-edit {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 11px;
-  padding: 0 2px;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.review-chip:hover .btn-review-edit {
-  opacity: 0.6;
-}
-
-.btn-review-edit:hover {
-  opacity: 1 !important;
-}
-
-.review-edit-form {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.review-edit-row {
-  display: flex;
-  gap: 6px;
-}
-
-.review-select {
+.node-area :deep(.node-card) {
   flex: 1;
-  padding: 4px 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 12px;
-  background: white;
-  outline: none;
-}
-
-.review-select:focus {
-  border-color: #2196f3;
-}
-
-.review-textarea {
   width: 100%;
-  padding: 4px 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 12px;
-  resize: vertical;
-  outline: none;
-  font-family: inherit;
-  box-sizing: border-box;
 }
 
-.review-textarea:focus {
-  border-color: #2196f3;
-}
-
-.review-edit-actions {
-  display: flex;
-  gap: 4px;
-  justify-content: flex-end;
+.node-missing {
+  padding: 12px;
+  color: #999;
+  font-size: 13px;
+  background: #fafafa;
+  border-radius: 8px;
 }
 </style>

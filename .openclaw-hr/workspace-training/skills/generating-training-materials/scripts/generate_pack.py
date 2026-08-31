@@ -34,6 +34,54 @@ FILE_MARK = re.compile(
 SKILL_DIR = Path(__file__).resolve().parent.parent
 WORKSPACE = SKILL_DIR.parent.parent
 
+ONLY_ALIASES = {
+    "01": "01-needs-analysis.md",
+    "02": "02-course-design.md",
+    "03": "03-ppt-outline.md",
+    "04": "04-instructor-manual.md",
+    "05": "05-participant-handbook.md",
+    "06": "06-assessment.md",
+    "07": "07-delivery-guide.md",
+    "08": "08-evaluation-form.md",
+    "学员手册": "05-participant-handbook.md",
+    "课后测试题": "06-assessment.md",
+    "测试题": "06-assessment.md",
+    "讲师手册": "04-instructor-manual.md",
+    "ppt": "03-ppt-outline.md",
+    "PPT大纲": "03-ppt-outline.md",
+}
+
+
+def parse_only(raw: str) -> set[str]:
+    """把 --only 05,06 / 学员手册 解析成文件名集合。"""
+    out: set[str] = set()
+    for part in re.split(r"[,，、\s]+", (raw or "").strip()):
+        if not part:
+            continue
+        if part in REQUIRED:
+            out.add(part)
+            continue
+        if part in ONLY_ALIASES:
+            out.add(ONLY_ALIASES[part])
+            continue
+        m = re.fullmatch(r"0?([1-8])", part)
+        if m:
+            out.add(REQUIRED[int(m.group(1)) - 1])
+            continue
+        print(f"[ERROR] 未知 --only 项: {part}", file=sys.stderr)
+        sys.exit(2)
+    return out
+
+
+def stages_for_outputs(wanted: set[str] | None, stages: list[dict]) -> list[dict]:
+    if not wanted:
+        return stages
+    selected = [st for st in stages if wanted & set(st["outputs"])]
+    if not selected:
+        print(f"[ERROR] --only 未匹配到任何阶段: {wanted}", file=sys.stderr)
+        sys.exit(2)
+    return selected
+
 
 def resolve_llm() -> tuple[str, str, str]:
     model = os.environ.get("LLM_MODEL") or "mimo-v2.5-pro"
@@ -185,6 +233,11 @@ def main() -> int:
     ap.add_argument("--theme", default="信息安全意识")
     ap.add_argument("--force", action="store_true", help="忽略已有文件，全量重写")
     ap.add_argument("--outdir", default="", help="默认 training-materials/<theme>")
+    ap.add_argument(
+        "--only",
+        default="",
+        help="只生成点名文件，逗号分隔：05,06 或 学员手册,测试题。缺上游文件则停，不擅自扩成全套 8 份",
+    )
     args = ap.parse_args()
 
     outdir = Path(args.outdir) if args.outdir else WORKSPACE / "training-materials" / args.theme
@@ -238,8 +291,13 @@ def main() -> int:
         },
     ]
 
+    wanted = parse_only(args.only) if args.only else None
+    stages = stages_for_outputs(wanted, stages)
+
     model, url, key = resolve_llm()
-    source_blob = load_source_docs(src)
+    source_blob = ""
+    if any(st.get("use_source") for st in stages):
+        source_blob = load_source_docs(src)
 
     try:
         for st in stages:
@@ -285,10 +343,10 @@ def main() -> int:
     check = SKILL_DIR / "scripts" / "self_check.py"
     import subprocess
 
-    r = subprocess.run(
-        [sys.executable, str(check), "--outdir", str(outdir)],
-        cwd=str(WORKSPACE),
-    )
+    cmd = [sys.executable, str(check), "--outdir", str(outdir)]
+    if wanted:
+        cmd.append("--partial")
+    r = subprocess.run(cmd, cwd=str(WORKSPACE))
     extra = f"self_check_exit={r.returncode}"
     return emit_result(outdir, r.returncode == 0, extra=extra)
 

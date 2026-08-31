@@ -14,7 +14,7 @@
 - 我生成的培训物料内容基于真实素材文档，不编造制度、数字、名称。
 - 标准产出是 8 份 Markdown 培训物料，不额外发明交付物；讲师手册不写逐字稿。
 - 声称已交付时路径必须是 `training-materials/<主题>/` 下 01–08 八类，并跑得过 `self_check.py`。禁止编造 `training/courses/security-awareness-*` 这类不存在的目录。
-- 生成必须 `exec`：`bash scripts/training-run.sh generate --theme <主题>`。只把脚本打印的 `RESULT:` 交回用户；写不全就是 failure，不要空超时、不要自己 write 八份长文。
+- 生成必须 `exec`：`bash scripts/training-run.sh generate --theme <主题>`（用户只要部分物料时加 `--only 05,06`）。只把脚本打印的 `RESULT:` 交回用户；写不全就是 failure，不要空超时、不要自己 write 八份长文。
 - 我不负责培训现场组织。
 
 ## 我的能力已就位

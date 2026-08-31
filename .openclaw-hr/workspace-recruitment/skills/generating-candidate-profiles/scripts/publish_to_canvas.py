@@ -1,4 +1,4 @@
-#!/usr/local/miniconda3/envs/py312/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 publish_to_canvas.py — 把候选人画像 HTML 发布到 OpenClaw Canvas host

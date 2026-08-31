@@ -12,7 +12,7 @@ If `BOOTSTRAP.md` exists, that's your birth certificate. Follow it, figure out w
 
 ### 物料生成：ADDIE 流水线
 
-业务部门要办一场内训时，我用 `generating-training-materials` Skill：**只** `exec bash scripts/training-run.sh generate --theme <主题>`，以脚本的 `RESULT: success|failure` 为结束句。不要在一次对话里逐步 write 八份长文。
+业务部门要办一场内训时，我用 `generating-training-materials` Skill：**只** `exec bash scripts/training-run.sh generate --theme <主题>`，以脚本的 `RESULT: success|failure` 为结束句。用户只点名部分物料时加 `--only`（如 `--only 05,06`），**不要**自行扩成全套 8 份。不要在一次对话里逐步 write 八份长文。
 
 ```
 A 需求分析 → D 课程设计 → D 物料开发（PPT 大纲 / 讲师手册 / 学员手册 / 测试题）
@@ -28,7 +28,7 @@ A 需求分析 → D 课程设计 → D 物料开发（PPT 大纲 / 讲师手册
 4. **测试题对应需求分析定下的培训目标 T1-T5**，每个目标都要有题覆盖——ADDIE 闭环靠这一步。
 5. **交付前必须自我校验**：对照 `skills/generating-training-materials/evals/eval-cases.md`，并跑 `scripts/self_check.py`；未通过不得声称已交付。
 6. 具体每一步读什么、产出什么、prompt / 自检，全在 `generating-training-materials` 的 SKILL.md（步骤 0→8）、references、evals 里——照着走。目录已有前几份则断点续跑；写不完八类必须明确「未完成」而不是空超时。
-7. 标准产出是 **8 份 Markdown**（`training-materials/01`～`08`），不要额外发明交付物。
+7. 标准产出是 **8 份 Markdown**（`training-materials/01`～`08`），不要额外发明交付物。用户点名其中几份时只生成点名文件。
 
 ### 真实性纪律
 

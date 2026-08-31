@@ -39,6 +39,27 @@ from docx_to_json import (  # noqa: E402
     subject_dir_name,
 )
 
+
+def _require_deps():
+    missing = []
+    try:
+        import docx  # noqa: F401
+    except ImportError:
+        missing.append("python-docx")
+    try:
+        import pypinyin  # noqa: F401
+    except ImportError:
+        missing.append("pypinyin")
+    if missing:
+        die(
+            "缺少 Python 依赖："
+            + "、".join(missing)
+            + "。请在 openclaw-hr 环境执行：pip install -r "
+            + str(SCRIPTS.parent / "requirements.txt"),
+            2,
+        )
+
+
 # workspace-performance/feedback-360
 FEEDBACK_360 = Path(__file__).resolve().parents[3] / "feedback-360"
 SOURCE_FEEDBACK = FEEDBACK_360 / "source_feedback"
@@ -175,12 +196,17 @@ def resolve_out_dir(subject: str, explicit: Path | None) -> Path:
     return SOURCE_FEEDBACK / subject_dir_name(subject)
 
 
+KEEP_FILES = {"aggregated-data.json", "aggregated-report.md", "report.html"}
+
+
 def clear_subject_dir(out_dir: Path):
-    """清空人员目录内旧 DOCX/JSON，避免残留干扰。"""
+    """清空人员目录内旧源数据 DOCX/JSON，保留聚合产物。"""
     if not out_dir.exists():
         return
     for p in out_dir.iterdir():
-        if p.name.startswith("."):
+        if p.name.startswith(".") or p.name in KEEP_FILES:
+            continue
+        if p.name.startswith("aggregated-"):
             continue
         if p.suffix.lower() in {".docx", ".json"} and p.is_file():
             p.unlink()
@@ -198,6 +224,7 @@ def copy_docx(docx_files: list[Path], out_dir: Path) -> list[Path]:
 
 def main(argv=None):
     argv = list(argv or sys.argv[1:])
+    _require_deps()
     # 用法：[] | [archive] | [archive out_dir]
     archive_arg = argv[0] if len(argv) >= 1 else None
     explicit_out = Path(argv[1]).expanduser().resolve() if len(argv) >= 2 else None

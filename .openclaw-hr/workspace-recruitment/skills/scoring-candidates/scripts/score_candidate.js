@@ -61,6 +61,9 @@ const DIMENSIONS = [
   '沟通能力', '协作能力', '抗压能力', '价值观',
 ];
 
+/** 改 8 维定义、权重 prompt 或评级切分时 +1，令 batch_rank 缓存失效。 */
+const SCORER_VERSION = 1;
+
 /**
  * 评级切分。综合匹配分 → A/B/C/D 评级。
  * 切分点来源：score_pipeline.py 的评级口径——岗位初筛基线 60 分，
@@ -134,7 +137,7 @@ function callDeepseek(systemPrompt, userPrompt, opts = {}) {
         }
       }
     }
-    throw new Error(`DeepSeek 调用 ${retries} 次均失败：${lastErr.message}`);
+    throw new Error(`${MODEL} 调用 ${retries} 次均失败：${lastErr.message}`);
   })();
 }
 
@@ -281,6 +284,6 @@ async function main() {
   process.exit(0);
 }
 
-module.exports = { scoreCandidate, ratingOf, DIMENSIONS };
+module.exports = { scoreCandidate, ratingOf, DIMENSIONS, SCORER_VERSION };
 
 if (require.main === module) main();

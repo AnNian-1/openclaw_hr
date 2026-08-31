@@ -39,7 +39,7 @@ def _reexec_with_pandas():
         if c and os.path.isfile(c) and os.access(c, os.X_OK) and os.path.realpath(c) != os.path.realpath(sys.executable):
             os.execv(c, [c] + sys.argv)
     sys.stderr.write(
-        "[monthly-report] 当前 python 无 pandas。请用 conda py312 或 MONTHLY_REPORT_PYTHON。\n"
+        "[monthly-report] 当前 python 无 pandas。请用 conda 环境 openclaw-hr 或 MONTHLY_REPORT_PYTHON。\n"
     )
     sys.exit(127)
 

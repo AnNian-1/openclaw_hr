@@ -50,10 +50,17 @@ cd .. && bash start.sh
 | GET | `/api/candidates/{id}` | 候选人详情 |
 | POST | `/api/candidates` | 新增候选人（**人 / 看板**，不是小慧） |
 | PUT | `/api/candidates/{id}/prep/{node}` | 更新节点状态（各部门） |
-| GET | `/api/candidates/{id}/reviews` | review 列表 |
-| PUT | `/api/candidates/{id}/reviews/{type}` | 更新 review |
 
 ## 部门视图
+
+看板采用**左侧部门栏 + 右侧候选人列表**布局：
+
+- 左侧固定 5 个部门父栏：HR / IT / 行政 / 培训部 / 用人部门
+- 点击某部门后，右侧列出全部候选人，**每张卡只展示该部门负责的入职节点**，且可编辑
+- 卡片右上角薪资下方为 **5 个圆点**（合同 / IT / 行政 / 培训 / Buddy），颜色对应该节点实时状态；当前部门那颗带描边。悬停显示节点名与状态。流程已取消时另标「已取消」
+- 侧栏角标显示该部门节点仍为「未开始 / 进行中」的人数
+- HR 栏额外可编辑花名册（姓名 / 岗位 / 薪资）
+- **试用期 7/30/60/90 天跟进不在本看板维护**；真相源为入职工作区 `review-state/reviews.json`（入职小慧维护）。HCM 后端 `reviews` 表/API 为遗留字段，待本地表稳定后再删。
 
 | 部门 | 可编辑节点 |
 |------|-----------|
@@ -62,3 +69,5 @@ cd .. && bash start.sh
 | 行政 | 行政设备 (device) |
 | 培训部 | 入职培训 (training) |
 | 用人部门 | Buddy匹配 (buddy) |
+
+写入节点时前端会带 `X-Department-Role` 请求头；后端按部门校验，跨部门修改返回 403。小慧（Agent）仍只 `GET` 花名册，不向 HCM 写入。

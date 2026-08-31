@@ -11,11 +11,25 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from collections import defaultdict
 from pathlib import Path
 
+
+def _reexec_openclaw_hr():
+    try:
+        import docx  # noqa: F401
+        return
+    except ImportError:
+        pass
+    py = os.path.expanduser("~/miniconda3/envs/openclaw-hr/bin/python3")
+    if os.path.isfile(py) and os.path.realpath(py) != os.path.realpath(sys.executable):
+        os.execv(py, [py] + sys.argv)
+
+
+_reexec_openclaw_hr()
 from docx import Document
 from docx.oxml.ns import qn
 

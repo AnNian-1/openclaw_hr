@@ -38,6 +38,16 @@ bash skills/generating-360-dashboard/scripts/build_dashboard.sh \
 
 canvas-id：`feedback-360-<slug>`；浏览器用 18999。
 
+## 报告格式规范（aggregated-report.md）
+
+看板从同目录 `aggregated-report.md` **解析**语义，不是「人能读就行」。必须同时满足：
+
+1. **总览表**：五行维度，单元格里出现「共识」或「分歧」。
+2. **章节标题**：`### N. 维度名 —— 描述`（维度名：目标达成 / 专业能力 / 协作沟通 / 责任心 / 学习成长）。
+3. **加粗标签**：共识用 `**判定：**`；分歧优先 `**分歧归因分析：**`。
+
+完整可复制骨架 → `references/aggregated-report-template.md`。缺任一维度判定或无可展示摘要时脚本会失败并指出已解析到的键。
+
 ## 关键规则
 
 - **数字只取不算**（JSON）。

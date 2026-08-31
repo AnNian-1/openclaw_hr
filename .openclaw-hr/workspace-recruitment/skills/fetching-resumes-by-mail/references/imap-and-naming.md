@@ -23,24 +23,27 @@ UNSEEN + (可选) SINCE <date>
 | 邮件正文 | ❌ |
 | 附件文件名 | ❌ |
 
-流程：抽文本（截断约 2000 字）→ DeepSeek（默认 `deepseek-v4-flash`）→ JSON `{name, position}`。  
+流程：抽文本（截断约 2000 字）→ 对话模型（默认 `mimo-v2.5-pro`）→ JSON `{name, position}`。  
 缓存 key = 文件内容 sha256；失败结果不缓存。
 
 `--no-llm` 仅离线兜底，生产不要开。
 
-## 3. 落盘命名与去重
+## 3. 落盘命名、身份与 HR 待办
 
-- 文件名：`{name}-{position}{ext}`，经 `_safe_save_name` 清洗。
-- **同姓名跳过**：扫描 `inbox/` 非隐藏文件；按 `-` 切段后任一段等于识别姓名即视为已存在
-  （兼容新格式 `张磊-后端技术专家.pdf` 与旧格式 `resume-tech-01-张磊-后端开发.pdf`）。
-  命中则不写盘，`skipped_files.reason = name-already-exists (...)`。
-- 不同姓名、同岗位：正常各自落盘。
+- 有标题：`{name}-{position}{ext}`。无标题：`{name}-待确认{ext}` + `needs-hr`（`position-uncertain`）。**不阻塞解析评分**。
+- **同一人**覆盖后登记 `needs-pipeline.jsonl`；收信进程不作废后的解析/评分，由同一轮 Skill 重跑。
+- 同名说不清：另存一份 + `identity-ambiguous`，流程走完，HR 再合并。
+- 字节相同：`content-already-saved`。
 
 ## 4. 附件处理
 
 白名单：`.pdf` `.docx` `.zip` `.rar`（magic number 二次校验）。
 
-- 直接附件 pdf/docx → 识别后落盘
+QQ 网页端/客户端常把简历标成 **`Content-Disposition: inline`**，有时只有 `Content-Type` 的 `name=`、甚至没有文件名。脚本 **walk 整封 MIME**，不依赖 `attachment` 或 imap-tools 的 `m.attachments`（后者会漏掉「无 filename 且无 Content-ID」的 part）。按后缀 / Content-Type / 文件头识别；内嵌图片、正文 html 仍丢弃。
+
+**QQ 超大附件（文件中转站）**：主题像 `张娜_….pdf`，HTML 里是 `QQMailBigAttach` + `wx.mail.qq.com/ftn/download`，**MIME 里没有 PDF**。IMAP 授权码下不了中转站文件（链接打开是网页登录页）。脚本会记 `skipped_files.reason = qq-ftn-not-in-mime`。请发信方改用「普通附件」，不要用超大附件。
+
+- 直接附件或内嵌 pdf/docx → 识别后落盘
 - zip/rar → 安全解压后只提内层 pdf/docx（防 zip-slip / zip-bomb）
 - 其它后缀一律丢弃
 
@@ -51,8 +54,8 @@ UNSEEN + (可选) SINCE <date>
 | `IMAP_USER` / `IMAP_PASS` | 登录 |
 | `IMAP_HOST` / `IMAP_PORT` | 默认 qq 993 |
 | `MAIL_FOLDER` | 默认 INBOX |
-| `DEEPSEEK_API_KEY` | LLM 识别 |
-| `FETCH_LLM_MODEL` / `FETCH_LLM_BASE_URL` | 可选覆盖 |
+| `XIAOMI_API_KEY` / `LLM_API_KEY` | 收信改名用对话模型 |
+| `FETCH_LLM_MODEL` / `FETCH_LLM_BASE_URL` | 可选覆盖（默认 mimo-v2.5-pro） |
 
 推荐：`source ~/.openclaw-hr/env.sh`。
 

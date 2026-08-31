@@ -20,7 +20,7 @@
 #
 # Python:
 #   OpenClaw exec 的 PATH 常解析到 /usr/bin/python3（无 pandas）。
-#   本脚本优先使用 conda py312；可用 MONTHLY_REPORT_PYTHON 覆盖。
+#   本脚本优先使用 conda openclaw-hr；可用 MONTHLY_REPORT_PYTHON 覆盖。
 #   禁止对系统 python 执行 pip install。
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -35,9 +35,9 @@ resolve_python() {
     return
   fi
   local candidates=(
-    /usr/local/miniconda3/envs/py312/bin/python3
-    "${HOME}/miniconda3/envs/py312/bin/python3"
     "${HOME}/miniconda3/envs/openclaw-hr/bin/python3"
+    "${HOME}/miniconda3/envs/py312/bin/python3"
+    /usr/local/miniconda3/envs/py312/bin/python3
     "${HOME}/anaconda3/envs/py312/bin/python3"
   )
   local c
@@ -54,9 +54,9 @@ resolve_python() {
     fi
   fi
   echo "[monthly-report] ERROR: 未找到带 pandas/matplotlib 的 Python。" >&2
-  echo "  课程环境请用: /usr/local/miniconda3/envs/py312/bin/python3" >&2
+  echo "  请用: ~/miniconda3/envs/openclaw-hr/bin/python3" >&2
   echo "  或: export MONTHLY_REPORT_PYTHON=/path/to/python3" >&2
-  echo "  禁止对 /usr/bin/python3 执行 pip install（依赖已在 conda py312 中）。" >&2
+  echo "  禁止对 /usr/bin/python3 执行 pip install。" >&2
   exit 127
 }
 

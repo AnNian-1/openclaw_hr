@@ -7,14 +7,14 @@
   "expected_city": "上海",
   "available_date": "一个月内（需办理工作交接）",
   "education": {
-    "school": "上海交通大学（在职）",
+    "school": "上海交通大学",
     "major": "软件工程",
     "degree": "硕士",
     "graduation_year": "2018"
   },
   "work_experience": [
     {
-      "company": "某头部电商集团 · 交易中台",
+      "company": "某头部电商集团",
       "position": "后端技术专家（P7→P8）",
       "start_date": "2018-04",
       "end_date": "至今",
@@ -22,7 +22,7 @@
       "industry_inferred": true
     },
     {
-      "company": "某 O2O 生活服务平台 · 基础架构部",
+      "company": "某 O2O 生活服务平台",
       "position": "高级后端工程师 / 后端 Team Leader",
       "start_date": "2014-07",
       "end_date": "2018-03",
@@ -41,20 +41,20 @@
   "total_experience_years": 15,
   "job_count": 3,
   "skills": [
-    "Java（精通，13 年）",
+    "Java（精通）",
     "Go（熟练）",
-    "Python（脚本能力）",
+    "Python",
     "Shell",
     "Spring Boot / Spring Cloud",
     "Dubbo",
     "MyBatis",
     "Netty",
-    "MySQL（精通，含分库分表、索引优化、慢查询治理）",
+    "MySQL（精通）",
     "Redis（精通）",
     "Elasticsearch",
     "HBase",
     "Kafka",
-    "RocketMQ（精通，含顺序消息、事务消息、堆积治理）",
+    "RocketMQ（精通）",
     "微服务架构",
     "领域驱动设计",
     "高并发系统设计",

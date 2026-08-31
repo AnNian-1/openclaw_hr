@@ -19,7 +19,22 @@ import urllib.request
 
 WORKSPACE = os.path.expanduser("~/.openclaw-hr/workspace-recruitment")
 POOL = os.path.join(WORKSPACE, "talent-pool/talent-pool.json")
-DEEPSEEK_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
+
+
+def resolve_llm():
+    model = os.environ.get("LLM_MODEL") or "mimo-v2.5-pro"
+    is_mimo = "mimo" in model or "xiaomi" in (os.environ.get("LLM_BASE_URL") or "")
+    base = os.environ.get("LLM_BASE_URL") or (
+        "https://token-plan-cn.xiaomimimo.com/v1" if is_mimo else "https://api.deepseek.com"
+    )
+    url = base.rstrip("/") + "/chat/completions"
+    key = (
+        os.environ.get("LLM_API_KEY")
+        or (os.environ.get("XIAOMI_API_KEY") if is_mimo or "xiaomi" in base else "")
+        or os.environ.get("DEEPSEEK_API_KEY")
+        or ""
+    )
+    return model, url, key
 
 EXPLAIN_PROMPT = """你是招聘顾问。业务部门想"再招一个像【锚点候选人】的人"。
 系统已用向量检索算出一名【相似候选人】,并给出了 4 个维度的真实相似度分数。
@@ -63,11 +78,14 @@ def explain_one(anchor, cand, dim_sims):
     prompt = EXPLAIN_PROMPT.replace("{anchor}", fields_brief(anchor)) \
                            .replace("{cand}", fields_brief(cand)) \
                            .replace("{dims}", dims_str)
-    payload = {"model": "deepseek-v4-pro",
+    model, url, key = resolve_llm()
+    if not key:
+        raise RuntimeError("未设置 XIAOMI_API_KEY / LLM_API_KEY")
+    payload = {"model": model,
                "messages": [{"role": "user", "content": prompt}],
                "temperature": 0.2}
-    headers = {"Authorization": f"Bearer {DEEPSEEK_KEY}", "Content-Type": "application/json"}
-    r = post_json("https://api.deepseek.com/chat/completions", payload, headers)
+    headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+    r = post_json(url, payload, headers)
     return r["choices"][0]["message"]["content"].strip()
 
 def main():

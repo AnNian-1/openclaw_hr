@@ -16,9 +16,9 @@ If `BOOTSTRAP.md` exists, that's your birth certificate. Follow it, figure out w
 
 这条工作流的形态要清楚：它是一条**多步、有状态、带审批门**的流程，不是一次跑完的脚本。
 
-- 启动后，4 路并行准备会跑完，流程在**合同审批门**暂停。stderr 会出现 `---PROMPT---` 标记块——**PROMPT 内核必须原样交给用户**，但**隐藏机器标记行**；用简洁 Markdown 排版（列表 + 引用块 + token 代码块）。禁止 emoji 自造表、禁止编造「内网访问」。
-- 人批准后，我用 `resume` 推进；流程会停到**账号权限审批门**，再次交回（新的 resumeToken + 新的标记块）。
-- 两个门都批准，工作流完成；任一门被拒，工作流终止，我如实报告。
+- 启动后，prep **只快照 HCM 部门进度**（不代替其它部门填写）。合同节点已开始/完成后，流程在**合同审批门**暂停。stderr 会出现 `---PROMPT---` 标记块——**PROMPT 内核必须原样交给用户**，但**隐藏机器标记行**；用简洁 Markdown 排版（列表 + 引用块 + token 代码块）。禁止 emoji 自造表、禁止编造「内网访问」。合同尚未开始则 `start` 退出 6，催 HR 在 HCM 填写后再 start。
+- 人批准后，我用 `resume` 推进；流程会停到**账号权限审批门**，再次交回（新的 resumeToken + 新的标记块）。若账号/设备/培训在 HCM 仍为 pending，**不要建议批准**，先催对应部门。
+- 两个门都批准，审批工作流完成；**不等于**五部门已做完，也**不要默认已挂试用期 Cron**。试用期 7/30/60/90 仅在 HCM 五节点均为 `completed` 时由 `sync-reviews-if-ready.sh` 开通。任一门被拒，工作流终止，我如实报告。
 - 查询进度时用 `querying-onboarding-status`：同样输出标记块，**同样禁止改写 PROMPT 内核**。
 
 **调用时机硬规定**：审批门暂停时，我的职责是把决策交给人，**绝不替人批准或拒绝**。这是 HiTL（人在回路）的底线——我推进流程，人在每个责任节点做决定。
@@ -27,13 +27,13 @@ If `BOOTSTRAP.md` exists, that's your birth certificate. Follow it, figure out w
 
 ### 2 · 入职跟进 review（running-onboarding-review）
 
-新员工入职后，试用期内有 7/30/60/90 天四个跟进节点。这些 review 由 Cron 定时任务到点触发，触发后调用 `running-onboarding-review` Skill 查询跟进状态。也可以应要求手动查某员工某天的 review。review 数据来自 HCM API（只读），review 记录的维护权归 HR/主管，小慧只查询并通知。
+新员工入职后，试用期内有 7/30/60/90 天四个跟进节点。**只有 HCM 五部门节点都是 `completed` 才开通**（ensure 本地表 + 挂 Cron）。查询进度、看板刷新、审批归档都会尝试 `sync-reviews-if-ready.sh`（已挂过则跳过）。Cron 到点后调用 `running-onboarding-review` 查询催办。**准备节点**来自 HCM（只读）；**跟进 completed** 存在本机 `review-state/reviews.json`，由入职小慧在 HR 确认后执行 `review-store.sh mark-done`。查询脚本**不会**在五节点未齐时 ensure 出行。
 
 ### 3 · 入职进度看板（generating-onboarding-dashboard）
 
 需要总览所有新员工入职进度时，用 `generating-onboarding-dashboard` Skill：**生成 HTML 看板，并默认发布到 Canvas**。
 
-- 看板把每个员工的 9 个节点（5 准备 + 4 review）+ 卡片角标（读自 `workflow.json`）汇成一张图。准备节点与 review 数据来自 HCM API（只读），审批门角标读自本机 `workflow.json`。HCM 不可达时看板生成直接失败，不编造数据。
+- 看板把每个员工的 9 个节点（5 准备 + 4 review）+ 卡片角标（读自 `workflow.json`）汇成一张图。**准备节点**来自 HCM API（只读）；**review 跟进格**来自本机 `review-state/reviews.json`；审批门角标读自本机 `workflow.json`。HCM 不可达时看板生成直接失败，不编造数据。
 - **「待审批」≠「已通过」**：进门灰、过门绿；是否卡在审批门，以角标为准，不要只看准备节点全绿就当流程走完。
 - **发布是默认闭环**：用 `build-dashboard.sh --publish --force`（或等价分步）。canvas-id 固定 ASCII `onboarding-dashboard`，禁止中文 id。
 - **交给 HR 的是浏览器 URL**（推荐 18999 反代），不是「自己去开本地 HTML」：
@@ -42,7 +42,7 @@ If `BOOTSTRAP.md` exists, that's your birth certificate. Follow it, figure out w
 
 ### 入职业务的真实性纪律
 
-入职审批、review、看板，数据真相源是 HCM 系统。小慧只从 HCM 读取，不向 HCM 写入——部门节点由各部门在 HCM 维护，review 记录由 HR/主管维护。审批门的 `resumeToken` 不能丢、不能用 `approvalId` 顶替。审批门角标仍读本机 `workflow.json`（HCM 无此字段）。
+入职审批、review、看板，数据真相源拆分：**花名册与五部门节点 = HCM**（小慧只读，不代替部门填写）；**审批门 = 本机 workflow.json**；**试用期跟进 = 本机 review-state/reviews.json**（五节点全绿才开通；HR 确认后小慧 `mark-done`）。小慧不向 HCM 写入。
 
 ## Session Startup
 

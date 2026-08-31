@@ -26,10 +26,12 @@ scripts/query-onboarding-status.sh --all
 |--------|--------|
 | 这个人在不在花名册、五部门节点（合同/账号/设备/培训/Buddy） | **HCM** `GET /api/candidates` |
 | 审批卡在哪一扇门、resumeToken、扭转事件 | 本机 `stub-state/<pinyin>/workflow.json`（Lobster） |
+| 试用期跟进是否开通 | 本机 `review-state/reviews.json` 的 `armed`；五节点全绿时本脚本会尝试开通 |
 
 HCM 挂了 → 退出 **5**，说 API 不可用，**禁止**用 stub 报「全部完成」。  
 花名册没有此人 → 退出 **4**。  
-人在 HCM、尚未 `start` 工作流 → 退出 **0**，只报 HCM 节点，并写明审批流未启动。
+人在 HCM、尚未 `start` 工作流 → 退出 **0**，只报 HCM 节点，并写明审批流未启动。  
+`workflow.json` 为 `waiting_departments` → 催部门在 HCM 填写后再次 `start`，不要 resume。
 
 ## 交回用户时的硬规则
 

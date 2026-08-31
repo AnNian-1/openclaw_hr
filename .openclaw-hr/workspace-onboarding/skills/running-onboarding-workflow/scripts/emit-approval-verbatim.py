@@ -34,6 +34,7 @@ STATUS_CN = {
     "halted": "待审批（已暂停）",
     "completed": "已完成",
     "cancelled": "已取消",
+    "waiting_departments": "等待部门在 HCM 填写",
 }
 
 

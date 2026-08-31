@@ -151,7 +151,7 @@ function callDeepseek(systemPrompt, userPrompt, opts = {}) {
         }
       }
     }
-    throw new Error(`DeepSeek 调用 ${retries} 次均失败：${lastErr.message}`);
+    throw new Error(`${MODEL} 调用 ${retries} 次均失败：${lastErr.message}`);
   })();
 }
 

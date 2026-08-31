@@ -18,7 +18,7 @@ update-workflow.py —— 在 stub-state/<pinyin>/workflow.json 追加流程扭�
          ok / cancelled  → 清空这两个字段
 
   step ∈ {prep, contract_gate, account_gate, buddy, complete}
-  action ∈ {started, completed, halted, approved, rejected}
+  action ∈ {started, completed, halted, approved, rejected, waiting}
 
 环境变量：
   STUB_STATE_DIR —— 优先；指向 stub-state/<pinyin>/
@@ -27,7 +27,7 @@ update-workflow.py —— 在 stub-state/<pinyin>/workflow.json 追加流程扭�
 workflow.json 结构（full-trail）：
   {
     "candidate", "pinyin", "role", "salary",
-    "status": "started|halted|completed|cancelled",
+    "status": "started|halted|completed|cancelled|waiting_departments",
     "current_step": "prep|contract_gate|account_gate|buddy|complete",
     "started_at", "updated_at", "halted_at", "completed_at",
     "approval_id", "resume_token",   # lobster halt 后由 attach 回写
@@ -46,7 +46,7 @@ from zoneinfo import ZoneInfo
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 
 VALID_STEPS = ("prep", "contract_gate", "account_gate", "buddy", "complete")
-VALID_ACTIONS = ("started", "completed", "halted", "approved", "rejected")
+VALID_ACTIONS = ("started", "completed", "halted", "approved", "rejected", "waiting")
 # 只有这两道 HiTL 审批门才需要 approval_id / resume_token；
 # 其它节点（prep/buddy/complete）永不查 ~/.lobster/state。
 APPROVAL_GATES = ("contract_gate", "account_gate")
@@ -180,6 +180,65 @@ def _state_dir(pinyin):
     sys.exit(2)
 
 
+def _workspace_root():
+    ws = os.environ.get("WORKSPACE")
+    if ws:
+        return os.path.abspath(ws)
+    state = os.environ.get("STATE")
+    if state:
+        return os.path.dirname(os.path.abspath(state))
+    stub = os.environ.get("STUB_STATE_DIR")
+    if stub:
+        return os.path.dirname(os.path.dirname(os.path.abspath(stub)))
+    here = os.path.dirname(os.path.abspath(__file__))
+    return os.path.abspath(os.path.join(here, "..", "..", ".."))
+
+
+def _clear_pending_approvals(pinyin):
+    pending = os.path.join(_workspace_root(), "pending-approvals")
+    removed = []
+    for gate in ("contract", "account"):
+        path = os.path.join(pending, f"{pinyin}-{gate}.json")
+        try:
+            os.remove(path)
+            removed.append(os.path.basename(path))
+        except FileNotFoundError:
+            pass
+    if removed:
+        print(
+            f"[update-workflow] 已清理 pending-approvals: {', '.join(removed)}",
+            file=sys.stderr,
+        )
+    return removed
+
+
+def cmd_cleanup_stale_pending():
+    """cancelled/completed 或无 workflow 的 pending 快照删掉；halted 保留。"""
+    ws = _workspace_root()
+    pending = os.path.join(ws, "pending-approvals")
+    state_root = os.path.join(ws, "stub-state")
+    removed = []
+    if os.path.isdir(pending):
+        for name in sorted(os.listdir(pending)):
+            if not name.endswith(".json"):
+                continue
+            pinyin = None
+            for gate in ("contract", "account"):
+                suf = f"-{gate}.json"
+                if name.endswith(suf):
+                    pinyin = name[: -len(suf)]
+                    break
+            if not pinyin:
+                continue
+            wf = _load(os.path.join(state_root, pinyin, "workflow.json"))
+            stale = wf is None or wf.get("status") in ("cancelled", "completed")
+            if stale:
+                os.remove(os.path.join(pending, name))
+                removed.append(name)
+                print(f"[update-workflow] 清理陈旧 pending: {name}", file=sys.stderr)
+    print(json.dumps({"removed": removed}, ensure_ascii=False))
+
+
 def _path(pinyin):
     return os.path.join(_state_dir(pinyin), "workflow.json")
 
@@ -290,6 +349,9 @@ def cmd_event(pinyin, step, action, note=""):
         data["halted_at"] = now
         data["completed_at"] = None
         # approval_id / resume_token 此时还没有——等 lobster 返回后由 attach 回写
+    elif action == "waiting":
+        data["status"] = "waiting_departments"
+        data["halted_at"] = None
     elif action == "rejected":
         data["status"] = "cancelled"
         data["halted_at"] = None
@@ -310,6 +372,8 @@ def cmd_event(pinyin, step, action, note=""):
         data["resume_token"] = None
 
     _save(path, data)
+    if data.get("status") in ("cancelled", "completed"):
+        _clear_pending_approvals(pinyin)
     print(f"[update-workflow] {step}/{action} → {path} (status={data['status']})", file=sys.stderr)
     print(json.dumps({
         "path": path,
@@ -388,6 +452,8 @@ def cmd_attach(pinyin, lobster_json_path):
                   file=sys.stderr)
 
     _save(path, data)
+    if data.get("status") == "cancelled":
+        _clear_pending_approvals(pinyin)
     print(json.dumps({
         "path": path,
         "status": data.get("status"),
@@ -446,6 +512,7 @@ def main():
             "       update-workflow.py event  <pinyin> <step> <action> [note]\n"
             "       update-workflow.py attach <pinyin> <lobster_json_file>\n"
             "       update-workflow.py lookup <pinyin> [contract_gate|account_gate]\n"
+            "       update-workflow.py cleanup-stale-pending\n"
             "       update-workflow.py pinyin-from-token <resumeToken>\n"
         )
         sys.exit(1)
@@ -480,6 +547,8 @@ def main():
             sys.stderr.write("usage: update-workflow.py pinyin-from-token <resumeToken>\n")
             sys.exit(1)
         cmd_pinyin_from_token(sys.argv[2])
+    elif cmd == "cleanup-stale-pending":
+        cmd_cleanup_stale_pending()
     else:
         sys.stderr.write(f"[update-workflow] 未知命令: {cmd}\n")
         sys.exit(1)

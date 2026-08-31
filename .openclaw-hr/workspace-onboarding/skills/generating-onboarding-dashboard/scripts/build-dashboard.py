@@ -5,7 +5,7 @@
 
 数据来源：HCM 系统 API（只读）
   - 花名册与五部门准备节点：GET /api/candidates
-  - review 节点：candidate.reviews 字段
+  - review 节点：本机 review-state/reviews.json（入职小慧维护）
   - 审批门角标：本机 stub-state/<pinyin>/workflow.json（HCM 无此字段）
 
 不向 HCM 写入，不读本地 stub-state 作为准备节点真相源。
@@ -17,6 +17,7 @@ import json
 import os
 import sys
 import datetime
+import subprocess
 import urllib.request
 import urllib.error
 from zoneinfo import ZoneInfo
@@ -30,8 +31,21 @@ WS = os.environ.get(
     os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", "..")),
 )
 
-# HCM API 地址
-HCM_API_BASE = os.environ.get("HCM_API_URL", "http://localhost:8000")
+# HCM API 地址（HCM_API_URL 与 HCM_API_BASE 等价）
+def hcm_base():
+    return (
+        os.environ.get("HCM_API_URL")
+        or os.environ.get("HCM_API_BASE")
+        or "http://localhost:8000"
+    ).rstrip("/")
+
+
+HCM_API_BASE = hcm_base()
+
+REVIEW_SCRIPT_DIR = os.path.join(WS, "skills", "running-onboarding-review", "scripts")
+if REVIEW_SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, REVIEW_SCRIPT_DIR)
+import review_store  # noqa: E402
 
 # 5 个入职准备节点
 PREP_NODES = [
@@ -66,26 +80,104 @@ STATUS_LABELS = {
     "completed": "已完成",
     "cancelled": "已取消",
     "onboarding": "入职中",
+    "waiting_departments": "等待部门填写",
 }
+
+
+HALT_REMIND_DAYS = 3
 
 
 def classify(status):
     """把原始 status 归类为 done / progress / pending 三态。"""
     if not status or status in ("未就绪", "缺失"):
         return "pending"
-    if status in DONE_WORDS or status in ("in_progress",):
-        # in_progress 表示部门正在处理，算进行中
-        if status in DONE_WORDS:
-            return "done"
-        return "progress"
+    if status in DONE_WORDS:
+        return "done"
     if status in PENDING_WORDS or (isinstance(status, str) and status.startswith("待")):
         return "pending"
+    if status in ("paused", "pending", "rejected"):
+        return "pending"
+    if status in ("in_progress",):
+        return "progress"
     return "progress"
+
+
+def node_display_and_cls(n):
+    """部门 data.status（中文）优先于顶层 node.status（如 in_progress vs 已审批）。"""
+    data = n.get("data") or {}
+    raw = n.get("status", "未就绪")
+    display = data.get("status") or raw
+    cls = classify(display)
+    return display, cls
+
+
+def halt_days(halted_at):
+    if not halted_at:
+        return None
+    try:
+        t = datetime.datetime.fromisoformat(str(halted_at).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    now = datetime.datetime.now(SHANGHAI)
+    if t.tzinfo is None:
+        t = t.replace(tzinfo=SHANGHAI)
+    else:
+        t = t.astimezone(SHANGHAI)
+    seconds = max(0, int((now - t).total_seconds()))
+    return seconds // 86400
+
+
+def hcm_prep_badge(prep):
+    """主角标按 HCM 5 个准备节点，不按 workflow.json completed。"""
+    n = len(PREP_NODES)
+    n_done = sum(1 for p in prep if p["cls"] == "done")
+    if n_done == n:
+        return {"text": f"已完成 {n_done}/{n}", "cls": "wf-done"}
+    if n_done == 0 and all(p["cls"] == "pending" for p in prep):
+        return {"text": f"待启动 {n_done}/{n}", "cls": "wf-unknown"}
+    return {"text": f"入职中 {n_done}/{n}", "cls": "wf-active"}
+
+
+def gate_badge(wf):
+    """审批门单独成标，不和 HCM 到岗角标混为一谈。"""
+    if not wf:
+        return None
+    status = wf.get("status") or ""
+    if status == "halted":
+        step = STEP_LABELS.get(wf.get("current_step") or "", wf.get("current_step") or "审批门")
+        days = halt_days(wf.get("halted_at"))
+        if days is not None and days >= HALT_REMIND_DAYS:
+            extra = f"已暂停{days}天·请催办"
+        elif days:
+            extra = f"已暂停{days}天"
+        else:
+            extra = "等待审批"
+        return {"text": f"{step} · {extra}", "cls": "wf-halted"}
+    if status == "cancelled":
+        return {"text": "审批已取消", "cls": "wf-cancel"}
+    return None
+
+
+def workflow_badge(wf):
+    """兼容旧调用：只描述审批工作流，不是 HCM 到岗。"""
+    gate = gate_badge(wf)
+    if gate:
+        return {**gate, "status": wf.get("status"), "step": wf.get("current_step")}
+    if not wf:
+        return {"text": "无审批记录", "cls": "wf-unknown"}
+    status = wf.get("status") or "started"
+    step = wf.get("current_step") or "—"
+    status_cn = STATUS_LABELS.get(status, status)
+    step_cn = STEP_LABELS.get(step, step)
+    if status == "completed":
+        return {"text": f"审批{status_cn}", "cls": "wf-done", "status": status, "step": step}
+    text = f"{status_cn} · {step_cn}"
+    return {"text": text, "cls": "wf-active", "status": status, "step": step}
 
 
 def hcm_get(path):
     """GET HCM API，返回 parsed JSON 或 None。"""
-    url = f"{HCM_API_BASE}{path}"
+    url = f"{hcm_base()}{path}"
     try:
         with urllib.request.urlopen(url, timeout=10) as resp:
             return json.loads(resp.read().decode("utf-8"))
@@ -113,29 +205,6 @@ def load_workflow(pinyin):
         return {}
 
 
-def workflow_badge(wf):
-    """从 workflow.json 拼卡片角标文案与 CSS 类。"""
-    if not wf:
-        return {"text": "无审批记录", "cls": "wf-unknown"}
-    status = wf.get("status") or "started"
-    step = wf.get("current_step") or "—"
-    status_cn = STATUS_LABELS.get(status, status)
-    step_cn = STEP_LABELS.get(step, step)
-    if status == "halted":
-        text = f"{status_cn} · {step_cn}"
-        cls = "wf-halted"
-    elif status == "completed":
-        text = status_cn
-        cls = "wf-done"
-    elif status == "cancelled":
-        text = status_cn
-        cls = "wf-cancel"
-    else:
-        text = f"{status_cn} · {step_cn}"
-        cls = "wf-active"
-    return {"text": text, "cls": cls, "status": status, "step": step}
-
-
 def build_employee(candidate):
     """汇总单个员工的 9 个节点状态 + workflow 角标 + 整体进度。"""
     name = candidate.get("name", "")
@@ -145,28 +214,22 @@ def build_employee(candidate):
     nodes = candidate.get("nodes") or []
     node_map = {n["node_type"]: n for n in nodes}
 
-    # 5 个准备节点（来自 HCM）
+    # 5 个准备节点（来自 HCM；分类优先 data.status）
     prep = []
     done_count = 0
     for key, label in PREP_NODES:
         n = node_map.get(key, {})
-        raw_status = n.get("status", "未就绪")
-        cls = classify(raw_status)
+        display, cls = node_display_and_cls(n)
         if cls == "done":
             done_count += 1
-        # 用 data.status（部门填的中文状态）作为显示文本，比 node.status 更友好
-        data = n.get("data") or {}
-        display = data.get("status", raw_status)
         prep.append({"label": label, "raw": display, "cls": cls})
 
-    # 4 个 review 节点（来自 HCM）
-    reviews_data = candidate.get("reviews") or []
-    review_map = {r["review_type"]: r for r in reviews_data}
+    # 4 个 review 节点（来自本地表）
     reviews = []
     rdone = 0
+    review_map = review_store.all_reviews_map(pinyin)
     for day in REVIEW_NODES:
-        rec = review_map.get(f"day{day}", {})
-        st = rec.get("status", "pending")
+        st = review_map.get(f"day{day}", "pending")
         if st == "completed":
             reviews.append({"label": REVIEW_LABEL[day], "cls": "done",
                             "text": "已 review"})
@@ -178,9 +241,9 @@ def build_employee(candidate):
     total = len(PREP_NODES) + len(REVIEW_NODES)
     pct = round((done_count + rdone) / total * 100)
 
-    # 审批门角标来自本机 workflow.json
     wf = load_workflow(pinyin)
-    badge = workflow_badge(wf)
+    badge = hcm_prep_badge(prep)
+    gate = gate_badge(wf)
 
     return {
         "name": name,
@@ -193,6 +256,7 @@ def build_employee(candidate):
         "rdone": rdone,
         "pct": pct,
         "badge": badge,
+        "gate_badge": gate,
     }
 
 
@@ -206,6 +270,11 @@ def render_node(label, cls, sub):
 
 def render_card(data):
     badge = data["badge"]
+    gate = data.get("gate_badge")
+    gate_html = (
+        f'<span class="wf-badge {gate["cls"]}">{gate["text"]}</span>'
+        if gate else ""
+    )
     prep_html = "\n".join(
         render_node(n["label"], n["cls"], n["raw"])
         for n in data["prep"])
@@ -220,7 +289,10 @@ def render_card(data):
           <span class="name">{data['name']}</span>
           <span class="role">{data['role']}</span>
         </div>
-        <span class="wf-badge {badge['cls']}">{badge['text']}</span>
+        <div class="badges">
+          <span class="wf-badge {badge['cls']}">{badge['text']}</span>
+          {gate_html}
+        </div>
       </header>
       <div class="progress-row">
         <div class="progress-label">整体入职进度</div>
@@ -246,12 +318,35 @@ def render_card(data):
     </section>"""
 
 
+def _sync_reviews_if_ready(candidates):
+    """看板刷新时：五节点全绿则开通试用期跟进（已挂过则跳过）。"""
+    script = os.path.join(
+        WS, "skills", "running-onboarding-review", "scripts", "sync-reviews-if-ready.sh"
+    )
+    if not os.path.isfile(script):
+        return
+    for c in candidates:
+        name, pin = c.get("name"), c.get("pinyin")
+        if not name or not pin:
+            continue
+        try:
+            subprocess.run(
+                ["bash", script, name, pin],
+                env={**os.environ, "WORKSPACE": WS, "ONBOARDING_WORKSPACE": WS},
+                timeout=90,
+                capture_output=True,
+            )
+        except (subprocess.TimeoutExpired, OSError) as e:
+            print(f"[dashboard] sync-reviews {pin} 失败：{e}", file=sys.stderr)
+
+
 def main():
     candidates = fetch_candidates()
     if not candidates:
         print("[dashboard] HCM 花名册为空，无候选人。", file=sys.stderr)
         sys.exit(2)
 
+    _sync_reviews_if_ready(candidates)
     cards = [build_employee(c) for c in candidates]
     now = datetime.datetime.now(SHANGHAI).strftime("%Y-%m-%d %H:%M")
     total_emp = len(cards)
@@ -293,6 +388,9 @@ def main():
   .who .role {{
     font-size:13px; color:#5b6b85; background:#eef3ff;
     padding:3px 10px; border-radius:6px; margin-left:9px;
+  }}
+  .badges {{
+    flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:6px;
   }}
   .wf-badge {{
     flex-shrink:0; font-size:12px; font-weight:600; padding:5px 10px;
@@ -363,7 +461,7 @@ def main():
   <div class="page-head">
     <div>
       <h1>星桥科技 · 新员工入职进度看板</h1>
-      <div class="sub">数据来源：HCM 系统 API · 审批门角标读自本机 workflow.json</div>
+      <div class="sub">数据来源：HCM 五节点到岗角标 · 审批门单独标记（本机 workflow.json）</div>
     </div>
     <div class="meta">
       在职新员工 <b>{total_emp}</b> 人 · 平均进度 <b>{avg}%</b><br>
@@ -379,8 +477,8 @@ def main():
     <span><i class="dot pending"></i>待办 / 待审批 / 待触发</span>
   </div>
   <div class="foot">
-    准备节点与 review 状态来自 HCM GET /api/candidates ·
-    审批门角标来自本机 stub-state/&lt;pinyin&gt;/workflow.json
+    到岗角标按 HCM 5 个准备节点 · 试用期跟进来自本机 review-state（五节点全绿才开通） ·
+    审批门标记来自本机 stub-state/&lt;pinyin&gt;/workflow.json（halted 满 3 天催办）
   </div>
 </body>
 </html>"""
@@ -392,7 +490,9 @@ def main():
     print(f"[dashboard] 已生成 {out}（数据来源：HCM API）")
     for c in cards:
         badge = c["badge"]["text"]
-        print(f"  {c['name']}: [{badge}] 准备 {c['done_count']}/5 · "
+        gate = (c.get("gate_badge") or {}).get("text")
+        extra = f" · {gate}" if gate else ""
+        print(f"  {c['name']}: [{badge}{extra}] 准备 {c['done_count']}/5 · "
               f"review {c['rdone']}/4 · 整体 {c['pct']}%")
 
 

@@ -12,9 +12,9 @@ refresh-gate-stubs.py —— 按审批门重跑对应 stub shell，刷新落盘�
   STATE           —— stub-state 根目录（必填）
   STUB_STATE_DIR  —— 可选；候选人目录，缺省用 STATE/<pinyin>
 
-门 → shell（halt 中刷新保持「待审批」，不假装已批过）：
-  contract → contract.sh（status=待审批）
-  account  → it-account.sh（待审批）+ device.sh + training.sh
+门 → shell（halt 中刷新为 HCM 快照，不编造已完成）：
+  contract → contract.sh（只读合同节点）
+  account  → it-account.sh + device.sh + training.sh（只读对应 HCM 节点）
 """
 import json
 import os

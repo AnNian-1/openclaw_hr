@@ -1,9 +1,10 @@
 name: hr-onboarding
 # 星桥科技 · 新员工入职审批工作流
 # 设计依据：hr-wiki《09-入职流程》—— Offer 接受 → 入职准备 → 报到当天 → 入职后跟进
-# 4 路并行：合同 / IT 账号 / 设备 / 培训 四条准备工作并行推进
+# 准备节点只从 HCM 快照，入职小慧不代替合同/IT/行政/培训/Buddy 部门执行。
 # 2 个 HiTL 审批门：合同审批、账号权限审批 —— 关键节点暂停等真人批准
-# 账号/设备申请为本地 stub（不接真实 IT 系统），由本 Skill scripts/ 下脚本模拟
+# 试用期 7/30/60/90 跟进：仅当 HCM 五节点均为 completed 时由 sync-reviews-if-ready 挂 Cron
+# 审批走通 ≠ 五部门已完成。
 #
 # 注意 1：Lobster 的 approval: 字段不做 ${arg} 模板替换。
 #   候选人专属审批信息走 run 步骤产出 JSON（run 会做模板替换），
@@ -37,21 +38,16 @@ args:
     default: 面议
 
 steps:
-  # ── 节点 1 · 4 路并行准备 ──────────────────────────────
-  # 合同 / IT 账号 / 设备 / 培训 四条工作并行推进
-  # 用 shell 后台任务 + wait 实现真实并发：四个 stub 同时跑
-  # stub 输出落到 $STUB_STATE_DIR = $STATE/<pinyin>/（候选人目录隔离，由 run-onboarding.sh 注入）
+  # ── 节点 1 · 从 HCM 快照准备节点 ──────────────────────────
+  # 只读合同 / IT 账号 / 设备 / 培训，不代替部门执行、不编造已起草/已配齐。
+  # 材料未齐时仍落盘真实 pending；run-onboarding.sh 在合同未开始时拦截进门。
   - id: prep
     run: |
       python3 "$STUB/update-workflow.py" init "${pinyin}" "${name}" "${role}" "${salary}"
-      echo "=== 入职准备启动：${name}（${role}, ${pinyin}）==="
-      ( bash "$STUB/contract.sh"   "${name}" "${role}" "${salary}" ) &
-      ( bash "$STUB/it-account.sh" "${name}" "${pinyin}" ) &
-      ( bash "$STUB/device.sh"     "${name}" ) &
-      ( bash "$STUB/training.sh"   "${name}" ) &
-      wait
-      python3 "$STUB/update-workflow.py" event "${pinyin}" prep completed "4 路并行准备全部完成"
-      echo "=== 4 路并行准备全部完成 ==="
+      echo "=== 入职准备：读取 HCM 部门进度（${name} / ${pinyin}）==="
+      python3 "$STUB/snapshot_hcm_prep.py" "${pinyin}" --name "${name}" --nodes contract,account,device,training
+      python3 "$STUB/update-workflow.py" event "${pinyin}" prep completed "已快照 HCM 四部门节点（未代替部门执行）"
+      echo "=== HCM 快照完成；未完成节点请催对应部门 ==="
 
   # ── 节点 2 · HiTL 审批门 1：合同审批 ───────────────────
   # 合同条款关乎法律责任，必须 HR 主管点头才能进入签约
@@ -65,7 +61,7 @@ steps:
   # 进门 status=待审批（等真人批）；通过后才写已通过——看板据此区分「准备好了」vs「已批过」
   - id: contract_gate
     run: |
-      bash "$STUB/contract.sh" "${name}" "${role}" "${salary}" "待审批"
+      bash "$STUB/contract.sh" "${name}"
       python3 "$STUB/record-pending-approval.py" contract "${pinyin}"
       python3 "$STUB/update-workflow.py" event "${pinyin}" contract_gate halted "等待 HR 主管审批合同"
       python3 "$STUB/build-approval-prompt.py"   contract "${pinyin}"
@@ -79,11 +75,11 @@ steps:
   - id: account_gate
     run: |
       python3 "$STUB/update-workflow.py" event "${pinyin}" contract_gate approved "合同审批已通过"
-      bash "$STUB/contract.sh"   "${name}" "${role}" "${salary}" "已通过"
-      bash "$STUB/it-account.sh" "${name}" "${pinyin}" "待审批"
+      bash "$STUB/contract.sh"   "${name}"
+      bash "$STUB/it-account.sh" "${name}" "${pinyin}"
       bash "$STUB/device.sh"     "${name}"
       bash "$STUB/training.sh"   "${name}"
-      bash "$STUB/buddy.sh"      "${name}" "${role}"
+      bash "$STUB/buddy.sh"      "${name}"
       python3 "$STUB/record-pending-approval.py" account "${pinyin}"
       python3 "$STUB/update-workflow.py" event "${pinyin}" account_gate halted "等待 IT 安全审批账号"
       python3 "$STUB/build-approval-prompt.py"   account "${pinyin}"
@@ -94,26 +90,23 @@ steps:
   - id: buddy
     run: |
       python3 "$STUB/update-workflow.py" event "${pinyin}" account_gate approved "账号权限审批已通过"
-      bash "$STUB/it-account.sh" "${name}" "${pinyin}" "已通过"
-      bash "$STUB/buddy.sh" "${name}" "${role}"
-      python3 "$STUB/update-workflow.py" event "${pinyin}" buddy completed "Buddy 匹配完成"
+      bash "$STUB/it-account.sh" "${name}" "${pinyin}"
+      bash "$STUB/buddy.sh" "${name}"
+      python3 "$STUB/update-workflow.py" event "${pinyin}" buddy completed "已快照 HCM Buddy 节点"
     when: $contract_gate.approved && $account_gate.approved
 
-  # ── 节点 5 · 入职流程归档（全部审批通过才执行）──────────
-  # 归档后注册 7/30/60/90 天一次性 Cron（--at），到点由 onboarding Agent 跑 review
+  # ── 节点 5 · 入职审批归档（两道门都批准才执行）──────────
+  # 不在此处无条件挂 Cron。试用期跟进仅当 HCM 五节点均为 completed。
   - id: complete
     run: |
       set -euo pipefail
-      echo "=== ${name} 入职审批工作流完成 ==="
-      echo "合同审批：已通过 | 账号权限审批：已通过"
-      echo "[归档] 合同 / 账号 / 设备 / 培训 / Buddy 五项就绪，等待报到当天签约"
-      # 流程完成：清掉本候选人的 pending-approvals 快照，否则查询 Skill 会把"已走完的门"误报成仍在 halt
+      echo "=== ${name} 入职审批工作流完成（两道门已批）==="
+      echo "部门执行进度仍以 HCM 五节点为准；未全绿不挂试用期跟进。"
+      echo "[归档] 审批走通 ≠ 五部门已完成"
       rm -f "$WORKSPACE/pending-approvals/${pinyin}-contract.json" \
             "$WORKSPACE/pending-approvals/${pinyin}-account.json"
       echo "[归档] 已清理 pending-approvals/${pinyin}-* 审批快照"
       python3 "$STUB/update-workflow.py" event "${pinyin}" complete completed "入职审批工作流完成"
-      # 完成钩子：按入职日注册 4 个一次性 review Cron；失败则归档失败（勿吞掉）
-      bash "$WORKSPACE/skills/running-onboarding-review/scripts/schedule-onboarding-reviews.sh" \
-            "${name}" "${pinyin}"
-      echo "[归档] 已注册 7/30/60/90 天入职跟进 Cron"
+      bash "$WORKSPACE/skills/running-onboarding-review/scripts/sync-reviews-if-ready.sh" \
+            "${name}" "${pinyin}" || true
     when: $contract_gate.approved && $account_gate.approved

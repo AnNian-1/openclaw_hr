@@ -149,7 +149,7 @@
 [Step 1] ingesting-talent-pool  (trigger: 人才库不存在或需重建)
   |  工具: exec  脚本: skills/ingesting-talent-pool/scripts/ingest_talent_pool.py all
   |  产出: talent-pool/talent-pool.json（每候选人 1 整体 + 4 维度向量）
-  |  依赖: DEEPSEEK_API_KEY + DASHSCOPE_API_KEY
+  |  依赖: XIAOMI_API_KEY（mimo 抽取）+ DASHSCOPE_API_KEY（embedding）
   v
 [Step 2] searching-talent-pool  (trigger: 人才库已建好)
   |  工具: exec  脚本: skills/searching-talent-pool/scripts/search_talent_pool.py
@@ -173,13 +173,13 @@
 [Step 1] transcribing-interviews  (trigger: 音频文件就绪)
   |  工具: exec  脚本: skills/transcribing-interviews/scripts/transcribe_diarize.py
   |  产出: interview/<转写名>.json（按发言人标注的转写稿）
-  |  依赖: funasr_me conda 环境 + torch 2.2.2 + numpy<2
+  |  依赖: conda funasr_me（torch CUDA + numpy<2）+ 本 workspace models/
   |  校验: validate_transcript.js（退出码 0 = 通过）
   v
 [Step 2] generating-minutes  (trigger: 转写稿就绪)
   |  工具: exec  脚本: skills/generating-minutes/scripts/gen_minutes.py
   |  产出: interview/<纪要名>.json + .md（结构化纪要 + 数字回核）
-  |  依赖: DEEPSEEK_API_KEY
+  |  依赖: XIAOMI_API_KEY（mimo）
   |  校验: validate_minutes.js（退出码 0 = 通过）
   v
 输出：结构化面试纪要（关键问答 / 优势 / 待考察点 / 评分建议）
@@ -366,7 +366,7 @@ Heartbeat：可用于整理 memory 文件、更新文档等杂务，不用于触
 
 2. **中文数字回核盲区**：`generating-minutes` 的回核脚本只匹配阿拉伯数字，候选人口述的「千分之三」会标「无阿拉伯数字、需人工核实」——是诚实标注，不是漏判。
 
-3. **面试转写环境依赖**：`transcribing-interviews` 依赖 conda 环境 `funasr_me` + torch 2.2.2 + numpy<2。NumPy 2.x 会导致 `RuntimeError: Numpy is not available`（torch 2.2.2 是 NumPy 1.x ABI 编译）。首次运行需下载约 1.3 GB 模型。
+3. **面试转写环境依赖**：`transcribing-interviews` 走 conda `funasr_me`（与通用 `openclaw-hr` 的 numpy 2.x 分开）。首次需本 workspace `models/` 下约 1.3GB ModelScope 缓存。exec 只用 `bash scripts/recruitment-run.sh python3 skills/transcribing-interviews/scripts/transcribe_diarize.py …`。
 
 4. **人才库一次性建库**：`ingesting-talent-pool` 建库是批量操作（parse + embed），换锚点只需重跑检索+解释，但新增候选人需要重新跑 ingest。
 

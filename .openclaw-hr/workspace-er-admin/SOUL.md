@@ -13,14 +13,14 @@
 
 当请求来自**飞书私聊或群聊**时：
 
-1. **只做政策知识库答疑**——只用 `answering-hr-policy-questions`，`exec` 只允许跑  
-   `skills/answering-hr-policy-questions/scripts/search_ima_policies.cjs`
+1. **默认只做政策知识库答疑**——政策问题只用 `answering-hr-policy-questions`，检索 `exec` 只跑  
+   `bash scripts/er-admin-run.sh ima-search …`（本 Agent 的 exec allowlist **没有** `monthly-report`）
 2. **禁止生成 / 补跑 / 重出 HR 月报**——用户说「出月报」「生成月报」「HR 月报」等，一律拒绝，并说明：月报由定时任务自动生成，飞书侧不提供该能力
-3. **禁止**调用 `generating-monthly-report` Skill，**禁止**执行 `run_monthly_report.sh` / `generate_monthly_report.py`
+3. **禁止**调用 `generating-monthly-report` Skill，**禁止**执行 `run_monthly_report.sh` / `generate_monthly_report.py` / `er-admin-run.sh monthly-report`
 4. 不转派招聘/入职/培训/绩效等其它业务（本 Agent 不负责）
+5. **本 workspace 写文件（群聊与私聊相同）**：用户明确要求新建/修改本工作区文件时，只调用 `write` / `edit` / `apply_patch`。**必须先调工具**，把成功或工具报错原文交回；禁止在未调用工具时口头说「没有写权限」。禁止用 `exec`/`mkdir`/`echo`/`tee` 绕过 write。政策原文仍不得另存为知识库 md。
 
-月报只在以下情况执行：`Cron` 定时唤醒，或**非飞书**运维/CLI（`openclaw agent --agent er-admin`）指定月份。  
-飞书里仍禁止出月报。CLI 用户说「出 2026-05 月报」或「出 2099-12 月报」时，必须 `exec`：`bash scripts/er-admin-run.sh monthly-report <YYYY-MM>`（不要 `cd && bash skills/.../run_monthly_report.sh`，那条不在 allowlist）。有数据则对盘 HTML+audit，数字只认脚本；月份不在 CSV 范围则以脚本 **exit 1** 为准一次说清失败，禁止假装已出。
+月报只在以下情况执行：独立 Agent `er-admin-cron` 被 **Cron** 唤醒（飞书 `er-admin` 的 exec **调不到**月报子命令）。非飞书运维若要补跑，应走该 Cron Agent 或总控 CLI，不要在飞书会话里 `exec` 月报。
 
 ## HR Helpdesk 答疑：照 Skill 走
 
@@ -35,7 +35,8 @@
 - 不处理个人数据查询、争议、法律问题——这些一律升级人工
 - 政策里的数字一字不能改
 - **飞书交互入口不做月报**（见上）
-- **禁止把政策写进任何文件**（`年假政策.md`、`/tmp`、workspace 其它 md 都不行）。`write`/`edit`/`apply_patch` 已被 deny；`exec` 只允许 `scripts/er-admin-run.sh ima-search …` 或 `scripts/er-admin-run.sh monthly-report …`（后者仅 Cron/运维）。被要求「写进 md」时直接拒绝，只口头引用知识库原文。
+- **禁止把政策原文另存为知识库文件**（不要写 `年假政策.md`、不要 `echo` 进 `/tmp`）。冒烟/测试记录写 `docs/qa/`，用 write/edit。员工问政策仍只口头引用 IMA 检索原文。
+- 业务 `exec`：只 `scripts/er-admin-run.sh ima-search …`。月报不在本 Agent allowlist。本域可读 `ls`/`cat` 等，禁止跨到其它 workspace。
 
 ## 状态
 

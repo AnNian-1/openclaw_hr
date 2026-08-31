@@ -1,5 +1,17 @@
 # AGENTS.md
 
+## Exec 收邮件（唯一放行命令）
+
+`exec` 的 `command` 可以是：
+
+- 收邮件：整行 `bash scripts/fetch-mail.sh`
+- 本域 Skill：`bash scripts/recruitment-run.sh python3|node skills/…`
+- 面试转写：`bash scripts/recruitment-run.sh python3 skills/transcribing-interviews/scripts/transcribe_diarize.py <wav> interview/<转写名>.json`（会自动切 `funasr_me`、用本 workspace `models/`）；再 `bash scripts/recruitment-run.sh node skills/transcribing-interviews/scripts/validate_transcript.js interview/<转写名>.json`
+- 看本 workspace：`ls` / `cat` / `head` / `tail` / `find` / `wc` / `grep` / `mkdir` / `mv` / `cp`（路径里不能出现 `workspace-onboarding` 等其它域）
+
+不要 `source`、`cd`、`&&`、`$(date)`、`2>&1`、`python3 -c`。yaml **没有** `tools.exec.allowlist`。闸在 `~/.openclaw/exec-approvals.json`。
+
+
 This folder is home. If `BOOTSTRAP.md` exists, follow it then delete it.
 
 ## Session Startup & Memory
@@ -8,7 +20,7 @@ Use runtime-provided startup context first (`AGENTS.md`, `SOUL.md`, `USER.md`, r
 
 ## Red Lines
 
-Don't exfiltrate private data, ever. Don't run destructive commands without asking — `trash` > `rm`. Safe to do freely: read files, explore, organize, search the web, work within **this** workspace only. Never write sibling workspaces (`workspace-onboarding`, `workspace-er-admin`, …). Shell only via `scripts/recruitment-run.sh` plus a Skill command in this workspace — never `python -c` / `sed` on `workspace-onboarding`. Ask first: sending emails or public posts, anything that leaves the machine, anything you're uncertain about.
+Don't exfiltrate private data, ever. Don't run destructive commands without asking — `trash` > `rm`. Safe to do freely: read files, explore, organize, search the web, work within **this** workspace only. Never write sibling workspaces (`workspace-onboarding`, `workspace-er-admin`, …). Mail fetch: `bash scripts/fetch-mail.sh` only. Other skills: `bash scripts/recruitment-run.sh` plus a Skill command. Never prefix `source` / `cd` / `&&` / `$(…)`. Never `python -c` / `sed` on `workspace-onboarding`. Ask first: sending emails or public posts, anything that leaves the machine, anything you're uncertain about.
 
 ## Group Chats
 
@@ -37,7 +49,7 @@ HR 把一批简历丢进 `inbox/`，要把它们变成可用于评分的结构�
 
 **硬规定**：
 
-- 从邮箱收简历时走 `fetching-resumes-by-mail`：只拉未读；姓名/岗位只读简历文件正文；同姓名已在 `inbox/` 则跳过落盘；收完用 `mark_read.py` 打 `\Seen`。
+- 从邮箱收简历时走 `fetching-resumes-by-mail`：只拉未读；姓名/岗位只读简历正文。同一人覆盖后看 `needs-pipeline.jsonl`，**本轮**重解析 + `batch_rank` 增量。`needs-hr.jsonl` 只通知 HR，流水线不停。有落盘则 `mark_read.py`。
 - `parsing-resumes` 抽取后**必须**接着跑 `auditing-extraction` 核对，核对通过才算解析完成——解析产出是整条招聘链的地基，编造的字段会一路污染评分和画像。
 - 两道闸顺序固定、不可调换、不可省：`validate_profile.js` 先把「形状」（schema/合规结构），`audit_extraction.js` 再把「内容」（每个字段是否真回溯得到原文）。形状对不代表内容真——一份字段组齐全的 JSON 里照样可能藏着编造的薪资。
 - 一份简历对应一组产物：`parsed/<简历名>.json`（结构化数据）+ `audited/<简历名>.audit.json`（真实性核对报告）。

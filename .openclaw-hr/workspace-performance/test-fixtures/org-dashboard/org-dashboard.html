@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<title>组织绩效看板（测试夹具）· 2026-H1</title>
+<style>
+body{font-family:system-ui,sans-serif;margin:24px;background:#0f1419;color:#e7ecf1}
+.banner{background:#7a1f1f;color:#fff;padding:12px 16px;border-radius:8px;margin-bottom:20px}
+h1{font-size:22px} h2{margin-top:32px;border-bottom:1px solid #334;padding-bottom:6px}
+.row{display:flex;align-items:center;gap:8px;margin:6px 0}
+.g{width:24px;font-weight:700} .bar{flex:1;background:#223;height:18px;border-radius:4px}
+.bar i{display:block;height:100%;background:#5b8def;border-radius:4px}
+.n{width:90px;font-size:13px} .p{flex:1;font-size:12px;color:#9ab}
+table{border-collapse:collapse;width:100%} th,td{border:1px solid #334;padding:6px 8px;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+article{background:#1a222c;padding:12px;border-radius:8px}
+.dim{display:flex;justify-content:space-between;margin:4px 0}
+.dim b{padding:2px 8px;border-radius:4px;color:#fff;min-width:48px;text-align:center}
+.m{color:#9ab;font-size:13px}
+small{display:block;font-weight:400;color:#8aa}
+tr.sep th{border-top:3px solid #5b8def}
+</style>
+</head>
+<body>
+<div class="banner">测试夹具 · 非校准会真实结果 · 禁止用于调薪/晋升决策 · 测试夹具，非校准会真实结果。仅用于四模块看板冒烟，禁止当作绩效结论。</div>
+<h1>组织绩效看板 2026-H1</h1>
+<p>模块 A 评级与编造员工为夹具；模块 B/D 中张磊、李四、陈伟、王芳分数取自现有 360 聚合或方案摘录。</p>
+
+<h2>模块 A · 等级分布</h2>
+<div class="row"><span class="g">S</span><div class="bar"><i style="width:25%"></i></div><span class="n">1人 10.0%</span><span class="p">张磊</span></div><div class="row"><span class="g">A</span><div class="bar"><i style="width:75%"></i></div><span class="n">3人 30.0%</span><span class="p">李四、赵强、孙丽</span></div><div class="row"><span class="g">B</span><div class="bar"><i style="width:100%"></i></div><span class="n">4人 40.0%</span><span class="p">陈伟、周杰、吴倩、郑浩</span></div><div class="row"><span class="g">C</span><div class="bar"><i style="width:25%"></i></div><span class="n">1人 10.0%</span><span class="p">王芳</span></div><div class="row"><span class="g">D</span><div class="bar"><i style="width:25%"></i></div><span class="n">1人 10.0%</span><span class="p">钱峰</span></div>
+<table><thead><tr><th>团队</th><th>S</th><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead>
+<tbody><tr><th>支付平台研发组</th><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td></tr><tr><th>数据平台组</th><td>0</td><td>1</td><td>2</td><td>0</td><td>0</td></tr><tr><th>风控引擎组</th><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td></tr></tbody></table>
+
+<h2>模块 B · 团队维度对比</h2>
+<div class="grid"><article><h3>支付平台研发组</h3><p class="m">张磊、李四、周杰</p><div class="dim"><span>目标达成</span><b style="background:rgb(100,185,90)">4.00</b></div><div class="dim"><span>专业技能</span><b style="background:rgb(65,215,90)">4.86</b></div><div class="dim"><span>协作沟通</span><b style="background:rgb(117,169,90)">3.57</b></div><div class="dim"><span>责任心</span><b style="background:rgb(77,204,90)">4.57</b></div><div class="dim"><span>学习成长</span><b style="background:rgb(105,180,90)">3.86</b></div></article><article><h3>数据平台组</h3><p class="m">陈伟、赵强、吴倩</p><div class="dim"><span>目标达成</span><b style="background:rgb(100,185,90)">4.00</b></div><div class="dim"><span>专业技能</span><b style="background:rgb(94,189,90)">4.14</b></div><div class="dim"><span>协作沟通</span><b style="background:rgb(94,189,90)">4.14</b></div><div class="dim"><span>责任心</span><b style="background:rgb(94,189,90)">4.14</b></div><div class="dim"><span>学习成长</span><b style="background:rgb(100,185,90)">4.00</b></div></article><article><h3>风控引擎组</h3><p class="m">王芳、孙丽、郑浩、钱峰</p><div class="dim"><span>目标达成</span><b style="background:rgb(100,185,90)">4.00</b></div><div class="dim"><span>专业技能</span><b style="background:rgb(70,211,90)">4.75</b></div><div class="dim"><span>协作沟通</span><b style="background:rgb(140,150,90)">3.00</b></div><div class="dim"><span>责任心</span><b style="background:rgb(90,193,90)">4.25</b></div><div class="dim"><span>学习成长</span><b style="background:rgb(130,158,90)">3.25</b></div></article></div>
+
+<h2>模块 C · 同比环比趋势（含编造历史点）</h2>
+<ul><li><strong>目标达成</strong> 2025-H1=3.8, 2025-H2=3.9, 2026-H1=4.0</li><li><strong>专业技能</strong> 2025-H1=4.4, 2025-H2=4.5, 2026-H1=4.65</li><li><strong>协作沟通</strong> 2025-H1=3.4, 2025-H2=3.45, 2026-H1=3.57</li><li><strong>责任心</strong> 2025-H1=4.2, 2025-H2=4.3, 2026-H1=4.38</li><li><strong>学习成长</strong> 2025-H1=3.5, 2025-H2=3.6, 2026-H1=3.74</li></ul>
+<p>事件标注</p>
+<ul><li>2025-H2 · 编造：协作专项培训（夹具）</li><li>2026-H1 · 360 反馈评估启动</li></ul>
+
+<h2>模块 D · 360 维度热力图</h2>
+<table><thead><tr><th>员工</th><th>目标达成</th><th>专业技能</th><th>协作沟通</th><th>责任心</th><th>学习成长</th></tr></thead>
+<tbody><tr class=""><th>张磊<small>支付平台研发组 · 360</small></th><td style="background:rgb(100,185,90)">4.00</td><td style="background:rgb(65,215,90)">4.86</td><td style="background:rgb(117,169,90)">3.57</td><td style="background:rgb(77,204,90)">4.57</td><td style="background:rgb(105,180,90)">3.86</td></tr><tr class=""><th>李四<small>支付平台研发组 · 360</small></th><td style="background:rgb(100,185,90)">4.00</td><td style="background:rgb(65,215,90)">4.86</td><td style="background:rgb(117,169,90)">3.57</td><td style="background:rgb(77,204,90)">4.57</td><td style="background:rgb(105,180,90)">3.86</td></tr><tr class="sep"><th>陈伟<small>数据平台组 · 360</small></th><td style="background:rgb(100,185,90)">4.00</td><td style="background:rgb(94,189,90)">4.14</td><td style="background:rgb(94,189,90)">4.14</td><td style="background:rgb(94,189,90)">4.14</td><td style="background:rgb(100,185,90)">4.00</td></tr><tr class="sep"><th>王芳<small>风控引擎组 · 360</small></th><td style="background:rgb(100,185,90)">4.00</td><td style="background:rgb(70,211,90)">4.75</td><td style="background:rgb(140,150,90)">3.00</td><td style="background:rgb(90,193,90)">4.25</td><td style="background:rgb(130,158,90)">3.25</td></tr></tbody></table>
+</body></html>

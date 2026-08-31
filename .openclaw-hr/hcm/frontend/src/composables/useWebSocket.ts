@@ -1,9 +1,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
-import type { Candidate, PrepNode, Review } from '../types'
 
 export type WSEvent =
   | { event: 'node_updated'; data: { candidate_id: number; node_type: string; status: string; data: Record<string, any> }; ts: string }
-  | { event: 'review_updated'; data: { candidate_id: number; review_type: string; status: string; content: string | null }; ts: string }
 
 export function useWebSocket(onEvent: (evt: WSEvent) => void) {
   const connected = ref(false)

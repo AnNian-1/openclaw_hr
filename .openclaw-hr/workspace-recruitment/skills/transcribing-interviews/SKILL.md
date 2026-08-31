@@ -35,28 +35,20 @@ FunASR 的 `AutoModel` 一次推理同输出两件事，无需串接：
 ### 第 1 步 · 转写 + 分离
 
 ```bash
-# 自动选设备（有 NVIDIA 卡走 cuda:0，否则 cpu）
-python3 skills/transcribing-interviews/scripts/transcribe_diarize.py \
+bash scripts/recruitment-run.sh python3 skills/transcribing-interviews/scripts/transcribe_diarize.py \
   <音频文件> interview/<转写名>.json
 
 # 强制走 CPU（如 GPU 出错时降级）
-python3 skills/transcribing-interviews/scripts/transcribe_diarize.py \
+bash scripts/recruitment-run.sh python3 skills/transcribing-interviews/scripts/transcribe_diarize.py \
   <音频文件> interview/<转写名>.json --device cpu
-
-# 指定模型缓存目录（默认 ~/.openclaw-hr/workspace-recruitment/models）
-python3 skills/transcribing-interviews/scripts/transcribe_diarize.py \
-  <音频文件> interview/<转写名>.json --cache /path/to/models
-
-# 若 funasr 没装在默认 python，用 --venv 切换 conda 环境
-python3 skills/transcribing-interviews/scripts/transcribe_diarize.py \
-  <音频文件> interview/<转写名>.json \
-  --venv /usr/local/miniconda3/envs/funasr_me
 ```
+
+模型缓存在本 workspace `models/`（`MODELSCOPE_CACHE`，约 1.3GB）。不要指向 `~/.openclaw-hr/...`（与本 profile 不是同一目录）。
 
 - 第一个参数是面试录音，16 kHz 单声道 WAV 最佳；其它采样率也能转。
 - 产物是转写 JSON，存到 `interview/` 下。Schema：`{audio, model, diarization_method, spk_campplus_used, device, batch_size_s, model_path, wall_sec, segments: [{start, end, text, spk_int, speaker}]}`。
 - `--device auto` 默认行为：有 NVIDIA 卡用 `cuda:0`，否则 `cpu`。**不强制改代码**。
-- `--cache` 指 MODELSCOPE 缓存目录；本 Skill 默认指向 `~/.openclaw-hr/workspace-recruitment/models/`，第一次运行自动下载（约 1.3 GB）到本地，之后命中本地缓存。
+- `--cache` 指 MODELSCOPE 缓存；默认本 workspace `models/`。第一次会下载约 1.3GB，之后命中本地。
 
 跑脚本需要 `exec` 工具（`group:runtime` 权限组）。
 
@@ -65,7 +57,7 @@ python3 skills/transcribing-interviews/scripts/transcribe_diarize.py \
 转写产物必须用校验脚本过一遍，跑通才算转写合格：
 
 ```bash
-node skills/transcribing-interviews/scripts/validate_transcript.js interview/<转写名>.json
+bash scripts/recruitment-run.sh node skills/transcribing-interviews/scripts/validate_transcript.js interview/<转写名>.json
 ```
 
 脚本校验：JSON 可解析、顶层字段齐全（`diarization_method` 必须是 `funasr-cam++`）、每段含 start / end / text / speaker、时间戳自洽、空文本片段占比正常、**说话人分离健康度**（至少分出 2 类 + 没有一方占比畸高 > 92%）。退出码 0 = 通过，1 = 不通过（列出全部问题），2 = 用法错误。
@@ -77,7 +69,7 @@ node skills/transcribing-interviews/scripts/validate_transcript.js interview/<�
 - **说话人分离走 CAM++ speaker embedding 聚类，不用 pyannote / 基频**。pyannote 有 HuggingFace 认证墙（HF token + 接受 gated terms + 国内下载受阻），基频聚类只能二分开音高差异大的两人——两个都不适合生产面试。FunASR + CAM++ 一次推理、自动决定说话人数、零 token、MIT 协议，三难全避开。
 - **CAM++ 不是固定二分**：聚类自己决定是 2 类、3 类还是 5 类。本 Skill 输出的是 `speaker_A / speaker_B / speaker_C …`，candidate 间不需要预设。多人群面 / 同性别相近音色场景不需要改任何参数。
 - **ASR 中文转写有真实误差**。Paraformer-zh 在中文场景比 Whisper 稳不少，但专业术语、低频人名仍有错（实测"扣减"→"扣检"等）。下游 `generating-minutes` 的 LLM 能从上下文纠正大部分；要更高精度可在转写后加术语校正词表。
-- **环境前置别忘了**：FunASR 需要单独的 conda 环境 `funasr_me`；脚本若在默认 python 找不到 funasr，会用 `--venv` 重 exec 进 `funasr_me` 跑——但如果 `--venv` 也没传，会退出码 3。
+- **环境前置别忘了**：FunASR 需要单独的 conda 环境 `funasr_me`（与 `openclaw-hr` 的 numpy 2.x 不能混装）。脚本若在当前 python 找不到 funasr，会自动切到 `~/miniconda3/envs/funasr_me`（或 `FUNASR_VENV` / `--venv`）；环境不存在则退出码 3。
 - **NumPy 版本锁**< 2：torch 2.2.2 是 NumPy 1.x ABI 编译的，环境装 numpy 2.x 会导致 `RuntimeError: Numpy is not available`。装环境时 `pip install "numpy<2"`。
 - 转写产物是面试纪要链路的地基，校验不通过的转写稿不算转写完成，不要直接交给 `generating-minutes`。
 

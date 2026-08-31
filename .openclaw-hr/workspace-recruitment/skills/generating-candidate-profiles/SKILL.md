@@ -31,9 +31,11 @@ HTML 候选人画像。
 用生成器脚本，从 ranking JSON 里取某个候选人的数据，渲染成单文件 HTML：
 
 ```bash
-python3 skills/generating-candidate-profiles/scripts/generate_profile.py \
-  <ranking.json> <候选人姓名> profile/output/profile-<候选人姓名>.html
+bash scripts/recruitment-run.sh python3 skills/generating-candidate-profiles/scripts/generate_profile.py \
+  <ranking.json|score.json> <候选人姓名> profile/output/profile-<候选人姓名>.html [parsed.json]
 ```
+
+单份 `score_candidate` 产出也可直接喂进来（无 `details` 时会读 `parsed/<姓名>.json` 或 `scoring/clean-<姓名>.json`，或第 4 个参数）。
 
 脚本会渲染 8 维度雷达图、技能词云（matplotlib），把图 base64 内嵌进 HTML，
 产出一个自包含单文件。stdout 会打印四阶段执行痕迹，退出码 0 = 成功。

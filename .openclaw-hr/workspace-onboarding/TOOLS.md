@@ -15,42 +15,43 @@ Skill 的完整用法看各自的 `SKILL.md`，这里是速查。
            HR / 主管
 ```
 
-- 花名册、五部门准备节点、review 记录 → 全部由各部门 / HR / 主管在 HCM 维护
-- 小慧的职责：查询 HCM 状态 → 推进审批流程 → 通知相关人员
+- 花名册、五部门准备节点 → 各部门在 HCM 维护（小慧只读）
+- 试用期 7/30/60/90 跟进 → 本机 `review-state/reviews.json`（HR 确认后小慧 `review-store.sh mark-done`）
+- 小慧的职责：查询 HCM 准备状态 + 本地跟进表 → 推进审批流程 → 通知相关人员
 - 审批门（contract_gate / account_gate）是 Lobster 工作流概念，HCM 无此字段，仍读本机 `workflow.json`
 
 ## 入职业务 Skill 清单
 
 ### running-onboarding-workflow —— 入职审批工作流
 
-- **做什么**：用 Lobster 工作流引擎跑一名新员工的入职审批流程——4 路并行准备（合同/账号/设备/培训）+ 2 个 HiTL 审批门（合同审批、账号权限审批）。
-- **什么时候用**：一名新员工确定录用、要走入职流程时。
-- **数据来源**：HCM API 只读校验花名册 + 各准备脚本从 HCM 读取部门数据；本地 `stub-state/` 供工作流状态追踪。
+- **做什么**：用 Lobster 跑一名新员工的入职**审批**流程——从 HCM 只读快照五部门节点 + 2 个 HiTL 审批门。不代替其它部门在 HCM 填节点。
+- **什么时候用**：一名新员工确定录用、要走入职审批时。
+- **数据来源**：HCM GET 花名册与节点；本地 `workflow.json` 管审批门。
 - **调用要点**：
-  - 启动：`run-onboarding.sh start <姓名> <拼音> <岗位> <薪资>`，跑到第一个审批门 halt。
-  - 推进：`run-onboarding.sh resume <resumeToken> yes|no`，批准/拒绝一个审批门。
-  - halt 时返回的 `resumeToken` 必须原样留存交回——它是 resume 的唯一钥匙。
-  - 审批门是给人的：把 **prompt 原文** + resumeToken 交回给人，绝不替人批准。
+  - 启动：`run-onboarding.sh start <姓名> <拼音> <岗位> <薪资>`。合同节点未开始则退出 6，催部门后重试。
+  - 推进：`run-onboarding.sh resume <resumeToken> yes|no`。
+  - halt 时的 `resumeToken` 必须原样留存。材料 pending 时不要建议批准。
+  - 两道门批完 ≠ 试用期跟进已挂；须五节点 `completed`。
 
 ### querying-onboarding-status —— 入职状态查询
 
 - **做什么**：查询某新员工的入职状态（花名册 + 五部门节点来自 HCM，审批门来自本地 workflow.json）。
 - **什么时候用**：HR 问「某人入职到哪一步了」时。
 - **数据来源**：花名册与五部门节点 → HCM API；审批门/resumeToken → 本机 `workflow.json`。
-- **调用要点**：`query-onboarding-status.sh <姓名> [pinyin]`。HCM 不可达时 exit 5，不用本地数据冒充。
+- **调用要点**：`query-onboarding-status.sh <姓名> [pinyin]`。查到人后会尝试 `sync-reviews-if-ready`（五节点未齐则跳过）。HCM 不可达时 exit 5。
 
 ### running-onboarding-review —— 入职跟进 review
 
 - **做什么**：按入职天数（7/30/60/90 天）查询入职跟进 review 状态，生成报告供通知 HR/主管。
 - **什么时候用**：Cron 定时任务到点触发时；或需要手动查某员工某天的跟进状态时。
-- **数据来源**：全部来自 HCM API（只读）。不写入 HCM、不写本地 `review-state/`。
-- **调用要点**：`onboarding-review.sh <姓名> <入职天数> [pinyin]`。review 记录的维护权归 HR/主管，小慧只查询并通知。
+- **数据来源**：花名册与五部门节点 → HCM API（只读）；跟进 completed → 本机 `review-state/reviews.json`。
+- **调用要点**：`onboarding-review.sh <姓名> <入职天数> [pinyin]` 只查询催办；五节点未齐时 `action=not_armed`，**不会**偷偷 ensure。HR 确认后 `review-store.sh mark-done ...`。开通跟进用 `sync-reviews-if-ready.sh`（勿直接 `schedule-onboarding-reviews.sh`，以免未全绿就挂 Cron）。
 
 ### generating-onboarding-dashboard —— 入职进度看板
 
-- **做什么**：从 HCM API 读取所有新员工的 9 个节点状态（5 准备 + 4 review），生成可视化 HTML 看板并发布到 Canvas。
+- **做什么**：从 HCM 读取准备节点 + 从本地表读取 review 状态，生成可视化 HTML 看板并发布到 Canvas。
 - **什么时候用**：需要总览所有新员工入职进度时。
-- **数据来源**：HCM API（只读）+ 本机 `workflow.json`（审批门角标）。不读本地 `stub-state/` 作为准备节点真相源。
+- **数据来源**：HCM API（五节点，只读）+ 本机 `review-state/reviews.json` + 本机 `workflow.json`（审批门角标）。
 - **调用要点**：
   - 仅生成：`bash skills/generating-onboarding-dashboard/scripts/build-dashboard.sh`
   - 生成并发布：`bash skills/generating-onboarding-dashboard/scripts/build-dashboard.sh --publish --force`

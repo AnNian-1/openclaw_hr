@@ -1,4 +1,4 @@
-#!/usr/local/miniconda3/envs/py312/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 fetch_resumes.py — 收件箱拉简历附件 → 落盘到 ./inbox（仅保留 PDF/DOCX；ZIP/RAR 解压后再提）
@@ -12,7 +12,8 @@ fetch_resumes.py — 收件箱拉简历附件 → 落盘到 ./inbox（仅保留 
      **不看**邮件主题 / 正文 / 附件文件名（避免「张三简历投送」但 PDF 实为张磊 这类误导）。
      LLM 为默认（DeepSeek V4 Flash）；--no-llm 时对抽出的正文做启发式。
      缓存 key = 文件内容 sha256，同内容不重复调。
-  4. 重命名：统一「姓名-岗位.ext」；若 inbox 已存在**同姓名**文件则跳过落盘（不覆盖）
+  4. 身份：姓名 + 电话（或邮箱）认定同一人则覆盖旧 PDF，并作废 parsed/clean/score；
+     同名异号当两个人。缺联系方式或岗位无「求职意向」栏 → 写入 inbox/needs-hr.jsonl，等 HR。
   5. 安全护栏：zip-slip / 单附件 ≤ 50MB / 单压缩包解压 ≤ 200MB / 解压成员 ≤ 1000 / 压缩比 ≤ 100x / rar 嵌套不展开
   6. 不假设比 HR 会管邮件：不删不挪原邮件；fetch_resumes.py 不标 \\Seen。
   7. 元数据 .fetched-mail.jsonl 字段：saved_files / skipped_files / reason (含识别 method) / sha256。
@@ -23,9 +24,9 @@ CLI:
                           [--days-ago N]             # 默认 2, 拉今天往前 N 天未读邮件
                           [--max-archive-mb 200] [--max-file-mb 50] [--max-ratio 100]
                           [--no-llm]                  # 关闭 LLM, 用启发式 (不推荐)
-                          [--llm-model NAME]          # 默认 deepseek-v4-flash
-                          [--llm-base-url URL]        # 默认 https://api.deepseek.com
-                          [--llm-api-key KEY]         # 默认读 env DEEPSEEK_API_KEY
+                          [--llm-model NAME]          # 默认 mimo-v2.5-pro
+                          [--llm-base-url URL]        # 默认小米 MiMo
+                          [--llm-api-key KEY]         # 默认读 env XIAOMI_API_KEY / LLM_API_KEY
                           [--llm-timeout SEC]         # 默认 8s
 """
 
@@ -83,6 +84,11 @@ NAME_STOPWORDS = {
     "新增", "查看", "下载", "邮箱", "来信", "附上", "请查", "您好",
 }
 NAME_HINT_RE = re.compile(r"[\u4e00-\u9fa5]{2,4}")
+PHONE_RE = re.compile(r"(?<!\d)(1[3-9]\d(?:[-\s]?\d){8})(?!\d)")
+EMAIL_IN_TEXT_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
+INTENT_LABEL_RE = re.compile(
+    r"(求职意向|目标岗位|应聘职位|应聘岗位|意向岗位)\s*[:：]\s*([^\n，,;；/／]{2,40})"
+)
 
 
 # ============================================================
@@ -105,6 +111,7 @@ class MailSummary:
     date: str
     uid: str
     body: str = ""                       # 邮件正文纯文本(给 LLM 用), 默认空
+    html: str = ""                       # HTML 正文（QQ 超大附件只出现在这里）
     attachments: List[MailAttachment] = field(default_factory=list)
 
 
@@ -183,26 +190,7 @@ class MockMailBackend(MailBackend):
         except Exception:
             date_str = date_raw
 
-        attachments: List[MailAttachment] = []
-        for part in msg.walk():
-            if part.get_content_disposition() != "attachment":
-                continue
-            fname = part.get_filename() or f"part-{len(attachments)}"
-            fname = self._safe_filename(self._decode_header_value(fname))
-            try:
-                payload = part.get_payload(decode=True)
-            except Exception as e:
-                print(f"[mock] 解码 {fname} 失败: {e}", file=sys.stderr)
-                continue
-            if payload is None:
-                continue
-            attachments.append(
-                MailAttachment(
-                    filename=fname,
-                    raw_bytes=payload,
-                    content_type=part.get_content_type(),
-                )
-            )
+        attachments = collect_resume_parts(msg)
 
         # 邮件正文(纯文本, 给 LLM 兜底用)
         body = ""
@@ -222,9 +210,69 @@ class MockMailBackend(MailBackend):
             except Exception:
                 body = ""
 
+        html = ""
+        for part in msg.walk():
+            if part.get_content_type() == "text/html":
+                try:
+                    html = part.get_content() or ""
+                except Exception:
+                    html = ""
+                break
+
         return MailSummary(
-            subject=subj, sender=sender, date=date_str, uid=uid, body=body, attachments=attachments,
+            subject=subj, sender=sender, date=date_str, uid=uid, body=body, html=html,
+            attachments=attachments,
         )
+
+
+def since_cutoff_utc(since: Optional[str]) -> Optional[datetime]:
+    """YYYY-MM-DD → 当天 00:00 UTC。"""
+    if not since:
+        return None
+    d = datetime.strptime(str(since)[:10], "%Y-%m-%d").date()
+    return datetime(d.year, d.month, d.day, tzinfo=timezone.utc)
+
+
+def parse_mail_datetime(value) -> Optional[datetime]:
+    """把 IMAP / ISO 日期收成 aware UTC。解析失败返回 None。"""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        dt = value
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc)
+    s = str(value).strip()
+    if not s:
+        return None
+    try:
+        if s.endswith("Z") and "T" in s:
+            return datetime.strptime(s, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    except ValueError:
+        pass
+    try:
+        iso = s[:-1] + "+00:00" if s.endswith("Z") else s
+        dt = datetime.fromisoformat(iso)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc)
+    except ValueError:
+        pass
+    try:
+        dt = parsedate_to_datetime(s)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc)
+    except Exception:
+        return None
+
+
+def mail_on_or_after(date_value, cutoff: datetime) -> bool:
+    """窗口内或日期解析失败（避免误丢简历）→ True。"""
+    dt = parse_mail_datetime(date_value)
+    if dt is None:
+        return True
+    return dt >= cutoff
 
 
 # ============================================================
@@ -240,6 +288,20 @@ class LiveImapBackend(MailBackend):
         self.password = password
         self.ssl = ssl
 
+    def _summary_from_imap(self, m) -> MailSummary:
+        raw_msg = getattr(m, "obj", None) or m
+        attachments = collect_resume_parts(raw_msg)
+        dt = parse_mail_datetime(m.date) or datetime.now(timezone.utc)
+        return MailSummary(
+            subject=m.subject or "",
+            sender=m.from_ or "",
+            date=dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            uid=str(m.uid),
+            body=m.text or "",
+            html=m.html or "",
+            attachments=attachments,
+        )
+
     def list_messages(self, folder: str, since: Optional[str] = None) -> Iterable[MailSummary]:
         try:
             from imap_tools import MailBox, AND
@@ -249,35 +311,30 @@ class LiveImapBackend(MailBackend):
 
         if not self.ssl:
             print("[live] WARN  imap-tools 默认走 SSL 993, --no-ssl 仅作语义标志, 实际仍用 SSL", file=sys.stderr)
+        cutoff = since_cutoff_utc(since)
         with MailBox(self.host, port=self.port).login(self.user, self.password) as mb:
             mb.folder.set(folder)
-            crit = AND(seen=False)
-            if since:
-                # since 可能是 'YYYY-MM-DD' 字符串或 datetime.date, 统一转成 date
-                if isinstance(since, str):
-                    since = datetime.strptime(since, "%Y-%m-%d").date()
-                crit = AND(seen=False, date_gte=since)
-            for m in mb.fetch(criteria=crit, mark_seen=False):
-                attachments = []
-                for att in m.attachments:
-                    fname = self._safe_filename(att.filename or "attachment")
-                    if not fname:
-                        continue
-                    attachments.append(
-                        MailAttachment(
-                            filename=fname,
-                            raw_bytes=att.payload,
-                            content_type=att.content_type or mimetypes.guess_type(fname)[0] or "application/octet-stream",
-                        )
-                    )
-                yield MailSummary(
-                    subject=m.subject or "",
-                    sender=m.from_ or "",
-                    date=(m.date or datetime.now(timezone.utc)).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-                    uid=str(m.uid),
-                    body=m.text or "",
-                    attachments=attachments,
-                )
+            # QQ IMAP 的 SINCE / date_gte 经常被忽略，只搜 UNSEEN，日期在客户端滤。
+            n_unseen = 0
+            keep_uids: List[str] = []
+            for m in mb.fetch(AND(seen=False), mark_seen=False, headers_only=True, bulk=50):
+                n_unseen += 1
+                uid = str(m.uid)
+                if cutoff and not mail_on_or_after(m.date, cutoff):
+                    continue
+                keep_uids.append(uid)
+            n_drop = n_unseen - len(keep_uids)
+            print(
+                f"[live] UNSEEN={n_unseen} 窗口内={len(keep_uids)} "
+                f"客户端丢弃日期外={n_drop}（不向服务器发 SINCE）",
+                file=sys.stderr,
+            )
+            if not keep_uids:
+                return
+            for i in range(0, len(keep_uids), 50):
+                chunk = keep_uids[i : i + 50]
+                for m in mb.fetch(mark_seen=False, uid_list=chunk):
+                    yield self._summary_from_imap(m)
 
 
 # ============================================================
@@ -312,6 +369,115 @@ def _magic_matches(ext: str, head: bytes) -> bool:
     if ext == ".rar":
         return head.startswith(MAGIC_RAR4) or head.startswith(MAGIC_RAR5)
     return False
+
+
+_CTYPE_TO_EXT = {
+    "application/pdf": ".pdf",
+    "application/x-pdf": ".pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+    "application/zip": ".zip",
+    "application/x-zip-compressed": ".zip",
+    "application/vnd.rar": ".rar",
+    "application/x-rar-compressed": ".rar",
+    "application/x-rar": ".rar",
+}
+
+
+def _decode_part_filename(part) -> str:
+    """filename= / name=（含 QQ 把简历放在 Content-Type name 里、Disposition=inline）。"""
+    raw = part.get_filename()
+    if not raw:
+        param = part.get_param("name")
+        if isinstance(param, tuple):
+            raw = param[-1] if param else ""
+        else:
+            raw = param or ""
+    if not raw:
+        return ""
+    return MailBackend._decode_header_value(str(raw))
+
+
+def _infer_resume_ext(filename: str, content_type: str, payload: bytes) -> Optional[str]:
+    ext = _ext(filename)
+    if ext in ALLOWED_EXTS:
+        return ext
+    ctype = (content_type or "").split(";")[0].strip().lower()
+    guessed = _CTYPE_TO_EXT.get(ctype, "")
+    if guessed and (not payload or _magic_matches(guessed, payload)):
+        return guessed
+    if payload.startswith(MAGIC_PDF):
+        return ".pdf"
+    if payload.startswith(MAGIC_RAR4) or payload.startswith(MAGIC_RAR5):
+        return ".rar"
+    if payload.startswith(MAGIC_ZIP):
+        probe = payload[:8192]
+        if b"word/" in probe or b"[Content_Types].xml" in probe:
+            return ".docx"
+        return ".zip"
+    if guessed in ALLOWED_EXTS:
+        return guessed
+    return None
+
+
+def is_qq_ftn_mail(msg: MailSummary) -> bool:
+    """QQ「超大附件」走文件中转站，不在 IMAP MIME 里，无法当普通附件解码。"""
+    blob = f"{msg.body or ''}{msg.html or ''}{msg.subject or ''}"
+    return "QQMailBigAttach" in blob or "wx.mail.qq.com/ftn/download" in blob or "mail.qq.com/cgi-bin/ftn" in blob
+
+
+def collect_resume_parts(msg) -> List[MailAttachment]:
+    """从整封 MIME 收集简历文件，不依赖 Content-Disposition=attachment。
+
+    QQ 网页端/客户端常把 PDF/DOCX 标成 inline，且可能只有 Content-Type name=、
+    没有 filename；imap-tools 的 m.attachments 会漏掉「无 filename 且无 Content-ID」的 part。
+    """
+    if msg is None or not hasattr(msg, "walk"):
+        return []
+    out: List[MailAttachment] = []
+    seen: set[bytes] = set()
+    for part in msg.walk():
+        if part.get_content_maintype() == "multipart":
+            continue
+        ctype = (part.get_content_type() or "").lower()
+        if ctype == "message/rfc822":
+            inner = part.get_payload()
+            inners = inner if isinstance(inner, list) else [inner]
+            for nested in inners:
+                if nested is not None and hasattr(nested, "walk"):
+                    out.extend(collect_resume_parts(nested))
+            continue
+        if ctype in ("text/plain", "text/html"):
+            continue
+        try:
+            payload = part.get_payload(decode=True)
+        except Exception as e:
+            print(f"[mime] 解码 part 失败: {e}", file=sys.stderr)
+            continue
+        if not payload:
+            continue
+        digest = hashlib.sha256(payload).digest()
+        if digest in seen:
+            continue
+        fname = _decode_part_filename(part)
+        inferred = _infer_resume_ext(fname, ctype, payload)
+        if inferred is None:
+            continue
+        if ctype.startswith("image/") and inferred not in ALLOWED_EXTS:
+            continue
+        seen.add(digest)
+        stem = Path(fname).stem if fname else ""
+        if not stem or _ext(fname) not in ALLOWED_EXTS:
+            stem = stem or "inline"
+            fname = f"{stem}{inferred}"
+        fname = MailBackend._safe_filename(fname)
+        out.append(
+            MailAttachment(
+                filename=fname,
+                raw_bytes=payload,
+                content_type=ctype or "application/octet-stream",
+            )
+        )
+    return out
 
 
 # ---------- ZIP 解压（含安全护栏） ----------
@@ -445,7 +611,7 @@ def _extract_resume_text(raw_bytes: bytes, ext: str, *, max_chars: int = 2000) -
     - .pdf  → pdfminer
     - .docx → python-docx
     不读邮件主题 / 正文 / 附件名。
-    默认截断到 2000 字：姓名/求职意向几乎总在文首，过长易导致 LLM JSON 截断。
+    默认截断到 2000 字给 LLM 用；联系方式/意向栏请另传更大的 max_chars。
     """
     ext = (ext or "").lower()
     if not raw_bytes:
@@ -654,21 +820,286 @@ def _filename_has_person_name(filename: str, person_name: str) -> bool:
     return want in parts
 
 
-def _existing_by_person_name(inbox_dir: Path, person_name: str) -> Optional[str]:
-    """若 inbox 已有同姓名落盘文件，返回已有文件名；否则 None。
+def _norm_phone(raw: str) -> str:
+    digits = re.sub(r"\D", "", raw or "")
+    if len(digits) == 11 and digits.startswith("1"):
+        return digits
+    return ""
 
-    忽略隐藏文件（如 .fetched-mail.jsonl）。
-    """
-    if not person_name:
+
+def _contacts_from_text(text: str) -> Tuple[str, str]:
+    phones: List[str] = []
+    for m in PHONE_RE.finditer(text or ""):
+        n = _norm_phone(m.group(1))
+        if n and n not in phones:
+            phones.append(n)
+    emails = [m.group(0).lower() for m in EMAIL_IN_TEXT_RE.finditer(text or "")]
+    return (phones[0] if phones else ""), (emails[0] if emails else "")
+
+
+def _labeled_intent(text: str) -> Optional[str]:
+    m = INTENT_LABEL_RE.search(text or "")
+    if not m:
         return None
-    if not inbox_dir.exists():
-        return None
+    pos = (m.group(2) or "").strip()
+    pos = re.split(r"[/／]", pos)[0].strip()
+    if len(pos) > 16:
+        pos = pos[:16]
+    return pos or None
+
+
+def _id_hash(value: str) -> str:
+    if not value:
+        return ""
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _unique_alias(inbox_dir: Path, alias: str) -> str:
+    p = inbox_dir / alias
+    if not p.exists():
+        return alias
+    stem, ext = Path(alias).stem, Path(alias).suffix
+    for i in range(2, 50):
+        cand = f"{stem}-{i}{ext}"
+        if not (inbox_dir / cand).exists():
+            return cand
+    return f"{stem}-{hashlib.sha256(alias.encode()).hexdigest()[:6]}{ext}"
+
+
+def _inbox_files_for_name(inbox_dir: Path, person_name: str) -> List[Path]:
+    out: List[Path] = []
+    if not person_name or not inbox_dir.exists():
+        return out
     for p in inbox_dir.iterdir():
         if not p.is_file() or p.name.startswith("."):
             continue
+        if p.suffix.lower() not in RESUME_EXTS:
+            continue
         if _filename_has_person_name(p.name, person_name):
-            return p.name
+            out.append(p)
+    return out
+
+
+def _invalidate_downstream(workspace: Path, _person_name: str, stems: List[str]) -> List[str]:
+    """覆盖简历后删掉该人旧解析/脱敏/评分，迫使下游重跑。"""
+    removed: List[str] = []
+    stems = [s for s in stems if s]
+    for sub in ("parsed", "audited"):
+        d = workspace / sub
+        if not d.is_dir():
+            continue
+        for stem in stems:
+            for suf in (".json", ".md"):
+                q = d / f"{stem}{suf}"
+                if q.is_file():
+                    q.unlink()
+                    removed.append(str(q.relative_to(workspace)))
+    inbox = workspace / "inbox"
+    if inbox.is_dir():
+        for stem in stems:
+            q = inbox / f"{stem}.md"
+            if q.is_file():
+                q.unlink()
+                removed.append(str(q.relative_to(workspace)))
+    scoring = workspace / "scoring"
+    if scoring.is_dir():
+        for stem in stems:
+            for prefix in ("clean-", "score-"):
+                q = scoring / f"{prefix}{stem}.json"
+                if q.is_file():
+                    q.unlink()
+                    removed.append(str(q.relative_to(workspace)))
+    return removed
+
+
+def _same_person(incoming: dict, rec: dict) -> Optional[bool]:
+    """True 同一人，False 确定不同人，None 不确定（交 HR）。"""
+    if (incoming.get("name") or "") != (rec.get("name") or ""):
+        return False
+    ip, rp = incoming.get("phone_hash") or "", rec.get("phone_hash") or ""
+    ie, re_ = incoming.get("email_hash") or "", rec.get("email_hash") or ""
+    if ip and rp:
+        return ip == rp
+    if ie and re_:
+        return ie == re_
     return None
+
+
+def _land_one_resume(
+    *,
+    data: bytes,
+    ext: str,
+    orig_label: str,
+    resume_text_full: str,
+    name: str,
+    llm_position: str,
+    method: str,
+    content_sha: str,
+    inbox_dir: Path,
+) -> Tuple[List[SavedFile], List[SkippedFile]]:
+    """按合同落盘：同人覆盖；不确定写 needs-hr；岗位无标题则 待确认。"""
+    from hr_queue import append_hr, append_pipeline, load_identity, save_identity
+
+    saved: List[SavedFile] = []
+    skipped: List[SkippedFile] = []
+    size = len(data)
+    name = (name or "").strip() or "未知"
+    phone, email = _contacts_from_text(resume_text_full)
+    incoming = {
+        "name": name,
+        "phone_hash": _id_hash(phone),
+        "email_hash": _id_hash(email),
+        "phone_present": bool(phone),
+        "email_present": bool(email),
+    }
+
+    for p in _inbox_files_for_name(inbox_dir, name) if name != "未知" else []:
+        if p.is_file() and hashlib.sha256(p.read_bytes()).hexdigest() == content_sha:
+            skipped.append(SkippedFile(
+                orig_name=orig_label, size=size,
+                reason=f"content-already-saved ({p.name})",
+            ))
+            return saved, skipped
+    labeled = _labeled_intent(resume_text_full)
+    position_uncertain = labeled is None
+    position = labeled or "待确认"
+    if not position_uncertain and llm_position:
+        position = labeled  # 有标题栏即以标题为准
+    elif not position_uncertain:
+        position = labeled
+    elif llm_position and llm_position not in {"未填", ""}:
+        # 文件名仍用待确认，LLM 猜测只进待办
+        pass
+
+    ident = load_identity(inbox_dir)
+    same_name_recs = [
+        (saved_name, rec)
+        for saved_name, rec in ident.items()
+        if isinstance(rec, dict) and rec.get("name") == name
+    ]
+    if not same_name_recs:
+        for p in _inbox_files_for_name(inbox_dir, name):
+            if p.name not in ident:
+                same_name_recs.append(
+                    (p.name, {"name": name, "phone_hash": "", "email_hash": ""})
+                )
+
+    overwrite_target: Optional[str] = None
+    definite_other = False
+    ambiguous = False
+    for saved_name, rec in same_name_recs:
+        verdict = _same_person(incoming, rec)
+        if verdict is True:
+            overwrite_target = saved_name
+            break
+        if verdict is False:
+            definite_other = True
+        else:
+            ambiguous = True
+
+    if name == "未知":
+        append_hr(inbox_dir, {
+            "kind": "name-unknown",
+            "orig": orig_label,
+            "sha256": content_sha,
+            "evidence": "未能抽出可靠姓名，已按未知-待确认落盘，流水线可继续，HR 可改名",
+        })
+
+    if same_name_recs and overwrite_target is None and (ambiguous or not definite_other):
+        append_hr(inbox_dir, {
+            "kind": "identity-ambiguous",
+            "name": name,
+            "phone_present": bool(phone),
+            "email_present": bool(email),
+            "phone_hash": incoming["phone_hash"],
+            "email_hash": incoming["email_hash"],
+            "existing": [s for s, _ in same_name_recs],
+            "orig": orig_label,
+            "sha256": content_sha,
+            "evidence": "同名无法用电话/邮箱判定是否同一人：已另存一份并走完流程，HR 可合并或保留两人",
+        })
+        overwrite_target = None
+
+    workspace = inbox_dir.parent
+    old_stems: List[str] = []
+    if overwrite_target:
+        old_path = inbox_dir / overwrite_target
+        old_stems.append(Path(overwrite_target).stem)
+        if old_path.is_file():
+            old_path.unlink()
+        meta_old = inbox_dir / (overwrite_target + ".meta.json")
+        if meta_old.is_file():
+            meta_old.unlink()
+        ident.pop(overwrite_target, None)
+
+    alias = _safe_save_name(f"{name}-{position}{ext}")
+    if overwrite_target is None:
+        alias = _unique_alias(inbox_dir, alias)
+    target = inbox_dir / alias
+    if target.exists() and overwrite_target is None:
+        alias = _unique_alias(inbox_dir, alias)
+        target = inbox_dir / alias
+    target.write_bytes(data)
+
+    ident[alias] = {
+        "name": name,
+        "phone_hash": incoming["phone_hash"],
+        "email_hash": incoming["email_hash"],
+        "phone_present": incoming["phone_present"],
+        "email_present": incoming["email_present"],
+        "sha256": content_sha,
+    }
+    save_identity(inbox_dir, ident)
+
+    if overwrite_target:
+        gone = _invalidate_downstream(workspace, name, old_stems + [Path(alias).stem])
+        append_pipeline(inbox_dir, {
+            "saved_name": alias,
+            "stem": Path(alias).stem,
+            "old_stems": old_stems,
+            "name": name,
+        })
+        print(
+            f"[overwrite] {name} {overwrite_target!r} → {alias!r} 已作废下游 {gone}；"
+            f"请对本 stem 重跑解析 + batch_rank 增量",
+            file=sys.stderr,
+        )
+
+    meta = {
+        "name": name,
+        "position": position,
+        "position_uncertain": position_uncertain,
+        "labeled_intent": labeled,
+        "llm_position": llm_position,
+        "phone_present": bool(phone),
+        "email_present": bool(email),
+        "method": method,
+        "sha256": content_sha,
+    }
+    (inbox_dir / f"{alias}.meta.json").write_text(
+        json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8",
+    )
+
+    if position_uncertain:
+        append_hr(inbox_dir, {
+            "kind": "position-uncertain",
+            "name": name,
+            "saved_name": alias,
+            "llm_guess": llm_position,
+            "evidence": "正文无求职意向标题，文件名为待确认；已落盘，解析评分照常，HR 可事后改岗位",
+        })
+
+    reason = "overwrite-same-person" if overwrite_target else "landed"
+    if position_uncertain:
+        reason += "|position-uncertain"
+    if name == "未知":
+        reason += "|name-unknown"
+    saved.append(SavedFile(
+        saved_name=target.name, source="direct", orig_name=orig_label,
+        size=size, sha256=content_sha,
+        reason=f"{reason} [via {method}|file-text]",
+    ))
+    return saved, skipped
 
 
 # ---------- 主处理入口 ----------
@@ -690,7 +1121,7 @@ def process_attachment(
 
     姓名/岗位 **只从简历文件正文** 识别 (PDF/DOCX 抽文本 → LLM)，
     subject/body/mail_uid 保留仅为兼容旧调用签名，不再参与命名。
-    落盘名固定为「姓名-岗位.ext」；若 inbox 已有同姓名文件则跳过（不覆盖）。
+    同人（姓名+电话或邮箱）覆盖旧稿并作废下游；不确定写入 needs-hr.jsonl。
     llm_cache: 跨附件共享, key=文件内容 sha256
     """
     del subject, body, mail_uid  # 显式丢弃, 避免误用邮件元数据命名
@@ -716,34 +1147,25 @@ def process_attachment(
         skipped.append(SkippedFile(orig_name=fname, reason=f"magic-mismatch (ext={ext}, head={head!r})", size=size))
         return saved, skipped
 
-    # 4) 直接 PDF/DOCX：抽正文 → LLM → 「姓名-岗位.ext」；同姓名已存在则跳过
+    # 4) 直接 PDF/DOCX
     if ext in RESUME_EXTS:
-        resume_text, texterr = _extract_resume_text(att.raw_bytes, ext)
+        resume_full, texterr = _extract_resume_text(att.raw_bytes, ext, max_chars=8000)
         if texterr:
             print(f"[extract-text] {fname!r} → {texterr}", file=sys.stderr)
         name, position, _, _, method = _resolve_name_position(
-            resume_text, llm_cfg,
+            (resume_full or "")[:2000], llm_cfg,
             content_sha256=att.sha256_hex(),
             llm_cache=llm_cache,
         )
         print(f"[extract] {fname!r} → 姓名={name!r} 岗位={position!r} via {method} (from-file)",
               file=sys.stderr)
-        existed = _existing_by_person_name(inbox_dir, name)
-        if existed:
-            print(f"[skip-dup-name] {fname!r} 姓名={name!r} 已存在 {existed!r}, 跳过落盘",
-                  file=sys.stderr)
-            skipped.append(SkippedFile(
-                orig_name=fname, size=size,
-                reason=f"name-already-exists ({name} -> {existed})",
-            ))
-            return saved, skipped
-        alias = _safe_save_name(f"{name}-{position}{ext}")
-        target = inbox_dir / alias
-        target.write_bytes(att.raw_bytes)
-        saved.append(SavedFile(
-            saved_name=target.name, source="direct", orig_name=fname, size=size, sha256=att.sha256_hex(),
-            reason=f"whitelist direct save with name-position rename [via {method}|file-text]",
-        ))
+        land_s, land_k = _land_one_resume(
+            data=att.raw_bytes, ext=ext, orig_label=fname,
+            resume_text_full=resume_full, name=name, llm_position=position or "",
+            method=method, content_sha=att.sha256_hex(), inbox_dir=inbox_dir,
+        )
+        saved.extend(land_s)
+        skipped.extend(land_k)
         return saved, skipped
 
     # 5) ZIP/RAR：解压后对每个内层 pdf/docx 单独抽正文 → LLM
@@ -778,38 +1200,30 @@ def process_attachment(
                 size=len(data),
             ))
             continue
-        resume_text, texterr = _extract_resume_text(data, inner_ext)
+        resume_full, texterr = _extract_resume_text(data, inner_ext, max_chars=8000)
         if texterr:
             print(f"[extract-text] {fname}::{inner_name!r} → {texterr}", file=sys.stderr)
         inner_sha = hashlib.sha256(data).hexdigest()
         inner_name_resolved, inner_position_resolved, _, _, inner_method = _resolve_name_position(
-            resume_text, llm_cfg,
+            (resume_full or "")[:2000], llm_cfg,
             content_sha256=inner_sha,
             llm_cache=llm_cache,
         )
         print(f"[extract] {fname}::{inner_name!r} → 姓名={inner_name_resolved!r} "
               f"岗位={inner_position_resolved!r} via {inner_method} (from-file)",
               file=sys.stderr)
-        existed = _existing_by_person_name(inbox_dir, inner_name_resolved)
-        if existed:
-            print(f"[skip-dup-name] {fname}::{inner_name!r} 姓名={inner_name_resolved!r} "
-                  f"已存在 {existed!r}, 跳过落盘", file=sys.stderr)
-            skipped.append(SkippedFile(
-                orig_name=f"{fname}::{inner_name}", size=len(data),
-                reason=f"name-already-exists ({inner_name_resolved} -> {existed})",
-            ))
-            continue
-        inner_alias = _safe_save_name(
-            f"{inner_name_resolved}-{inner_position_resolved}{inner_ext}"
+        land_s, land_k = _land_one_resume(
+            data=data, ext=inner_ext, orig_label=f"{fname}::{inner_name}",
+            resume_text_full=resume_full, name=inner_name_resolved or "",
+            llm_position=inner_position_resolved or "",
+            method=inner_method, content_sha=inner_sha, inbox_dir=inbox_dir,
         )
-        target = inbox_dir / inner_alias
-        target.write_bytes(data)
-        saved.append(SavedFile(
-            saved_name=target.name, source=ext.lstrip("."), orig_name=f"{fname}::{inner_name}",
-            size=len(data), sha256=inner_sha,
-            reason=f"extracted from {fname} [via {inner_method}|file-text]",
-        ))
-        inner_resume_count += 1
+        for s in land_s:
+            s.source = ext.lstrip(".")
+            s.reason = f"extracted from {fname} | {s.reason}"
+            saved.append(s)
+            inner_resume_count += 1
+        skipped.extend(land_k)
 
     if inner_resume_count == 0 and not skipped:
         skipped.append(SkippedFile(
@@ -825,27 +1239,39 @@ def process_attachment(
 @dataclass
 class LLMConfig:
     enabled: bool = False
-    model: str = "deepseek-v4-flash"
-    base_url: str = "https://api.deepseek.com"
+    model: str = "mimo-v2.5-pro"
+    base_url: str = "https://token-plan-cn.xiaomimimo.com/v1"
     api_key: str = ""
     timeout: float = 8.0
 
 
 def llm_config_from_env(args) -> LLMConfig:
-    """从 CLI + env 拼 LLMConfig (v2.1 默认启用)。
+    """从 CLI + env 拼 LLMConfig (默认启用，走对话模型 mimo-v2.5-pro)。
 
     --no-llm → 关
-    默认开 → 从 DEEPSEEK_API_KEY / FETCH_LLM_API_KEY / --llm-api-key 取 key
+    Key：--llm-api-key / FETCH_LLM_API_KEY / LLM_API_KEY / XIAOMI_API_KEY
     """
     if args.no_llm:
         return LLMConfig(enabled=False)
-    api_key = (args.llm_api_key
-               or os.environ.get("FETCH_LLM_API_KEY", "")
-               or os.environ.get("DEEPSEEK_API_KEY", ""))
+    model = args.llm_model or os.environ.get("FETCH_LLM_MODEL") or os.environ.get("LLM_MODEL") or "mimo-v2.5-pro"
+    is_mimo = "mimo" in model or "xiaomi" in (args.llm_base_url or os.environ.get("LLM_BASE_URL") or "")
+    base_url = (
+        args.llm_base_url
+        or os.environ.get("FETCH_LLM_BASE_URL")
+        or os.environ.get("LLM_BASE_URL")
+        or ("https://token-plan-cn.xiaomimimo.com/v1" if is_mimo else "https://api.deepseek.com")
+    )
+    api_key = (
+        args.llm_api_key
+        or os.environ.get("FETCH_LLM_API_KEY", "")
+        or os.environ.get("LLM_API_KEY", "")
+        or os.environ.get("XIAOMI_API_KEY", "")
+        or os.environ.get("DEEPSEEK_API_KEY", "")
+    )
     return LLMConfig(
         enabled=True,
-        model=args.llm_model,
-        base_url=args.llm_base_url,
+        model=model,
+        base_url=base_url,
         api_key=api_key,
         timeout=args.llm_timeout,
     )
@@ -904,8 +1330,8 @@ def main() -> int:
     # LLM 识别 (v2.1+ 默认启用, 不再依赖启发式)
     parser.add_argument("--no-llm", action="store_true",
                         help="关闭 LLM 识别, 改用启发式 (不推荐, 仅离线/排错用)")
-    parser.add_argument("--llm-model", default=os.environ.get("FETCH_LLM_MODEL", "deepseek-v4-flash"))
-    parser.add_argument("--llm-base-url", default=os.environ.get("FETCH_LLM_BASE_URL", "https://api.deepseek.com"))
+    parser.add_argument("--llm-model", default=None)
+    parser.add_argument("--llm-base-url", default=None)
     parser.add_argument("--llm-api-key", default=os.environ.get("FETCH_LLM_API_KEY", ""))
     parser.add_argument("--llm-timeout", type=float, default=float(os.environ.get("FETCH_LLM_TIMEOUT", "8")),
                         help="单次 LLM 调用超时 (秒)")
@@ -933,7 +1359,7 @@ def main() -> int:
     llm_cfg = llm_config_from_env(args)
     if llm_cfg.enabled:
         if not llm_cfg.api_key:
-            print("[fetch] LLM 默认启用但缺 api key (FETCH_LLM_API_KEY / DEEPSEEK_API_KEY / --llm-api-key)。"
+            print("[fetch] LLM 默认启用但缺 api key (XIAOMI_API_KEY / LLM_API_KEY / FETCH_LLM_API_KEY)。"
                   "如需离线跑, 加 --no-llm 改用启发式。", file=sys.stderr)
             return 2
         print(f"[fetch] LLM 识别启用  model={llm_cfg.model}  timeout={llm_cfg.timeout}s",
@@ -948,7 +1374,21 @@ def main() -> int:
     n_skipped = 0
     started = time.time()
 
+    # 客户端日期过滤：QQ IMAP 的 SINCE 搜索不可靠，需二次过滤
+    since_cutoff = None
+    if since_str:
+        since_cutoff = datetime.strptime(since_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+
     for msg in backend.list_messages(args.folder, since=since_str):
+        # 客户端按邮件日期过滤（QQ IMAP SINCE 不可靠）
+        if since_cutoff and msg.date:
+            try:
+                msg_dt = datetime.strptime(msg.date, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                if msg_dt < since_cutoff:
+                    continue  # 跳过日期早于窗口的邮件
+            except ValueError:
+                pass  # 日期解析失败不过滤，交给后续处理
+
         n_mail += 1
         if n_mail > args.max:
             print(f"[fetch] 触达 --max={args.max}, 停止", file=sys.stderr)
@@ -987,6 +1427,19 @@ def main() -> int:
                 n_skipped += 1
                 mail_record["skipped_files"].append(dataclasses.asdict(s))
 
+        if not mail_record["saved_files"] and is_qq_ftn_mail(msg):
+            n_skipped += 1
+            mail_record["skipped_files"].append({
+                "orig_name": msg.subject or "qq-ftn",
+                "reason": "qq-ftn-not-in-mime",
+                "size": 0,
+            })
+            print(
+                f"[fetch] uid={msg.uid} 是 QQ 超大附件（文件中转站），"
+                f"IMAP 正文只有下载链接、没有文件体。请用「普通附件」重发，不要用超大附件。",
+                file=sys.stderr,
+            )
+
         pulled_records.append(mail_record)
         n_this = len(mail_record["saved_files"])
         s_this = len(mail_record["skipped_files"])
@@ -1009,6 +1462,24 @@ def main() -> int:
     log_path = write_fetched_mail_log(inbox_dir, pulled_records)
     print(f"[fetch] 落盘 {n_saved} 份简历 / 跳过 {n_skipped} 个附件 / log={log_path.name}",
           file=sys.stderr)
+    try:
+        from hr_queue import list_pipeline, list_records
+        n_pipe = len(list_pipeline(inbox_dir))
+        n_hr = len(list_records(inbox_dir))
+        if n_pipe:
+            print(
+                f"[fetch] needs-pipeline pending {n_pipe}："
+                f"对本 stem 重跑 office-to-md → parse → filter → batch_rank 增量，"
+                f"然后 hr_queue.py pipeline-done <stem>",
+                file=sys.stderr,
+            )
+        if n_hr:
+            print(
+                f"[fetch] needs-hr pending {n_hr}：流水线照常；回复里告知 HR，拍板后再改名/合并",
+                file=sys.stderr,
+            )
+    except Exception:
+        pass
     print(f"[fetch] 总耗时 {time.time() - started:.2f}s", file=sys.stderr)
     return 0
 

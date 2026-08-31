@@ -1,61 +1,61 @@
 {
   "candidate": "李四",
   "pinyin": "lisi",
-  "role": "人工智能算法工程师",
-  "salary": "25K",
+  "role": "前端工程师",
+  "salary": "15000",
   "status": "completed",
   "current_step": "complete",
-  "started_at": "2026-07-17T23:57:36+08:00",
-  "updated_at": "2026-07-17T23:58:38+08:00",
+  "started_at": "2026-08-28T16:10:45+08:00",
+  "updated_at": "2026-08-28T16:11:16+08:00",
   "halted_at": null,
-  "completed_at": "2026-07-17T23:58:25+08:00",
+  "completed_at": "2026-08-28T16:11:07+08:00",
   "approval_id": null,
   "resume_token": null,
   "events": [
     {
-      "at": "2026-07-17T23:57:36+08:00",
+      "at": "2026-08-28T16:10:45+08:00",
       "step": "prep",
       "action": "started",
-      "note": "入职流程启动：李四（人工智能算法工程师, 25K）"
+      "note": "入职流程启动：李四（前端工程师, 15000）"
     },
     {
-      "at": "2026-07-17T23:57:36+08:00",
+      "at": "2026-08-28T16:10:45+08:00",
       "step": "prep",
       "action": "completed",
       "note": "4 路并行准备全部完成"
     },
     {
-      "at": "2026-07-17T23:57:36+08:00",
+      "at": "2026-08-28T16:10:45+08:00",
       "step": "contract_gate",
       "action": "halted",
       "note": "等待 HR 主管审批合同"
     },
     {
-      "at": "2026-07-17T23:57:59+08:00",
+      "at": "2026-08-28T16:10:58+08:00",
       "step": "contract_gate",
       "action": "approved",
       "note": "合同审批已通过"
     },
     {
-      "at": "2026-07-17T23:57:59+08:00",
+      "at": "2026-08-28T16:10:59+08:00",
       "step": "account_gate",
       "action": "halted",
       "note": "等待 IT 安全审批账号"
     },
     {
-      "at": "2026-07-17T23:58:25+08:00",
+      "at": "2026-08-28T16:11:07+08:00",
       "step": "account_gate",
       "action": "approved",
       "note": "账号权限审批已通过"
     },
     {
-      "at": "2026-07-17T23:58:25+08:00",
+      "at": "2026-08-28T16:11:07+08:00",
       "step": "buddy",
       "action": "completed",
       "note": "Buddy 匹配完成"
     },
     {
-      "at": "2026-07-17T23:58:25+08:00",
+      "at": "2026-08-28T16:11:07+08:00",
       "step": "complete",
       "action": "completed",
       "note": "入职审批工作流完成"

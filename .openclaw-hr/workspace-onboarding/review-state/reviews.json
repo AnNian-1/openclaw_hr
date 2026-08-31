@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "records": [
+    {
+      "name": "张三",
+      "pinyin": "zhangsan",
+      "day": 7,
+      "status": "completed",
+      "focus": "完成公司级 Onboarding;导师启动带教;融入团队",
+      "content": "首次沟通完成",
+      "triggered_at": "2026-08-30T07:54:51+00:00",
+      "completed_at": "2026-08-30T07:54:51+00:00"
+    },
+    {
+      "name": "张三",
+      "pinyin": "zhangsan",
+      "day": 30,
+      "status": "pending",
+      "focus": "部门岗位培训;HR 第一次新人关怀沟通",
+      "content": null,
+      "triggered_at": null,
+      "completed_at": null
+    },
+    {
+      "name": "张三",
+      "pinyin": "zhangsan",
+      "day": 60,
+      "status": "pending",
+      "focus": "带教进展检查;岗位胜任度初评",
+      "content": null,
+      "triggered_at": null,
+      "completed_at": null
+    },
+    {
+      "name": "张三",
+      "pinyin": "zhangsan",
+      "day": 90,
+      "status": "pending",
+      "focus": "导师带教结束;6 个月试用期者中期反馈",
+      "content": null,
+      "triggered_at": null,
+      "completed_at": null
+    }
+  ],
+  "armed": {}
+}

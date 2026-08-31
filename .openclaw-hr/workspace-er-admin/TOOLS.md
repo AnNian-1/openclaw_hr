@@ -46,7 +46,7 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 - **做什么**：回答员工的 HR 政策问题——先检索公司政策知识库、基于检索到的原文答复并引用出处、遇到红线问题升级人工。
 - **什么时候用**：员工问任何 HR 政策问题（年假、病假、报销、社保公积金、加班调休、入离职、培训晋升等）。
 - **调用要点**：
-  - 检索引擎是**腾讯 IMA 知识库**；用 `exec` 跑 `scripts/er-admin-run.sh ima-search "<问题>"`（内部再调 `search_ima_policies.cjs`），**不用** `memory_search`。禁止 `python3 -c` / `tee` / heredoc 写政策文件。
+  - 检索引擎是**腾讯 IMA 知识库**；用 `exec` 跑 `scripts/er-admin-run.sh ima-search "<问题>"`，**不用** `memory_search`。禁止 `python3 -c` / `tee` / heredoc 写政策。冒烟报告用 write 写到 `docs/qa/`。
   - 凭证：`IMA_OPENAPI_CLIENTID` / `IMA_OPENAPI_APIKEY`（在 `env.sh`）；推荐配置 `IMA_HR_KNOWLEDGE_BASE_ID`。
   - 本地 `memory/hr-policies/` 仅备份对照；答疑以 IMA 检索结果为准。
   - 三步答疑协议（IMA 检索 → 引用原文 → 红线升级）与 5 类 HiTL 红线见 SKILL.md / `references/escalation-redlines.md`。

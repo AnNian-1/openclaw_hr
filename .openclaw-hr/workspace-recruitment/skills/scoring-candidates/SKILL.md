@@ -41,10 +41,14 @@ node skills/scoring-candidates/scripts/score_candidate.js <脱敏候选人json> 
 ### 批量评分 + 排序
 
 ```bash
-node skills/scoring-candidates/scripts/batch_rank.js <JD-md> <脱敏候选人json目录> [输出json] [文件名前缀]
+node skills/scoring-candidates/scripts/batch_rank.js <JD-md> <脱敏候选人json目录> [输出json] [文件名前缀] [--force] [--stale-only] [--merge-only] [--limit N] [--max-seconds N]
 ```
 
-对目录里每份脱敏候选人 JSON 依次评分，全部评完按综合匹配分降序排序。每份候选人最多评 3 次——批量任务偶发失败是常态，3 次全失败的会显式标记为"待人工处理"，不静默丢弃。
+默认**增量**：每人对应 `scoring/score-<stem>.json`（含 `scorer_version`、JD/clean 内容 hash）。命中则 skip LLM。改评分规则时 bump `score_candidate.js` 里的 `SCORER_VERSION`，旧分失效。
+
+Gateway `exec` 超时必须大于本进程墙钟。脏数据很多时用 `--limit 3` / `--max-seconds 120` 分多次调用，再用 `--merge-only` 出全榜（缺分的进 `pending_rescore`，不要和旧版分混排）。`--force` 忽略缓存但仍受 `--limit` 约束。
+
+每份最多评 3 次；3 次全失败标"待人工处理"，不静默丢弃。
 
 8 维度清单、综合分含义、评级切分、concerns/hard_issues 边界、批量纪律的细则见 → `references/scoring-method.md`
 

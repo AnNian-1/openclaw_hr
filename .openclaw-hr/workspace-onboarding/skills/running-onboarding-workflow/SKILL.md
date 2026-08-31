@@ -1,6 +1,6 @@
 ---
 name: running-onboarding-workflow
-description: Run the new-hire onboarding approval workflow for a single employee using the Lobster workflow engine. Use this skill whenever a new hire needs to go through onboarding — it drives 4 parallel preparation tracks (contract, IT account, equipment, training) and 2 human-in-the-loop approval gates (contract approval, account-permission approval). Handles the full lifecycle: start the workflow, hand back the resumeToken when it halts at an approval gate, and resume with approve or reject. The agent never approves on a human's behalf.
+description: Run the new-hire onboarding approval workflow for a single employee using the Lobster workflow engine. Snapshots HCM department nodes (read-only; never fills in for other departments), then drives 2 human-in-the-loop approval gates (contract, account-permission). Probation 7/30/60/90 reviews are armed only when all 5 HCM nodes are completed. Handles start, halt/resumeToken, and resume. The agent never approves on a human's behalf.
 metadata:
   openclaw:
     requires:
@@ -13,9 +13,11 @@ metadata:
 
 ## 这个 Skill 封装的是一条工作流，不是一个脚本
 
-入职审批是一条多步、多审批门、有状态的流程：4 路并行准备 + 2 个 HiTL（人在回路）审批门。它的流程定义写在一个 Lobster 工作流文件 `scripts/hr-onboarding.lobster` 里。这个 Skill 做的事是告诉你**何时发起这条工作流、怎么用 lobster 跑、流程在审批门暂停后怎么接管**——工作流文件是"流程定义"，这个 Skill 是"操作手册"。
+入职审批是一条多步、多审批门、有状态的流程：从 HCM **只读快照**五部门节点 + 2 个 HiTL 审批门。它的流程定义写在 `scripts/hr-onboarding.lobster`。这个 Skill 告诉你**何时发起、怎么用 lobster 跑、审批门暂停后怎么接管**。
 
-发起和接管工作流的 lobster 调用细节（CLI 入口、文件路径、参数传法、环境变量注入）已经固化进启动脚本 `scripts/run-onboarding.sh`，你只需照下面三条命令调用，不要自己拼 lobster 命令。
+入职小慧**不代替**合同/IT/行政/培训/Buddy 部门在 HCM 里填节点，不编造「劳动合同已起草 / 设备已配齐 / 培训已排期 / Buddy 王工」。进度以 HCM `nodes[].status` 为准；未完成就催对应部门。
+
+发起和接管的 lobster 细节已固化进 `scripts/run-onboarding.sh`，照下面命令调用，不要自己拼 lobster。
 
 ## 何时用这个 Skill
 
@@ -34,10 +36,15 @@ SOP：先 HCM 建人 → 再对小惠说「启动某某入职」。
 
 ## 数据读写边界
 
-- **花名册校验**：启动前 GET HCM 确认拼音存在，不写 HCM。
-- **准备节点数据**：各准备脚本从 HCM 读取部门填写的数据（只读），同时写本地 `stub-state/<pinyin>/` 供审批 prompt 生成。
-- **审批门 / resumeToken**：HCM 无此概念，由 Lobster 工作流落盘到 `workflow.json`。
-- **看板**：从 HCM API 读取（只读），不读本地 stub-state 作为准备节点真相源。
+| 数据 | 真相源 | 小慧 |
+|------|--------|------|
+| 花名册 + 五部门节点 | HCM GET only | 只读快照、催办；**禁止 POST/PUT** |
+| 审批门 / resumeToken | 本机 `stub-state/<pinyin>/workflow.json` | 启动/resume Lobster |
+| 试用期 7/30/60/90 | 本机 `review-state/reviews.json` | **仅当五节点均为 `completed`** 才 ensure + 挂 Cron |
+
+- **进合同审批门**：HCM 合同节点须为 `in_progress` 或 `completed`，否则 `start` 退出 **6**，`workflow.json` 记 `waiting_departments`，不跑 lobster。
+- **开通试用期跟进**：五节点都必须是 `completed`。两道审批门都批过（lobster `complete`）**不等于**部门已执行完毕。
+- **看板**：准备节点读 HCM；review 读本地表；审批角标读 `workflow.json`。
 
 ## 工作流程
 
@@ -51,7 +58,7 @@ bash skills/running-onboarding-workflow/scripts/run-onboarding.sh start <姓名>
 
 例：`run-onboarding.sh start 张磊 zhanglei 后端工程师 32K`。拼音用于生成邮箱前缀（中文进 `tr` 会被破坏，所以单独传拼音），且必须已在 HCM 花名册中。
 
-启动后，4 路并行准备（合同 / IT 账号 / 设备 / 培训）会跑完，流程在**第一个审批门 `contract_gate` 暂停**，返回一段 JSON。JSON 里 `status` 是 `needs_approval`，`requiresApproval` 块里有四样东西，你必须把它们清楚交回给人：
+启动后，prep **只快照 HCM**（不编造部门产出）。合同节点已开始/完成后，流程在**第一个审批门 `contract_gate` 暂停**，返回 JSON。`status` 是 `needs_approval`，`requiresApproval` 里有四样东西，必须交回给人：
 
 - `prompt` —— 审批问题（已含候选人专属信息 + 状态 + 时间戳）。**这是给人看的唯一正文，必须原样展示，禁止删改、禁止用自己画的表格替代。**
 - `items` —— 待审原始 JSON，仅作核对/存档；**不要自己从 items 挑字段重画「项目|内容」表**——容易漏掉 `status` 等核心字段，也容易给空字段硬加一行。
@@ -100,9 +107,11 @@ bash skills/running-onboarding-workflow/scripts/run-onboarding.sh resume <resume
 bash skills/running-onboarding-workflow/scripts/run-onboarding.sh resume <resumeToken> no
 ```
 
-- **批准合同门**后，流程推进到第二个审批门 `account_gate`（账号权限审批），再次 `needs_approval`。**每次 halt 都生成一个新的 resumeToken**——第二次 resume 必须用第二步返回的新 token，不能用第一步的旧 token。
-- **两个审批门都批准**后，`status` 变 `ok`，`buddy`（带教导师匹配）和 `complete`（归档）节点执行，入职五项就绪。
-- **任一审批门被拒绝**，`status` 变 `cancelled`，`buddy` / `complete` 节点不执行。如实报告流程已终止。
+- **批准合同门**后，流程推进到第二个审批门 `account_gate`。**每次 halt 都生成新 resumeToken**。
+- 账号门 prompt 会带上 HCM 真实状态。若账号/设备/培训仍为 `pending`，**不要建议批准**，先催对应部门在 HCM 填写。
+- **两个审批门都批准**后，`status` 变 `ok`，归档。**此时不要宣称试用期跟进已挂上**——须五节点全绿后 `sync-reviews-if-ready.sh` 才会 ensure + 注册 Cron。
+- **任一审批门被拒绝**，`status` 变 `cancelled`。如实报告。
+- 合同尚未开始时 `start` 退出 6：报告「等待部门填写」，催 HR 在 HCM 操作后再 `start`。不要 resume。
 
 ### 第 3 步（可选）· 先看执行计划
 
@@ -114,9 +123,10 @@ bash skills/running-onboarding-workflow/scripts/run-onboarding.sh dry <姓名> <
 
 ## 关键规则
 
-- **审批门是给人的，不是给你的。** 流程在 `contract_gate` / `account_gate` 暂停时，你的职责是把 `prompt` + `resumeToken` 交回给人，等人做决定。**绝不替人批准或拒绝。**
-- **PROMPT 内核原样交回，标记行对用户隐藏。** 见到 `---PROMPT---` 必须粘贴其间正文；不要把 `=====` / `---PROMPT---` / `[display-hint]` 念给用户听。可用 Markdown 外壳美化，禁止改内核、禁止 emoji 表、禁止编造「内网访问」。
-- **resumeToken 必须原样留存。** 每次 halt 返回的 token 是流程状态的唯一钥匙，丢了就接不回流程。每个门一个新 token。
-- **启动前不要手动跑 stub 脚本。** `start` 会自己清掉旧状态、跑 4 路并行准备。重复跑会污染状态文件。
-- **不要替 HCM 建档或改部门节点。** 花名册与五部门写入只在 HCM；本 Skill 只读校验拼音是否存在。
-- 入职审批工作流的设计依据、4 路并行 / 双审批门为什么这么设计，见 → `references/workflow-design.md`。
+- **审批门是给人的，不是给你的。** 绝不替人批准或拒绝。材料在 HCM 仍为 pending 时，交回 prompt 并说明请勿批准。
+- **PROMPT 内核原样交回，标记行对用户隐藏。**
+- **resumeToken 必须原样留存。** 每个门一个新 token。
+- **不要替部门执行。** 禁止编造合同/工号/设备/培训/Buddy。未完成就催办。
+- **不要替 HCM 建档或改部门节点。** 只读校验拼音是否存在。
+- **启动前不要手动跑 stub 脚本。** `start` 会清旧状态再快照 HCM。`waiting_departments` 允许再次 start；`halted`/`completed` 须 `--force`。
+- 设计依据见 → `references/workflow-design.md`。

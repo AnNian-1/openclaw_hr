@@ -5,7 +5,7 @@ self_check.py —— generating-training-materials 交付前结构自检
 
 对照 evals/eval-cases.md 场景 1/2 的可机器化部分：
   8 份文件齐全、T1-T5、对应矩阵、测试题覆盖、AI 辅助标注等。
-讲师手册若仍含「逐字稿」会 WARN（现行流程已取消逐字稿，改讲解要点）。
+讲师手册若出现禁止的「逐字稿」正文会 WARN；「而非逐字稿 / 禁止逐字稿」这类否定表述不算。
 判断类条款（是否真读了上一阶段文件）仍需 Agent 按 eval-cases 人工核。
 
 用法：
@@ -41,6 +41,15 @@ MATRIX = re.compile(r"对应矩阵|模块与培训目标")
 ASSESS_TAG = re.compile(r"对应培训目标")
 VERBATIM = re.compile(r"逐字稿")
 TALKING_POINTS = re.compile(r"讲解要点")
+# 否定/说明性提及：不是在写逐字稿
+VERBATIM_MENTION = re.compile(
+    r"(?:非|而非|不是|禁止(?:写)?|勿(?:再)?写|不要写|无|旧版)逐字稿(?:手册)?"
+)
+
+
+def forbidden_verbatim(text: str) -> bool:
+    stripped = VERBATIM_MENTION.sub("", text or "")
+    return bool(VERBATIM.search(stripped))
 
 
 def _read(path: Path) -> str:
@@ -50,7 +59,7 @@ def _read(path: Path) -> str:
         return ""
 
 
-def check(outdir: Path) -> tuple[list[str], list[str]]:
+def check(outdir: Path, partial: bool = False) -> tuple[list[str], list[str]]:
     """返回 (problems, warnings)。problems 非空则 FAIL；warnings 仅提示。"""
     problems: list[str] = []
     warnings: list[str] = []
@@ -61,7 +70,8 @@ def check(outdir: Path) -> tuple[list[str], list[str]]:
     for name in REQUIRED:
         p = outdir / name
         if not p.is_file() or p.stat().st_size < 50:
-            problems.append(f"[场景1] 缺失或过短: {name}")
+            if not partial:
+                problems.append(f"[场景1] 缺失或过短: {name}")
             continue
         texts[name] = _read(p)
 
@@ -85,15 +95,15 @@ def check(outdir: Path) -> tuple[list[str], list[str]]:
 
     instructor = texts.get("04-instructor-manual.md", "")
     if instructor:
-        if VERBATIM.search(instructor) and not TALKING_POINTS.search(instructor):
+        if forbidden_verbatim(instructor) and not TALKING_POINTS.search(instructor):
             warnings.append(
-                "[场景2] 04-instructor-manual.md 仍含「逐字稿」且未见「讲解要点」——"
+                "[场景2] 04-instructor-manual.md 仍含逐字稿正文且未见「讲解要点」——"
                 "现行流程已取消逐字稿；新生成请按模板 3 只写讲解要点"
             )
-        elif VERBATIM.search(instructor):
+        elif forbidden_verbatim(instructor):
             warnings.append(
-                "[场景2] 04-instructor-manual.md 仍含「逐字稿」（可能为历史样本）；"
-                "新生成勿再产出逐字稿"
+                "[场景2] 04-instructor-manual.md 仍含逐字稿正文；"
+                "新生成勿再产出可照念话术"
             )
 
     assess = texts.get("06-assessment.md", "")
@@ -118,6 +128,11 @@ def main() -> int:
         default="",
         help="物料目录，默认 <workspace>/training-materials",
     )
+    ap.add_argument(
+        "--partial",
+        action="store_true",
+        help="只检查已存在的文件，不要求 8 份齐全（配合 generate --only）",
+    )
     args = ap.parse_args()
 
     script = Path(__file__).resolve()
@@ -130,7 +145,7 @@ def main() -> int:
         print(f"[self_check] 目录不存在: {outdir}", file=sys.stderr)
         return 2
 
-    problems, warnings = check(outdir)
+    problems, warnings = check(outdir, partial=args.partial)
     print(f"[self_check] outdir={outdir}")
     for w in warnings:
         print(f"[self_check] WARN · {w}", file=sys.stderr)

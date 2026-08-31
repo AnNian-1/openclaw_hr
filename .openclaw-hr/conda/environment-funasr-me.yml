@@ -1,0 +1,13 @@
+# 仅 transcribing-interviews。torch 2.2.2 要求 numpy<2，必须独立环境。
+name: funasr_me
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - torch
+      - torchaudio
+      - numpy<2
+      - funasr
+      - modelscope

@@ -17,6 +17,7 @@
 真实性: 相似度全部基于真实 embedding 余弦计算, 不经 LLM 排名。
 """
 import os, sys, json, math, argparse, re
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -32,6 +33,7 @@ POOL = os.path.join(WORKSPACE, "talent-pool/talent-pool.json")
 EMBED_API_KEY = (
     os.environ.get("SILICONFLOW_API_KEY")
     or os.environ.get("SF_API_KEY")
+    or os.environ.get("DASHSCOPE_API_KEY")
     or ""
 )
 EMBED_MODEL = os.environ.get("EMBEDDING_MODEL", "BAAI/bge-large-zh-v1.5")
@@ -47,13 +49,68 @@ EMBED_BASE = os.environ.get(
     "https://api.siliconflow.cn/v1",
 )
 
-def embed(texts):
+def jd_embed_max_chars():
+    """bge-large-zh 约 512 token；过长会 400。v3 可更长。"""
+    if "text-embedding-v3" in EMBED_MODEL:
+        return int(os.environ.get("JD_EMBED_MAX_CHARS", "6000"))
+    return int(os.environ.get("JD_EMBED_MAX_CHARS", "480"))
+
+
+def prepare_jd_text(text):
+    text = (text or "").strip()
+    limit = jd_embed_max_chars()
+    if len(text) > limit:
+        print(
+            f"[search] JD 过长（{len(text)} 字），截到 {limit} 字再 embed（可用 JD_EMBED_MAX_CHARS 覆盖）",
+            file=sys.stderr,
+        )
+        text = text[:limit]
+    return text
+
+
+def is_fixture_candidate(c):
+    """测试夹具：姓名含「夹具」，或自评/摘要标明非真实候选人。"""
+    name = str(c.get("name") or "")
+    if "夹具" in name:
+        return True
+    parsed = c.get("parsed") or {}
+    blob = " ".join(
+        str(x) for x in (
+            parsed.get("self_evaluation"),
+            (c.get("dim_texts") or {}).get("summary"),
+            c.get("full_text"),
+        ) if x
+    )
+    return "测试夹具" in blob or "非真实候选人" in blob
+
+
+def embed(texts, _retried=False):
+    if not EMBED_API_KEY:
+        print(
+            "[search] 缺少 SILICONFLOW_API_KEY / DASHSCOPE_API_KEY，无法按 JD 实时 embed",
+            file=sys.stderr,
+        )
+        sys.exit(2)
     payload = {"model": EMBED_MODEL, "input": texts}
+    if "text-embedding-v3" in EMBED_MODEL:
+        payload["dimensions"] = int(os.environ.get("EMBEDDING_DIM", "1024"))
     headers = {"Authorization": f"Bearer {EMBED_API_KEY}", "Content-Type": "application/json"}
     url = f"{EMBED_BASE.rstrip('/')}/embeddings"
-    req = urllib.request.Request(url, data=json.dumps(payload).encode(), headers=headers, method="POST")
-    with urllib.request.urlopen(req, timeout=60) as r:
-        d = json.loads(r.read().decode())
+    req = urllib.request.Request(
+        url, data=json.dumps(payload).encode(), headers=headers, method="POST"
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            d = json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="replace")
+        print(f"[search] embedding HTTP {e.code}: {body[:800]}", file=sys.stderr)
+        if e.code == 400 and not _retried and texts:
+            shorter = prepare_jd_text(texts[0][: max(200, len(texts[0]) // 2)])
+            if shorter and shorter != texts[0]:
+                print("[search] 400 后缩短 JD 再试一次", file=sys.stderr)
+                return embed([shorter], _retried=True)
+        sys.exit(1)
     embs = sorted(d["data"], key=lambda x: x.get("index", 0))
     return [e["embedding"] for e in embs]
 
@@ -78,10 +135,24 @@ def main():
     ap.add_argument("--jd", help="按 JD 文件找相似候选人")
     ap.add_argument("--topn", type=int, default=5)
     ap.add_argument("--compare-keyword", action="store_true", help="同时跑关键词检索做对照")
+    ap.add_argument(
+        "--include-fixtures",
+        action="store_true",
+        help="检索结果包含测试夹具（默认过滤姓名含「夹具」或标明非真实候选人）",
+    )
     args = ap.parse_args()
 
     pool = json.load(open(POOL, encoding="utf-8"))
     cands = pool["candidates"]
+    if not args.include_fixtures:
+        dropped = [c.get("name") for c in cands if is_fixture_candidate(c)]
+        cands = [c for c in cands if not is_fixture_candidate(c)]
+        if dropped:
+            print(
+                f"[search] 已过滤测试夹具 {len(dropped)} 人：{', '.join(dropped)} "
+                f"（需要夹具时加 --include-fixtures）",
+                file=sys.stderr,
+            )
     pool_names = [c.get("name") for c in cands if c.get("name")]
     print(f"人才库: {pool.get('candidate_count', len(cands))} 名候选人 | embedding={pool.get('embedding_model')} | 建于 {pool.get('built_at')}\n")
     print(f"POOL_NAMES: {', '.join(pool_names) if pool_names else '(空)'}")
@@ -117,7 +188,10 @@ def main():
             print(f"\n检索结果已落盘: {outpath}")
             sys.exit(0)
     elif args.jd:
-        jd_text = open(args.jd, encoding="utf-8").read()
+        jd_text = prepare_jd_text(open(args.jd, encoding="utf-8").read())
+        if not jd_text:
+            print("JD 文件为空", file=sys.stderr)
+            sys.exit(2)
         q_vec = embed([jd_text])[0]
         q_dim_vecs = None
         q_text = jd_text

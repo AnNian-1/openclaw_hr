@@ -68,7 +68,7 @@ HR 月报是给管理层做判断用的，数字错一个、下游判断就跟�
 
 `exec` 里的 `python3` 常是 `/usr/bin/python3`，**没有** pandas/matplotlib；课程依赖装在：
 
-`/usr/local/miniconda3/envs/py312/bin/python3`
+`~/miniconda3/envs/openclaw-hr/bin/python3`
 
 请用 `run_monthly_report.sh`（内置 `resolve_python`），或设 `MONTHLY_REPORT_PYTHON`。**不要**对系统 Python `pip install`。
 

@@ -101,6 +101,11 @@ def main():
     for fb in feedbacks:
         groups[fb["reviewer_relation"]].append(fb)
 
+    if "self" not in groups:
+        die("缺少自评（self）反馈——360 反馈必须含本人自我认知视角")
+    if "manager" not in groups:
+        die("缺少上级（manager）反馈——360 反馈必须含直接主管视角")
+
     subject = feedbacks[0].get("subject", "")
     aggregated = {
         "subject": subject,

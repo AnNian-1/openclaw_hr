@@ -24,6 +24,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE="${ONBOARDING_WORKSPACE:-${WORKSPACE:-$(cd "$SCRIPT_DIR/../../.." && pwd)}}"
 STATE_DIR="${STUB_STATE_DIR:-$WORKSPACE/stub-state/$PINYIN}"
 REVIEW_SH="$WORKSPACE/skills/running-onboarding-review/scripts/onboarding-review.sh"
+STORE_SH="$WORKSPACE/skills/running-onboarding-review/scripts/review-store.sh"
 
 if [ ! -x "$REVIEW_SH" ] && [ -f "$REVIEW_SH" ]; then
   chmod +x "$REVIEW_SH" || true
@@ -32,16 +33,22 @@ if [ ! -f "$REVIEW_SH" ]; then
   echo "[schedule-reviews] 找不到 review 脚本：$REVIEW_SH" >&2
   exit 2
 fi
+if [ ! -f "$STORE_SH" ]; then
+  echo "[schedule-reviews] 找不到 review-store 脚本：$STORE_SH" >&2
+  exit 2
+fi
 
 # openclaw 用 env node；lobster 里常见 PATH 先命中 Node 20，必须把 22 放最前。
-if [ -d "${HOME}/.local/node/node-22/bin" ]; then
-  export PATH="${HOME}/.local/node/node-22/bin:${PATH}"
-fi
+_PREPEND_NODE="$(cd "$SCRIPT_DIR/../../../.." && pwd)/scripts/prepend-node22.sh"
+# shellcheck disable=SC1090
+[ -f "$_PREPEND_NODE" ] && . "$_PREPEND_NODE"
 # openclaw CLI：只信 OPENCLAW_HR_BIN 或 PATH，不 source 家目录 env.sh
 OPENCLAW_BIN="${OPENCLAW_HR_BIN:-$(command -v openclaw || true)}"
-if [ -z "$OPENCLAW_BIN" ] || [ ! -x "$OPENCLAW_BIN" ]; then
-  echo "[schedule-reviews] 找不到 openclaw（请 source 本机 profile 的 env.sh，或设 OPENCLAW_HR_BIN）" >&2
-  exit 2
+if [ "${SCHEDULE_DRY_RUN:-0}" != "1" ]; then
+  if [ -z "$OPENCLAW_BIN" ] || [ ! -x "$OPENCLAW_BIN" ]; then
+    echo "[schedule-reviews] 找不到 openclaw（请 source 本机 profile 的 env.sh，或设 OPENCLAW_HR_BIN）" >&2
+    exit 2
+  fi
 fi
 
 # 解析入职日
@@ -71,6 +78,12 @@ fi
 echo "[schedule-reviews] 候选人=${NAME}（${PINYIN}）入职日=${HIRE_DATE}"
 echo "[schedule-reviews] review 脚本=${REVIEW_SH}"
 
+if ! bash "$STORE_SH" ensure "$NAME" "$PINYIN" >/dev/null; then
+  echo "[schedule-reviews] 警告：本地 review 表 ensure 失败" >&2
+  exit 1
+fi
+echo "[schedule-reviews] 本地 review 表已 ensure 7/30/60/90"
+
 schedule_one () {
   local day="$1"
   local at_iso
@@ -95,7 +108,7 @@ PY
     return 0
   fi
 
-  # --no-deliver：HR profile 无聊天 channel，否则投递失败会把整次任务判失败
+  # --announce：到点把 review 结果投到聊天；无 channel 时 --best-effort-deliver 不让整次任务失败
   # --delete-after-run：一次性 --at 跑完即删
   # --tools exec：允许 Agent 执行 bash
   if ! "$OPENCLAW_BIN" cron add \
@@ -105,7 +118,8 @@ PY
       --at "$at_iso" \
       --tz Asia/Shanghai \
       --session isolated \
-      --no-deliver \
+      --announce \
+      --best-effort-deliver \
       --delete-after-run \
       --timeout-seconds 120 \
       --tools exec \

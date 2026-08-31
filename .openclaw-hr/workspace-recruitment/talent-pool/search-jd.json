@@ -1,0 +1,21 @@
+{
+  "query": "jds/jd-bigtech-后端开发工程师.md",
+  "query_type": "jd",
+  "topn": 3,
+  "insufficient": false,
+  "matchable": 1,
+  "pool_names": [
+    "张磊"
+  ],
+  "results": [
+    {
+      "rank": 1,
+      "id": "张磊-tech-后端",
+      "name": "张磊",
+      "category": "tech",
+      "target_position": "后端技术专家 / 后端架构师",
+      "similarity": 0.8112,
+      "dim_similarity": {}
+    }
+  ]
+}

@@ -170,14 +170,14 @@
 
 ```
 er-admin tools:
-  allow: [exec, read]
-  deny:  [write, edit, apply_patch, browser, cron,
-          group:fs, sessions_spawn, sessions_yield]
+  allow: [exec, read, write, edit, apply_patch]
+  deny:  [browser, cron, sessions_spawn, sessions_yield]
 ```
 
-- **能做的**：`exec`（跑脚本）、`read`（读文件）
-- **不能做的**：写盘、编辑文件、浏览器自动化、定时任务、spawn 子 Agent
-- 飞书群聊场景权限相同（`allow: [exec, read]`，其余全 deny）
+- **能做的**：`exec`（跑脚本）、`read`、本 workspace `write`/`edit`
+- **不能做的**：浏览器自动化、定时任务、spawn 子 Agent
+- 飞书群聊 yaml 同样允许 write（与私聊同一套 `toolsBySender` 往下收）。HR 档可写；主管/员工档禁写。未调用工具时不要口头假装被拒。
+- 飞书仍禁月报（SOUL），与 write 是否开放无关。
 
 ### Cron
 
@@ -266,10 +266,10 @@ er-admin tools:
 
 ## 已知限制
 
-1. **无写盘权限**：`er-admin` 被 deny 了 `write` / `edit`，无法创建或修改文件。依赖 `exec` 跑脚本来间接产出文件（如月报脚本自己写 `report-output/`）。
+1. **写盘由 Gateway `toolsBySender` 决定**：HR 飞书可 `write`/`edit`；主管/员工禁写。用户要求写本 workspace 时必须先调工具，把成功或拒绝原文交回。月报 HTML 仍由脚本自己写 `report-output/`。
 2. **系统 Python 缺 pandas**：OpenClaw `exec` 的 `python3` 常解析为 `/usr/bin/python3`，无 pandas。月报脚本必须用 `run_monthly_report.sh` 或 conda 绝对路径 `/usr/local/miniconda3/envs/py312/bin/python3`，不能 `pip install`。
 3. **政策检索依赖 IMA 可用性**：IMA 服务不可用时整个答疑链路断裂，只能转人工。
-4. **无身份识别能力**：无法判断提问者是领导还是员工，所有政策答复对所有人相同。无角色级权限隔离。
+4. **角色分级在 yaml，不在模型判断**：飞书 `sender_id` 映射三档工具面；未调工具就宣称没权限不算分级生效。
 5. **IMA 知识库 ID 需手动配置**：`IMA_HR_KNOWLEDGE_BASE_ID` 环境变量需运维设置，脚本虽有名称偏好匹配机制，但可能匹配到错误的知识库。
 6. **Canvas id 必须纯 ASCII**：月报 Canvas id 固定为 `hr-monthly-report`，不支持中文 id。
 7. **子 Agent 完全隔离**：无法调用其它业务 Agent，跨域需求只能口头引导用户找 router 或对应渠道。

@@ -77,7 +77,11 @@ scoring-candidates Skill 的评分逻辑细则。SKILL.md 在需要时引用本�
 
 == 6. 批量评分与排序 ==
 
-batch_rank.js 对一个 JD、一个目录下的多份脱敏候选人 JSON 批量评分，全部评完按综合匹配分降序排序。
+batch_rank.js 对一个 JD、一个目录下的多份脱敏候选人 JSON 评分，按综合匹配分降序排序。同目录下的 `score-*.json` / `ranking-*.json` 不会被当成候选人。
+
+增量缓存：`clean-<stem>.json` → `score-<stem>.json`，文件内 `cache.scorer_version`、`cache.jd_sha256`、`cache.clean_sha256`。三者与当前 JD 正文、当前 clean 文件、`SCORER_VERSION` 一致才 skip LLM。同人更新简历（clean 变了）或改 JD 正文会自动重评。改 8 维/prompt 时 bump `SCORER_VERSION`，全员变脏；用 `--stale-only --limit N` 分片重打，`--merge-only` 合并当前版本分数。混 version 的分数不得当作终榜。
+
+`--force` 忽略缓存；与 `--limit` / `--max-seconds` 同时用时，一次进程仍只啃一块。OpenClaw exec `timeout` 过短会 SIGKILL（实测 120 秒、8 人、评到第 5 份被杀），分片时把 timeout 设到能盖住本批墙钟。
 
 关键纪律——LLM 输出非确定性，批量任务偶发失败是常态（LLM 偶发返回非法 JSON、网络中断）。每份候选人最多评 3 次，3 次全失败显式标记"待人工处理"，绝不静默丢弃。招聘场景漏掉一个候选人是事故，宁可重试不可漏人。
 

@@ -32,8 +32,8 @@ def _read_state(path):
     if not os.path.exists(path):
         sys.stderr.write(
             f"[record-pending-approval] 缺少状态文件：{path}\n"
-            "——通常因为 4 路并行准备没跑完、或被人手动删了。"
-            "请重新执行 run-onboarding.sh start ... 让 prep 步骤重写 stub-state。\n"
+            "——通常因为尚未快照 HCM，或 stub 被人手动删了。"
+            "请重新执行 run-onboarding.sh start ... 让 prep 从 HCM 重写 stub-state。\n"
         )
         sys.exit(2)
     with open(path, encoding="utf-8") as f:

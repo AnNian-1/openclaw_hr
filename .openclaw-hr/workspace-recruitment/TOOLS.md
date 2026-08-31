@@ -41,11 +41,16 @@ Add whatever helps you do your job. This is your cheat sheet.
 
 ## Exec（D-011）
 
-所有 shell 必须走：
+所有 shell **整条命令**必须是下面之一：
 
-`scripts/recruitment-run.sh <本域 node/python Skill 命令>`
+- 收邮件：`bash scripts/fetch-mail.sh`
+- 其它本域 Skill：`bash scripts/recruitment-run.sh <python3|node skills/…>`
+- 看 inbox：`ls inbox/`、`cat inbox/…`（不要 `2>/dev/null`、不要 `$(date)`、不要 `source &&`）
+- `mkdir -p profile/output`、`mv a b` 必须**单独一条**，禁止 `mkdir … && bash …`
 
-不要直接 `python3 -c` / `sed` / `tee` 写 `workspace-onboarding`。闸会拒绝其它域路径；未走此脚本的 exec 会被 allowlist 拦住。
+禁止路径里出现 `workspace-onboarding` 等其它域。禁止 `python3 -c`。yaml 没有 `tools.exec.allowlist`。凭证由 `recruitment-run.sh` 注入。
+
+不要直接 `python3 -c` / `sed` / `tee` 写 `workspace-onboarding`。闸会拒绝其它域路径。
 
 ## 招聘业务 Skill 清单
 
@@ -56,10 +61,9 @@ Add whatever helps you do your job. This is your cheat sheet.
 - **做什么**：经 IMAP 拉未读邮件里的简历附件（PDF/DOCX；ZIP/RAR 解压后再提），用 LLM **只读简历文件正文**抽出姓名/岗位，落盘为 `inbox/姓名-岗位.ext`；可选 `mark_read.py` 打 `\Seen`。
 - **什么时候用**：简历还在企业邮箱 / QQ 邮箱，需要自动进 `inbox/` 再交给解析流水线。
 - **调用要点**：
-  - 先 `source ~/.openclaw-hr/env.sh`（`IMAP_USER` / `IMAP_PASS` / `DEEPSEEK_API_KEY`）。
-  - 收取：`python3 skills/fetching-resumes-by-mail/scripts/fetch_resumes.py --backend live --inbox-dir inbox --since $(date +%F) --llm-timeout 20`
-  - 标已读：`python3 skills/fetching-resumes-by-mail/scripts/mark_read.py --uid "<uid...>"`（UID 来自本轮 `.fetched-mail.jsonl`）。
-  - **同姓名跳过**：`inbox/` 已有同姓名文件则不落盘（不覆盖）。
+  - 收取（整条原样）：`bash scripts/fetch-mail.sh`
+  - 标已读：`bash scripts/recruitment-run.sh python3 skills/fetching-resumes-by-mail/scripts/mark_read.py --uid "<uid...>"`（UID 来自本轮 `.fetched-mail.jsonl`）。
+  - **身份与待办**：同一人覆盖后写 `needs-pipeline.jsonl`，本轮重解析+增量评分。岗位/同名说不清仍落盘走完流程，只写 `needs-hr.jsonl` 问 HR。`hr_queue.py list` / `list-pipeline`
   - 需要 `exec` 工具（`group:runtime` 权限组）。
 
 ### parsing-resumes — 简历解析
@@ -102,7 +106,7 @@ Add whatever helps you do your job. This is your cheat sheet.
 - **什么时候用**：候选人数据经 `filtering-sensitive-fields` 脱敏之后。它是评分 Pipeline 三层的**第二层**。
 - **调用要点**：
   - 输入必须是 `filtering-sensitive-fields` 脱敏后的 JSON，不能是含敏感字段的原始画像。
-  - 单份 `node skills/scoring-candidates/scripts/score_candidate.js <脱敏json> <JD-md> [输出json]`；批量 `node skills/scoring-candidates/scripts/batch_rank.js <JD-md> <脱敏json目录> [输出json]`。需要 `exec` 工具（`group:runtime`）。
+  - 单份 `node skills/scoring-candidates/scripts/score_candidate.js <脱敏json> <JD-md> [输出json]`（输出 `score-*.json`）；批量 `node skills/scoring-candidates/scripts/batch_rank.js <JD-md> scoring [输出json] clean-`（输出 `batch-score-*.json` + `ranking-*.json`，不覆盖 `score-*.json`）。默认读已有 `batch-score-*.json` 和 `score-*.json` 增量，不要无 `--force` 为「再排一次」全量打 LLM。人多或规则变更用 `--limit 3` 分多次 exec（timeout 建议 ≥600），最后 `--merge-only` 出榜。需要 `exec` 工具（`group:runtime`）。
   - 评分产出标"建议动作"不标"淘汰/录用"——AI 只评分不做淘汰决定（个保法 24 条 + Workday Mobley 判例）。
   - 评分产出的自由文本可能有数字串台风险，进 HR 决策前要过 `auditing-numbers` 回核。
 
@@ -121,8 +125,8 @@ Add whatever helps you do your job. This is your cheat sheet.
 - **做什么**：把 ranking JSON 里某个候选人的解析数据 + 评分数据，渲染成一张图文并茂的单文件 HTML 候选人画像。画像七区块——基本信息卡、综合评级横幅、8 维度能力雷达图、与 JD 匹配度、工作经历时间线、技能词云、亮点·顾虑·硬伤三栏。雷达图与词云用 matplotlib 渲染、base64 内嵌进 HTML，画像是不依赖外部资源的单文件，离线可打开。
 - **什么时候用**：`scoring-candidates`（必要时再经 `auditing-numbers` 回核）产出 ranking JSON 之后，需要把某个候选人变成 HR 能直接看的可视化页面时。HR 看不懂一堆 JSON，画像把字段组织成图文并茂的一页。
 - **调用要点**：
-  - 生成 `python3 skills/generating-candidate-profiles/scripts/generate_profile.py <ranking.json> <候选人姓名> profile/output/profile-<候选人姓名>.html`，需要 `exec` 工具（`group:runtime` 权限组）。退出码 0 = 成功，2 = 候选人在 ranking JSON 里找不到。
-  - 生成后必须用 `node skills/generating-candidate-profiles/scripts/validate_profile_html.js <profile.html> <ranking.json> <候选人姓名>` 校验，跑通才算完成。校验项：七区块齐全、雷达图与词云 base64 内嵌、**合规红线字段零渲染**、画像综合分/评级/技能数与数据源一致。
+  - 生成：`bash scripts/recruitment-run.sh python3 skills/generating-candidate-profiles/scripts/generate_profile.py <ranking.json或score.json> <姓名> profile/output/profile-<姓名>.html`。单份评分没有 `details` 时，脚本会自动找 `parsed/` 或 `scoring/clean-<姓名>.json`。先 `mkdir -p profile/output`（单独一条，不要 `&&`）。
+  - 校验：`bash scripts/recruitment-run.sh node skills/generating-candidate-profiles/scripts/validate_profile_html.js <profile.html> <同一json> <姓名>`
   - 画像只忠实呈现 ranking JSON 已有的数据，不编造。合规红线字段（年龄/性别/婚育/政治面貌等）绝不渲染进画像——它们可存于数据资产，但不进展示给用人方看的画像。
   - 它和 `auditing-numbers` 不同：`auditing-numbers` 核对评分数字真不真，本 Skill 只负责把数据渲染成画像，不做真实性核对。
 
@@ -132,7 +136,7 @@ Add whatever helps you do your job. This is your cheat sheet.
 - **什么时候用**：HR 给一批历史候选人简历、需要建人才库时。这是人才库语义检索的第一步——没有库就没法做「再来一个像张三的」检索。
 - **调用要点**：
   - 命令 `python3 skills/ingesting-talent-pool/scripts/ingest_talent_pool.py all`（parse + embed 连跑）；`parse` 只抽取（增量），`embed` 只向量化。需要 `exec` 工具（`group:runtime` 权限组）。
-  - 依赖 `DEEPSEEK_API_KEY`（抽取）+ `DASHSCOPE_API_KEY`（embedding），运行前确认已 `source ~/.openclaw-hr/env.sh`。
+  - 依赖 `XIAOMI_API_KEY`（mimo 抽取）+ `DASHSCOPE_API_KEY`（embedding），运行前确认已 `source` 本机 `env.sh`。不要切 DeepSeek。
   - 产物固定落 `talent-pool/talent-pool.json`，下游检索 Skill 直接读它。
   - 它只建库，不做检索——检索是 `searching-talent-pool` 的事。
 
@@ -150,7 +154,7 @@ Add whatever helps you do your job. This is your cheat sheet.
 - **做什么**：把 `searching-talent-pool` 的检索结果，翻译成 HR 能读懂的「为什么这个人像锚点」维度级解释。对 Top N 每人调大模型生成 2-3 句解释。维度分数由检索阶段真实算出、原样传入，大模型只组织语言、绝不重算分或编造新分数——防「数字串台」。
 - **什么时候用**：`searching-talent-pool` 检索出 Top N 之后、把结果交给 HR 之前。检索结果只是「排名 + 分数」，HR 还需要知道「凭什么说像」。
 - **调用要点**：
-  - 命令 `python3 skills/explaining-similarity/scripts/explain_similarity.py --search talent-pool/search-<锚点>.json`，需要 `exec` 工具（`group:runtime` 权限组）。依赖 `DEEPSEEK_API_KEY`。
+  - 命令 `python3 skills/explaining-similarity/scripts/explain_similarity.py --search talent-pool/search-<锚点>.json`，需要 `exec` 工具（`group:runtime` 权限组）。依赖 `XIAOMI_API_KEY`（mimo）。
   - 输入必须是候选人锚点的检索结果（`query_type=candidate`）；带解释的结果落盘 `talent-pool/search-<锚点>-explained.json`。
   - 它只把检索结果讲成人话——自己不做检索、不算分、不排名。算分排名是 `searching-talent-pool` 用余弦相似度做掉的确定性工作。
 
@@ -159,12 +163,10 @@ Add whatever helps you do your job. This is your cheat sheet.
 - **做什么**：把一段面试录音转成「按发言人标注的转写稿」——每个片段都标了是谁说的（`speaker_A` / `speaker_B` / 视场景更多）。**FunASR Paraformer-zh 转写 + CAM++ speaker embedding 凝聚聚类**一次推理同输出——零 token（ModelScope 国内直下载）、MIT 协议、自动决定说话人数量。生产推荐方案。
 - **什么时候用**：收到一段面试录音、需要把它变成按发言人组织的文字稿时。这是面试纪要链路的**第一段**，`generating-minutes` 的上游。
 - **调用要点**：
-  - 命令 `python3 skills/transcribing-interviews/scripts/transcribe_diarize.py <音频文件> interview/<转写名>.json`，需要 `exec` 工具（`group:runtime` 权限组）。
-  - `--device auto` 默认行为：有 NVIDIA 卡走 `cuda:0`，否则 `cpu`。**生产推荐自动检测，无需手动切换**；临时降级用 `--device cpu`。
-  - `--cache` 指定模型缓存目录（默认 `~/.openclaw-hr/workspace-recruitment/models/`），第一次运行自动下载 ~1.3 GB 4 个模型到本地。
-  - 若 funasr 没装在默认 python，用 `--venv /usr/local/miniconda3/envs/funasr_me` 切换到 conda 环境。
-  - 转写后必须用 `node skills/transcribing-interviews/scripts/validate_transcript.js interview/<转写名>.json` 校验，跑通才算转写完成。校验项：JSON schema（含 `diarization_method=funasr-cam++` 拒收旧版 f0-clustering）、片段结构齐全、时间戳自洽、空文本占比正常、说话人分离健康度（至少分出 2 类 + 没有一方占比畸高 > 92%）。退出码 0 = 通过，1 = 不通过，2 = 用法错误。
-  - **环境前置**：conda 环境 `funasr_me`、装 `torch 2.2.2 + numpy<2 + funasr + modelscope`。NumPy 锁版本是硬性约束（torch 2.2.2 是 NumPy 1.x ABI 编译，numpy 2.x 会导致 `RuntimeError: Numpy is not available`）。详见 `skills/transcribing-interviews/references/diarization-method.md §6`。
+  - `bash scripts/recruitment-run.sh python3 skills/transcribing-interviews/scripts/transcribe_diarize.py <音频文件> interview/<转写名>.json`。入口注入 `FUNASR_VENV` 与 `MODELSCOPE_CACHE`（本 workspace `models/`）。
+  - `--device auto`：有 NVIDIA 走 `cuda:0`。OOM 再 `--device cpu`。
+  - 转写后必须：`bash scripts/recruitment-run.sh node skills/transcribing-interviews/scripts/validate_transcript.js interview/<转写名>.json`。
+  - **本机**：conda `funasr_me`。冒烟 `interview-zhanglei-tech2.wav`（282s）在 RTX 3050 4GB 上 `cuda:0` 约 11s wall、105 段、A/B=31/74，校验通过。
 - **为什么不复用旧版 (faster-whisper + 基频聚类)**：旧版写死二分，只对一男一女双峰分得开的合成录音有效；真实面试多说话人 / 同性别相近音色直接失效。FunASR + CAM++ 一次推理自动决定说话人数、零 token、MIT 协议，三难全避开。旧版 `interview/scripts/asr-diarize.py` 仅作为"演示专用降级方案"保留，生产请用本 Skill 的 `transcribe_diarize.py`。
 
 ### generating-minutes — 结构化面试纪要 + 数字回核
@@ -172,7 +174,7 @@ Add whatever helps you do your job. This is your cheat sheet.
 - **做什么**：把 `transcribing-interviews` 产出的按发言人转写稿，交大模型整理成结构化面试纪要——关键问答（按面试官—候选人组织）、优势、待考察点、高亮时刻、评分建议。并对候选人口述的项目数字做回核：大模型只负责从转写稿里「提取」数字，「真伪」由确定性脚本对照候选人原简历判定。
 - **什么时候用**：`transcribing-interviews` 产出转写稿之后，需要把它变成 HR 能直接用的结构化纪要时。这是面试纪要链路的**第二段、也是最后一段**。
 - **调用要点**：
-  - 命令 `python3 skills/generating-minutes/scripts/gen_minutes.py interview/<转写名>.json inbox/<候选人简历>.md interview/<纪要名>.json interview/<纪要名>.md --candidate <姓名> --position <岗位> --round <轮次> --interviewer speaker_A`，需要 `exec` 工具（`group:runtime` 权限组），依赖 `DEEPSEEK_API_KEY`。
+  - 命令 `python3 skills/generating-minutes/scripts/gen_minutes.py interview/<转写名>.json inbox/<候选人简历>.md interview/<纪要名>.json interview/<纪要名>.md --candidate <姓名> --position <岗位> --round <轮次> --interviewer speaker_A`，需要 `exec` 工具（`group:runtime` 权限组），依赖 `XIAOMI_API_KEY`（mimo）。
   - `--interviewer` 指定哪个说话人标签是面试官（默认 `speaker_A`）；若生成的纪要里面试官/候选人发言明显反了，换成 `speaker_B` 重跑。
   - 生成后必须用 `node skills/generating-minutes/scripts/validate_minutes.js interview/<纪要名>.json` 校验。校验项：纪要字段齐全、关键问答每组都是「面试官问题—候选人回答」两行结构、评分建议含 verdict + reason、数字回核统计自洽（回核确实逐项跑过、不是大模型编一个摘要）。退出码 0 = 通过，1 = 不通过，2 = 用法错误。
   - 数字回核的回核基准是候选人**原简历**；它有一个已知局限——回核脚本只匹配阿拉伯数字，候选人口述的中文数字表述（「千分之三」）会标「无阿拉伯数字、需人工核实」，是诚实标注、不是漏判成虚构。

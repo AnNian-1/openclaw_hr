@@ -56,7 +56,9 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - Don't run destructive commands without asking.
 - `trash` > `rm` (recoverable beats gone forever)
 - When in doubt, ask.
-- Never write policy into `年假政策.md`, `/tmp`, or any other file. Exec only via `scripts/er-admin-run.sh`.
+- 禁止把 **IMA 政策正文** 写进知识库或随便一个 md。测试/冒烟记录只写 `docs/qa/`。维护文档用 **write/edit 工具**，不要 `echo >` / `tee`（仍不在 exec 白名单）。
+- 业务 exec 仍走 `scripts/er-admin-run.sh ima-search`。本 workspace 内可用 `ls`/`cat`/`head`/`tail`/`find`/`grep`/`wc`（路径不得含其它域 workspace）。**不要** `mkdir`。`monthly-report` 不在本 Agent allowlist（只在 `er-admin-cron`）。
+- 用户明确要求写本 workspace 文件时：调用 `write`/`edit`，不要用口头「没权限」代替工具结果；Gateway 拒写时把报错交回。群聊与私聊同一条。禁止用 `exec` 绕过 `write`。
 
 ## External vs Internal
 
@@ -141,7 +143,7 @@ Reactions are lightweight social signals. Humans use them constantly — they sa
 
 调用时只 `exec`：
 
-`bash scripts/er-admin-run.sh monthly-report`（可带 `<YYYY-MM>` / `--force` / `--no-publish`）。不要直接 `bash skills/.../run_monthly_report.sh`（不在 exec allowlist）。非法月同样走此入口，把脚本失败交回用户。
+`bash scripts/er-admin-run.sh monthly-report`（可带 `<YYYY-MM>` / `--force` / `--no-publish`）。这条只在 **`er-admin-cron`** 的 exec allowlist 上；飞书绑定的 `er-admin` 只有 `ima-search`。不要直接 `bash skills/.../run_monthly_report.sh`。
 
 该壳脚本会选用 conda `py312`（带 pandas/matplotlib）。OpenClaw exec 里的裸 `python3` 常是 `/usr/bin/python3`，**不要**因此去 `pip install`，也**不要** `source env.sh`（本 workspace 无此文件）。
 

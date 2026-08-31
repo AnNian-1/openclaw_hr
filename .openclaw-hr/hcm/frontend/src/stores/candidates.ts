@@ -7,11 +7,11 @@ import { DEPARTMENTS } from '../types'
 export const useCandidatesStore = defineStore('candidates', () => {
   const candidates = ref<Candidate[]>([])
   const loading = ref(false)
-  const currentDepartment = ref<Department>('overview')
+  const currentDepartment = ref<Department>('hr')
   const selectedCandidateId = ref<number | null>(null)
 
   const currentDeptConfig = computed<DepartmentConfig>(() =>
-    DEPARTMENTS.find(d => d.key === currentDepartment.value) ?? DEPARTMENTS[5]
+    DEPARTMENTS.find(d => d.key === currentDepartment.value) ?? DEPARTMENTS[0]
   )
 
   const selectedCandidate = computed(() =>
@@ -61,25 +61,6 @@ export const useCandidatesStore = defineStore('candidates', () => {
     }
   }
 
-  async function updateReview(candidateId: number, reviewType: string, status: string, content?: string) {
-    try {
-      const body: Record<string, any> = { status }
-      if (content !== undefined) body.content = content
-      const { data } = await axios.put(`/api/candidates/${candidateId}/reviews/${reviewType}`, body)
-      const c = candidates.value.find(c => c.id === candidateId)
-      if (c) {
-        const review = c.reviews.find(r => r.review_type === reviewType)
-        if (review) {
-          review.status = data.status
-          review.content = data.content
-          review.completed_at = data.completed_at
-        }
-      }
-    } catch (e) {
-      console.error('Failed to update review:', e)
-    }
-  }
-
   async function updateCandidate(candidateId: number, patch: { name?: string; role?: string; salary?: string; status?: string }) {
     try {
       const { data } = await axios.put(`/api/candidates/${candidateId}`, patch)
@@ -105,15 +86,6 @@ export const useCandidatesStore = defineStore('candidates', () => {
           node.data = event.data.data
         }
       }
-    } else if (event.event === 'review_updated') {
-      const c = candidates.value.find(c => c.id === event.data.candidate_id)
-      if (c) {
-        const review = c.reviews.find(r => r.review_type === event.data.review_type)
-        if (review) {
-          review.status = event.data.status
-          review.content = event.data.content
-        }
-      }
     }
   }
 
@@ -136,7 +108,6 @@ export const useCandidatesStore = defineStore('candidates', () => {
     updatePrepNode,
     createCandidate,
     updateCandidate,
-    updateReview,
     handleWSEvent,
     setDepartment,
     selectCandidate,

@@ -28,7 +28,7 @@ CLI：
       [--interviewer speaker_A]
 退出码：0 = 纪要生成成功；1 = 大模型调用失败；2 = 用法/文件错误。
 
-依赖环境变量 DEEPSEEK_API_KEY。
+依赖环境变量 XIAOMI_API_KEY（或 LLM_API_KEY）。默认模型 mimo-v2.5-pro。
 """
 import sys
 import os
@@ -37,12 +37,25 @@ import re
 import time
 import urllib.request
 
-API_URL = "https://api.deepseek.com/v1/chat/completions"
-MODEL = "deepseek-v4-pro"
-# 大模型调用重试次数。纪要生成是一次大模型调用，网络抖动要兜底。
 LLM_RETRIES = 3
 # 数字回核里"中文数字 / 通用约数"无法用阿拉伯数字匹配，回核结果会标
 # "无数字"——这是回核脚本的已知局限，不是 bug。
+
+
+def resolve_llm():
+    model = os.environ.get("LLM_MODEL") or "mimo-v2.5-pro"
+    is_mimo = "mimo" in model or "xiaomi" in (os.environ.get("LLM_BASE_URL") or "")
+    base = os.environ.get("LLM_BASE_URL") or (
+        "https://token-plan-cn.xiaomimimo.com/v1" if is_mimo else "https://api.deepseek.com/v1"
+    )
+    url = base.rstrip("/") + "/chat/completions"
+    key = (
+        os.environ.get("LLM_API_KEY")
+        or (os.environ.get("XIAOMI_API_KEY") if is_mimo or "xiaomi" in base else "")
+        or os.environ.get("DEEPSEEK_API_KEY")
+        or ""
+    )
+    return model, url, key
 
 
 def die(msg, code=2):
@@ -76,10 +89,10 @@ def parse_args(argv):
 
 
 def call_deepseek(system, user, max_tokens=3500, temperature=0.2):
-    api_key = os.environ.get("DEEPSEEK_API_KEY", "")
+    model, api_url, api_key = resolve_llm()
     if not api_key:
-        die("环境变量 DEEPSEEK_API_KEY 未设置", 2)
-    payload = {"model": MODEL,
+        die("未设置 XIAOMI_API_KEY / LLM_API_KEY", 2)
+    payload = {"model": model,
                "messages": [{"role": "system", "content": system},
                             {"role": "user", "content": user}],
                "max_tokens": max_tokens, "temperature": temperature,
@@ -89,7 +102,7 @@ def call_deepseek(system, user, max_tokens=3500, temperature=0.2):
     for i in range(1, LLM_RETRIES + 1):
         try:
             req = urllib.request.Request(
-                API_URL, data=data,
+                api_url, data=data,
                 headers={"Authorization": f"Bearer {api_key}",
                          "Content-Type": "application/json"})
             with urllib.request.urlopen(req, timeout=180) as r:
@@ -100,7 +113,7 @@ def call_deepseek(system, user, max_tokens=3500, temperature=0.2):
             if i < LLM_RETRIES:
                 time.sleep(3 * i)
     # 多次重试仍失败：显式报错退出码 1，绝不返回空纪要冒充成功
-    die(f"DeepSeek 调用失败（{LLM_RETRIES} 次重试均失败）: {last}", 1)
+    die(f"LLM 调用失败（{LLM_RETRIES} 次重试均失败）: {last}", 1)
 
 
 def norm_num(s):
@@ -181,7 +194,8 @@ def main():
 
 请整理成结构化面试纪要。{meta_line}"""
 
-    print("[1/3] 调 DeepSeek V4 生成结构化纪要...", flush=True)
+    MODEL, _, _ = resolve_llm()
+    print(f"[1/3] 调 {MODEL} 生成结构化纪要...", flush=True)
     raw = call_deepseek(SYS, USER)
     try:
         minutes = json.loads(raw)
@@ -226,7 +240,7 @@ def main():
           "",
           f"- **应聘岗位**：{m.get('position', '')}",
           f"- **面试轮次**：{m.get('interview_round', '')}",
-          "- **生成方式**：录音 → FunASR Paraformer-zh 转写 + CAM++ 说话人分离 → DeepSeek V4 整理",
+          f"- **生成方式**：录音 → FunASR Paraformer-zh 转写 + CAM++ 说话人分离 → {MODEL} 整理",
           "",
           "## 关键问答（按发言人组织）", ""]
     for i, qa in enumerate(m.get("qa", []), 1):

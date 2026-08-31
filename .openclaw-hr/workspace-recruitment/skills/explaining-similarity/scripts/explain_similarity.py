@@ -1,4 +1,4 @@
-#!/usr/local/miniconda3/envs/py312/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 相似度解释生成 (openclaw-ai-hr C-3b)

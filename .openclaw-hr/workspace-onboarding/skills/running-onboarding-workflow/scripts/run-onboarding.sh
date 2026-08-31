@@ -21,9 +21,9 @@
 #      所以本脚本捕获 lobster stdout，再调 update-workflow.py attach。
 #
 # 用法：
-#   run-onboarding.sh start  <name> <pinyin> <role> <salary>   # 启动工作流（到第一个审批门 halt）
-#   run-onboarding.sh resume <token> yes|no                    # 批准/拒绝一个审批门
-#   run-onboarding.sh dry    <name> <pinyin> <role> <salary>   # dry-run，只打印执行计划
+#   run-onboarding.sh start [--force] <name> <pinyin> <role> <salary>
+#   run-onboarding.sh resume <token> yes|no
+#   run-onboarding.sh dry    <name> <pinyin> <role> <salary>
 #
 # 退出码：0 = lobster 正常返回（含 needs_approval / ok / cancelled，都属正常）；
 #         非 0 = 启动器自身的前置检查失败（文件缺失等）或 lobster 进程异常。
@@ -31,10 +31,20 @@ set -euo pipefail
 
 # lobster 子进程会继承本 PATH。openclaw 的 shebang 是 env node：
 # 只保证「找得到 openclaw」不够，PATH 里若先是 Node 20，cron add 会直接失败。
-if [ -d "${HOME}/.local/node/node-22/bin" ]; then
-  export PATH="${HOME}/.local/node/node-22/bin:${PATH}"
-fi
+_PREPEND_NODE="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)/scripts/prepend-node22.sh"
+# shellcheck disable=SC1090
+[ -f "$_PREPEND_NODE" ] && . "$_PREPEND_NODE"
 export OPENCLAW_HR_BIN="${OPENCLAW_HR_BIN:-$(command -v openclaw || true)}"
+
+# HCM_API_URL 与 HCM_API_BASE 等价，统一导出给 python 子进程
+if [ -n "${HCM_API_BASE:-}" ] && [ -z "${HCM_API_URL:-}" ]; then
+  export HCM_API_URL="$HCM_API_BASE"
+fi
+if [ -n "${HCM_API_URL:-}" ] && [ -z "${HCM_API_BASE:-}" ]; then
+  export HCM_API_BASE="$HCM_API_URL"
+fi
+export HCM_API_URL="${HCM_API_URL:-http://127.0.0.1:8000}"
+export HCM_API_BASE="${HCM_API_BASE:-$HCM_API_URL}"
 
 # ── 路径推导：由本脚本位置反推，不依赖调用方 cwd ────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # …/skills/running-onboarding-workflow/scripts
@@ -67,16 +77,16 @@ fail() { echo "[run-onboarding] 错误：$1" >&2; exit 3; }
 然后 source $PROFILE_DIR/env.sh 让 lobster 二进制入 PATH。"
 for s in contract.sh it-account.sh device.sh buddy.sh training.sh \
          build-approval-prompt.py record-pending-approval.py update-workflow.py \
-         emit-approval-verbatim.py; do
+         emit-approval-verbatim.py snapshot_hcm_prep.py; do
   [ -f "$SCRIPT_DIR/$s" ] || fail "依赖脚本缺失：$SCRIPT_DIR/$s"
 done
 mkdir -p "$STATE"
 
 # HCM 花名册先行：小慧只读、不写 HCM。start/dry 前必须能在 HCM 查到该拼音。
-# 覆盖：HCM_API_BASE（默认 http://127.0.0.1:8000）
+# 覆盖：HCM_API_URL 或 HCM_API_BASE（默认 http://127.0.0.1:8000）
 require_hcm_candidate() {
   local pinyin="$1"
-  local base="${HCM_API_BASE:-http://127.0.0.1:8000}"
+  local base="${HCM_API_URL:-${HCM_API_BASE:-http://127.0.0.1:8000}}"
   local url="${base%/}/api/candidates"
   local body
   if ! body="$(curl -sS -m 5 "$url" 2>/dev/null)"; then
@@ -101,6 +111,29 @@ sys.exit(0 if ok else 1)
     fail "HCM 花名册中没有拼音「${pinyin}」的候选人。请先在 HCM（看板或 POST /api/candidates）建档，再启动入职流程。小慧不会向 HCM 写入。"
   fi
   echo "[run-onboarding] HCM 已有候选人拼音=${pinyin}，继续" >&2
+}
+
+# 进审批门前：合同节点须在 HCM 为 in_progress/completed。未齐则只记 waiting，不跑 lobster。
+require_contract_gate_ready() {
+  local name="$1"
+  local pinyin="$2"
+  set +e
+  python3 "$SCRIPT_DIR/snapshot_hcm_prep.py" "$pinyin" --name "$name" \
+    --nodes contract,account,device,training,buddy \
+    --require-gate contract
+  local rc=$?
+  set -e
+  if [ "$rc" = "6" ]; then
+    python3 "$SCRIPT_DIR/update-workflow.py" init "$pinyin" "$name" "$ROLE" "$SALARY" >/dev/null || true
+    python3 "$SCRIPT_DIR/update-workflow.py" event "$pinyin" prep waiting \
+      "HCM 合同节点未齐，未启动审批。请催 HR 在 HCM 填写后再 start。" >/dev/null || true
+    echo "[run-onboarding] 未进入审批：HCM 合同尚未开始/完成。入职小慧不代替部门填写。请催办后再次 start。" >&2
+    return 6
+  fi
+  if [ "$rc" != "0" ]; then
+    return "$rc"
+  fi
+  return 0
 }
 
 # 捕获 lobster 输出 → attach approval_id/resume_token → 原样把 lobster JSON 打到 stdout
@@ -135,18 +168,48 @@ run_lobster_and_attach() {
 ACTION="${1:-}"
 case "$ACTION" in
   start|dry)
-    NAME="${2:-新员工}"; PINYIN="${3:-employee}"; ROLE="${4:-工程师}"; SALARY="${5:-面议}"
+    rest=("${@:2}")
+    FORCE=0
+    if [ "${rest[0]:-}" = "--force" ]; then
+      FORCE=1
+      rest=("${rest[@]:1}")
+    fi
+    NAME="${rest[0]:-新员工}"; PINYIN="${rest[1]:-employee}"; ROLE="${rest[2]:-工程师}"; SALARY="${rest[3]:-面议}"
     # 先查 HCM 花名册（只读），没有该拼音则拒绝，不建 stub、不调 lobster
     require_hcm_candidate "$PINYIN"
     # stub 目录改为按候选人隔离：STUB_STATE_DIR = $STATE/<pinyin>/
     # 5 个 stub 脚本不改，只读取 $STUB_STATE_DIR 环境变量，自然落到候选人子目录下。
-    # 此处 export 后 lobster 会透传给每个 run 子 shell（含 4 路并行的 stub 子 shell）。
+    # 此处 export 后 lobster 会透传给每个 run 子 shell。
     export STUB_STATE_DIR="$STATE/$PINYIN"
     mkdir -p "$STUB_STATE_DIR"
     ARGS_JSON=$(NAME="$NAME" PINYIN="$PINYIN" ROLE="$ROLE" SALARY="$SALARY" python3 -c \
       'import json,os; print(json.dumps({"name":os.environ["NAME"],"pinyin":os.environ["PINYIN"],"role":os.environ["ROLE"],"salary":os.environ["SALARY"]},ensure_ascii=False))')
-    # start 真跑前清掉该候选人旧 stub + workflow.json，确保本次扭转记录从 init 开始
+    # completed 后再 start 会抹掉扭转轨迹；须显式 --force
+    # waiting_departments 允许再次 start（部门补齐后继续）
+    if [ "$ACTION" = "start" ] && [ "$FORCE" != 1 ] && [ -f "$STUB_STATE_DIR/workflow.json" ]; then
+      st="$(python3 - "$STUB_STATE_DIR/workflow.json" <<'PY'
+import json, sys
+print(json.load(open(sys.argv[1], encoding="utf-8")).get("status") or "")
+PY
+)"
+      if [ "$st" = "completed" ]; then
+        fail "拼音 ${PINYIN} 已有 status=completed 的入职工作流，拒绝静默覆盖。确认重跑请：run-onboarding.sh start --force ${NAME} ${PINYIN} ${ROLE} ${SALARY}"
+      fi
+      if [ "$st" = "halted" ]; then
+        fail "拼音 ${PINYIN} 审批正在 halt，请 resume，不要重新 start（除非 --force）。"
+      fi
+    fi
     if [ "$ACTION" = "start" ]; then
+      set +e
+      require_contract_gate_ready "$NAME" "$PINYIN"
+      gate_rc=$?
+      set -e
+      if [ "$gate_rc" = "6" ]; then
+        exit 6
+      fi
+      if [ "$gate_rc" != "0" ]; then
+        exit "$gate_rc"
+      fi
       rm -f "$STUB_STATE_DIR"/contract.json "$STUB_STATE_DIR"/account.json "$STUB_STATE_DIR"/device.json \
             "$STUB_STATE_DIR"/buddy.json "$STUB_STATE_DIR"/training.json \
             "$STUB_STATE_DIR"/workflow.json

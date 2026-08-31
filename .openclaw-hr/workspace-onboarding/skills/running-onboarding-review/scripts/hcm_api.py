@@ -5,8 +5,8 @@ hcm_api.py — HCM 系统 API 客户端（只读 + 节点更新）
 所有入职脚本通过此模块调用 HCM API，不再直接读写本地 JSON 文件。
 数据真相来源是 HCM 系统（SQLite），不是本地 stub-state/。
 
-环境变量：
-  HCM_API_URL — API 地址，默认 http://localhost:8000
+环境变量（二者等价，先读 URL）：
+  HCM_API_URL / HCM_API_BASE — API 地址，默认 http://localhost:8000
 
 原则：
   · GET 读取候选人数据（小慧只读）
@@ -18,12 +18,20 @@ import sys
 import urllib.request
 import urllib.error
 
-HCM_API_BASE = os.environ.get("HCM_API_URL", "http://localhost:8000")
+def hcm_base():
+    return (
+        os.environ.get("HCM_API_URL")
+        or os.environ.get("HCM_API_BASE")
+        or "http://localhost:8000"
+    ).rstrip("/")
+
+
+HCM_API_BASE = hcm_base()
 
 
 def _request(method, path, body=None):
     """发起 HTTP 请求，返回 (status_code, parsed_json)。"""
-    url = f"{HCM_API_BASE}{path}"
+    url = f"{hcm_base()}{path}"
     data = None
     if body is not None:
         data = json.dumps(body, ensure_ascii=False).encode("utf-8")

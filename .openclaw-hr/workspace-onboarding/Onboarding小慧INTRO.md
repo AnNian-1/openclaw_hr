@@ -2,7 +2,7 @@
 
 ## 一句话
 
-我是「小慧」多 Agent 系统中的入职子 Agent，用 Lobster 工作流引擎驱动新员工入职审批全流程——4 路并行准备 + 2 个人工审批门 + 试用期 review 跟进 + 可视化看板。
+我是「小慧」多 Agent 系统中的入职子 Agent：从 HCM **只读**部门进度、催办 HR、驱动两道人工审批门，并在五部门都完成后才开通试用期跟进。不代替合同/IT/行政/培训/Buddy 部门填写。
 
 ## 系统位置（ASCII）
 
@@ -25,11 +25,9 @@
        v
    Lobster 引擎 (hr-onboarding.lobster)
        |
-       +-- contract.sh     (合同准备 stub)
-       +-- it-account.sh   (IT 账号 stub)
-       +-- device.sh       (设备申请 stub)
-       +-- training.sh     (培训安排 stub)
-       +-- buddy.sh        (带教导师匹配)
+       +-- snapshot_hcm_prep.py  (只读快照 HCM 五节点，不编造)
+       +-- 两道 HiTL 审批门
+       +-- sync-reviews-if-ready.sh  (五节点全绿才挂 7/30/60/90)
 ```
 
 - **workspace 目录**：`~/.openclaw-hr/workspace-onboarding/` —— 业务文件、Skill、状态数据都在这里。
@@ -42,7 +40,7 @@
 
 | Skill | 职责 |
 |-------|------|
-| `running-onboarding-workflow` | 用 Lobster 跑一名新员工的入职审批流程：4 路并行准备 + 2 个 HiTL 审批门 |
+| `running-onboarding-workflow` | 只读快照 HCM + 2 个 HiTL 审批门；不代替其它部门执行 |
 | `querying-onboarding-status` | 查询入职审批工作流当前状态与待审正文 |
 | `running-onboarding-review` | 按 7/30/60/90 天节点跑入职跟进 review |
 | `generating-onboarding-dashboard` | 生成所有新员工入职进度 HTML 看板并发布到 Canvas |
@@ -54,7 +52,7 @@
 - **绩效管理**（360 反馈、季度绩效调度）—— 由 `performance` 处理。
 - **行政员工关系**（政策问答 RAG、月报）—— 由 `er-admin` 处理。
 - **路由调度** —— 由 `router` 处理，我不自己分发任务给其它 Agent。
-- **真实 IT 系统对接** —— 当前账号/设备申请为本地 stub 模拟，不接企业 IT 系统。
+- **真实 IT / 行政 / 培训执行** —— 由各部门在 HCM 填写；我只读进度并催办，不编造已起草/已配齐/已排期。
 
 **人在回路（HiTL）：**
 
@@ -73,43 +71,37 @@
  [1] exec: run-onboarding.sh start 张磊 zhanglei 后端工程师 32K
         |
         v
- [2] Lobster 引擎执行 4 路并行准备
-     +-- contract.sh   --> stub-state/zhanglei/contract.json
-     +-- it-account.sh --> stub-state/zhanglei/it-account.json
-     +-- device.sh     --> stub-state/zhanglei/device.json
-     +-- training.sh   --> stub-state/zhanglei/training.json
-     +-- update-workflow.py --> stub-state/zhanglei/workflow.json
+ [2] 校验 HCM 花名册；合同节点未开始则退出 6，催部门
         |
         v
- [3] 流程在 contract_gate 暂停 (needs_approval)
+ [3] Lobster prep：snapshot_hcm_prep.py 只读快照（不编造部门产出）
+        |
+        v
+ [4] 流程在 contract_gate 暂停 (needs_approval)
      stderr 输出 ---PROMPT--- 块 + resumeToken
         |
         v
- [4] 我把 PROMPT 原文 + resumeToken 交回用户（隐藏标记行）
+ [5] 我把 PROMPT 原文 + resumeToken 交回用户（隐藏标记行）
         |
         v
- [5] 用户回复"批准"
+ [6] 用户回复"批准"
         |
         v
- [6] exec: run-onboarding.sh resume <resumeToken> yes
+ [7] exec: run-onboarding.sh resume <resumeToken> yes
         |
         v
- [7] 流程推进到 account_gate 暂停 (needs_approval)
+ [8] 流程推进到 account_gate 暂停 (needs_approval)
      新的 ---PROMPT--- 块 + 新的 resumeToken
+     若账号/设备/培训仍为 pending：交回 prompt，不要建议批准，先催部门
         |
         v
- [8] 我再次交回，用户再次批准
+ [9] 用户再次批准后 resume 新 token
         |
         v
- [9] exec: run-onboarding.sh resume <新resumeToken> yes
+[10] complete 归档。sync-reviews-if-ready.sh：仅五节点全绿才挂 Cron
         |
         v
-[10] buddy.sh (导师匹配) + complete (归档) 执行
-     workflow.json 更新为完成状态
-     schedule-onboarding-reviews.sh 挂 7/30/60/90 Cron
-        |
-        v
-[11] 我报告：入职审批完成，已安排试用期跟进
+[11] 我报告：审批工作流完成；跟进是否开通看五节点是否全绿
 ```
 
 **触发条件**：用户说「为 X 启动入职」「X 的入职审批走一下」。
@@ -163,7 +155,7 @@
 
 1. 用户说：「为新员工张磊启动入职，岗位后端工程师，薪资 32K」
 2. 我执行：`bash skills/running-onboarding-workflow/scripts/run-onboarding.sh start 张磊 zhanglei 后端工程师 32K`
-3. Lobster 引擎跑 4 路并行准备，产出 `stub-state/zhanglei/` 下 5 个 JSON + `workflow.json`
+3. 合同未开始则退出 6 催部门；否则 Lobster 只读快照 HCM，不编造部门产出
 4. 流程在合同审批门暂停，stderr 输出 `---PROMPT---` 块
 5. 我回复用户：
 
@@ -202,10 +194,10 @@
 
 **脚本语言与关键入口：**
 
-- **Bash**：`run-onboarding.sh`（启动/resume）、`onboarding-review.sh`（review）、`build-dashboard.sh`（看板）、`schedule-onboarding-reviews.sh`（挂 Cron）
-- **Python3**：`build-approval-prompt.py`（拼审批 prompt）、`refresh-gate-stubs.py`（刷新门 stub）、`update-workflow.py`（维护 workflow.json）、`build-dashboard.py`（看板 HTML 生成）、`publish_to_canvas.py`（发布到 Canvas）、`query-onboarding-status.py`（状态查询）
-- **Lobster**：`hr-onboarding.lobster`（工作流定义，4 路并行 + 2 审批门）
-- **Shell stub**：`contract.sh`、`it-account.sh`、`device.sh`、`training.sh`、`buddy.sh`
+- **Bash**：`run-onboarding.sh`（启动/resume）、`onboarding-review.sh`（review）、`build-dashboard.sh`（看板）、`sync-reviews-if-ready.sh`（五节点全绿才挂 Cron）
+- **Python3**：`build-approval-prompt.py`（拼审批 prompt）、`refresh-gate-stubs.py`（刷新门 stub）、`update-workflow.py`（维护 workflow.json）、`build-dashboard.py`（看板 HTML 生成）、`publish_to_canvas.py`（发布到 Canvas）、`query-onboarding-status.py`（状态查询）、`snapshot_hcm_prep.py`（HCM 只读快照）
+- **Lobster**：`hr-onboarding.lobster`（HCM 快照 + 2 审批门；complete 不无条件挂跟进）
+- **HCM 快照封装**：`contract.sh`、`it-account.sh`、`device.sh`、`training.sh`、`buddy.sh`（只读，不编造）
 
 **外部依赖：**
 
@@ -230,14 +222,14 @@
 
 **定时任务（Cron）：**
 
-- 入职工作流 `complete` 节点自动调用 `schedule-onboarding-reviews.sh`，注册 4 个一次性 `--at` Cron 任务（入职后第 7/30/60/90 天）。
+- 入职审批归档或查询/看板刷新时调用 `sync-reviews-if-ready.sh`：仅当 HCM 五节点均为 completed 才注册 4 个一次性 `--at` Cron。
 - Cron 触发时，以 `agentTurn` 方式在隔离会话中执行 review。
-- 也可手动注册：`bash skills/running-onboarding-review/scripts/schedule-onboarding-reviews.sh <姓名> <pinyin> [入职日]`
+- **不要**在节点未齐时直接跑 `schedule-onboarding-reviews.sh`。
 - **Heartbeat**：不用于本职业务（入职流程由显式触发驱动，不需要轮询）。
 
 **外部系统：**
 
-- **HCM**（Vue `:5173` + FastAPI `:8000`）—— 独立应用，非 Agent。review 脚本通过 `hcm_api.py` 读取，当前为 stub 实现。HCM 不可用时降级为本地数据，不会报「系统错误」冒充正常。
+- **HCM**（Vue `:5173` + FastAPI `:8000`）—— 花名册与五部门节点的唯一写入面。小慧只 GET。HCM 不可用时查询/启动明确失败，不用 stub 冒充。
 
 ## 如何被调用、如何交回结果
 
@@ -282,9 +274,9 @@
 **副作用：**
 
 - 调 Lobster 引擎执行工作流
-- 启动时会清掉旧状态再跑 4 路并行准备（`start` 动作）
+- 启动时会清掉旧 stub 再快照 HCM（`start`）；合同未开始则不跑 lobster、只记 waiting_departments
 - 看板 `--publish --force` 覆盖 Canvas 已有文件
-- `schedule-onboarding-reviews.sh` 注册 Cron 一次性任务
+- `sync-reviews-if-ready.sh` 在五节点全绿时注册 Cron
 
 **失败场景：**
 
@@ -293,7 +285,7 @@
 | Lobster 引擎不可用 | `run-onboarding.sh` 报错退出 | 否，明确报错 |
 | 审批门被拒绝 | `status` 变 `cancelled`，流程终止 | 否，如实报告 |
 | 状态文件缺失 | 看板显示「未就绪」，review 报告标注缺失 | 否，不编造 |
-| HCM 不可用 | review 降级为本地 stub 数据 | 否，不冒充 |
+| HCM 不可用 | 查询/启动明确失败（exit 5），不用 stub 冒充 | 否，明确报错 |
 | resumeToken 丢失 | 无法 resume，流程卡住 | 否，需人工介入 |
 | 月份/天数越界（非 7/30/60/90） | review 落入「常规跟进」 | 否，如实标注 |
 | Canvas 发布失败 | `publish_to_canvas.py` 非零退出 | 否，报错并给路径 |
@@ -332,8 +324,8 @@
 
 1. **串台风险**：本 Agent 不能 spawn 其它业务 Agent，但用户直连时可能提出跨域需求。我只能建议转走，不能代为执行。
 2. **中文 Canvas id 禁止**：看板发布 id 固定为 `onboarding-dashboard`（纯 ASCII），曾有尝试用中文 id 导致发布失败的记录（`references/canvas-publishing.md` 有事故复盘）。
-3. **stub 脚本非真实 IT 系统**：`it-account.sh`、`device.sh` 等是本地模拟，真实环境需替换为企业系统 API，但工作流定义本身不需要改动。
+3. **部门工作在 HCM**：`it-account.sh` 等只是 HCM 只读快照，不接企业 IT，也不编造已开通。
 4. **exec 中系统 python3 缺依赖**：部分脚本依赖 Python3 标准库之外的模块（如 `json`、`os`、`sys` 均为标准库，无额外 pip 依赖）。若未来引入 pandas 等需确认环境已安装。
-5. **启动会清旧状态**：`run-onboarding.sh start` 会先清理该候选人的旧 stub 状态再跑新流程。不要在流程中途重复 start，会污染状态。
+5. **启动会清旧状态**：`run-onboarding.sh start` 在合同已可进门时会先清理该候选人的旧 stub 再跑。`halted`/`completed` 须 `--force`。
 6. **审批门停住时无自动超时**：如果用户一直不审批，流程会一直停在审批门。没有自动超时或提醒机制（除非手动设置 Cron 提醒）。
 7. **resumeToken 是唯一钥匙**：token 丢失后无法从其它文件恢复 resume 能力，只能重新 start。这是 Lobster 引擎的设计限制。

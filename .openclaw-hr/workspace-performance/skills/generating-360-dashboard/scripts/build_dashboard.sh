@@ -13,6 +13,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PREPEND="$SCRIPT_DIR/../../../../scripts/prepend-conda-python.sh"
+# shellcheck disable=SC1090
+[ -f "$PREPEND" ] && . "$PREPEND"
 
 PUBLISH=0
 FORCE=0

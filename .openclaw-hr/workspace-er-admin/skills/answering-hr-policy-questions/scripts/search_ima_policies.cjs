@@ -311,6 +311,7 @@ const DOMAIN_BIGRAMS = new Set([
   '弹性', '远程', '居家', '社保', '公积金', '薪酬', '工资', '个税', '试用',
   '转正', '入职', '离职', '绩效', '报销', '差旅', '培训', '晋升', '福利',
   '仲裁', '辞退', '合同', '迟到', '早退', '缺勤', '工时', '坐班',
+  '出差', '费用', '发票', '补贴', '住宿',
 ]);
 
 /** 从查询抽出用于正文匹配的词（偏长词/领域词，覆盖正文任意位置） */
@@ -357,6 +358,15 @@ function queryTerms(query) {
   if (/年假|清零|结转/.test(compact)) {
     terms.add('年假');
     terms.add('结转');
+  }
+  if (/报销|差旅|出差|差旅费|交通费|住宿补贴/.test(compact)) {
+    terms.add('报销');
+    terms.add('差旅');
+    terms.add('出差');
+    terms.add('差旅费');
+    terms.add('费用');
+    terms.add('住宿');
+    terms.add('交通费');
   }
 
   for (const bad of ['公司的', '公司', '政策', '规定', '多少', '什么', '如何', '可以', '有没有', '政策是']) {
@@ -576,7 +586,11 @@ async function main() {
   if (hits.length === 0) process.exit(1);
 }
 
-main().catch((e) => {
-  console.error(JSON.stringify({ ok: false, error: String(e.message || e) }));
-  process.exit(1);
-});
+module.exports = { queryTerms, DOMAIN_BIGRAMS };
+
+if (require.main === module) {
+  main().catch((e) => {
+    console.error(JSON.stringify({ ok: false, error: String(e.message || e) }));
+    process.exit(1);
+  });
+}

@@ -1,6 +1,6 @@
 ---
 name: generating-onboarding-dashboard
-description: Generate a visual HTML onboarding-progress dashboard for all new hires by querying the HCM system API, then optionally publish it to OpenClaw Canvas host for browser viewing. Use this skill when someone asks for an onboarding progress overview, a status board, or wants to see where new hires stand. It reads the 5 preparation nodes and 4 probation-review nodes from HCM GET /api/candidates, reads workflow.json for the current gate badge, and writes a one-page HTML dashboard. Does not write to HCM.
+description: Generate a visual HTML onboarding-progress dashboard for all new hires. Reads 5 preparation nodes from HCM GET /api/candidates, 4 probation-review cells from local review-state/reviews.json (armed only after all 5 HCM nodes are completed), and workflow.json for the gate badge. Optionally publish to OpenClaw Canvas. Does not write to HCM.
 metadata:
   openclaw:
     requires:
@@ -21,7 +21,7 @@ HR 同时带多个新人，每个人的入职都散落在不同系统里——�
 ## 数据来源
 
 - **花名册与五部门准备节点**：HCM `GET /api/candidates`（只读）
-- **review 节点**：HCM 返回的 `candidate.reviews` 字段（只读）
+- **review 节点**：本机 `review-state/reviews.json`（只读）
 - **审批门角标**：本机 `stub-state/<pinyin>/workflow.json`（HCM 无此字段）
 - **不向 HCM 写入**
 
@@ -39,7 +39,7 @@ bash skills/generating-onboarding-dashboard/scripts/build-dashboard.sh
 
 脚本做三件事：
 
-1. **从 HCM 获取候选人** —— 调用 `GET /api/candidates` 获取花名册全部候选人（含 5 个准备节点和 review 状态）。
+1. **从 HCM 获取候选人** —— 调用 `GET /api/candidates` 获取花名册与五部门准备节点；review 格读本机 `review-state/reviews.json`。
 2. **读审批门角标** —— 对每个候选人，读本机 `stub-state/<pinyin>/workflow.json` 获取审批流程状态（HCM 不存此字段）。
 3. **生成 HTML 看板 + 打印进度摘要** —— 每名新员工一张卡片（含角标与 9 节点进度）；终端打印「[角标] 准备 X/5 · review Y/4 · 整体 Z%」。
 
@@ -68,7 +68,8 @@ http://127.0.0.1:18999/__openclaw__/canvas/documents/onboarding-dashboard/index.
 
 ## 关键规则
 
-- **看板数据来自 HCM，绝不编造。** HCM API 不可达时脚本直接退出，不用本地文件冒充。
+- 看板数据来自 HCM 五节点 + 本地 review 表，绝不编造。HCM API 不可达时脚本直接退出，不用本地文件冒充。
+- 试用期跟进格：五节点未全绿时通常为空/未开通；看板刷新会尝试 `sync-reviews-if-ready`。
 - **「待审批」≠「已通过」。** 是否卡在审批门，以卡片角标的 `workflow.json` 为准。
 - **看板不缓存旧值。** HCM 数据变了，重跑这个 Skill 就刷新；刷新后记得 `--publish --force` 覆盖 Canvas。
 - **Canvas id 禁止中文。** 只用 `onboarding-dashboard`。

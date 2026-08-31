@@ -79,6 +79,12 @@ python3 skills/aggregating-360-feedback/scripts/ingest_archive.py \
   feedback-360/source_feedback/<任意名>.zip
 ```
 
+环境：`pip install -r skills/aggregating-360-feedback/requirements.txt`（`python-docx`、`pypinyin`）。缺依赖时 ingest 会提示该命令。
+
+重跑摄入**不会删除**同目录 `aggregated-data.json` / `aggregated-report.md` / `report.html`。
+
+只有预解析 JSON、没有 DOCX 的 zip（如 `eval-s2-dirty-json.zip`）**不要**走 ingest；那是给 `check_feedback.py` 直接读 JSON 目录用的。
+
 ### 第 1 步 · 数据校验
 
 ```bash
@@ -95,7 +101,7 @@ python3 skills/aggregating-360-feedback/scripts/aggregate.py \
   feedback-360/source_feedback/zhanglei
 ```
 
-**缺省产出**：`source_feedback/zhanglei/aggregated-data.json`。
+**缺省产出**：`source_feedback/zhanglei/aggregated-data.json`。缺自评（self）或上级（manager）时与 `check_feedback.py` 一样拒绝，不静默聚合。
 
 ### 第 3 步（衔接）· 综合分析报告
 

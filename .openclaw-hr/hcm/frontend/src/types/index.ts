@@ -9,16 +9,6 @@ export interface PrepNode {
   updated_at: string
 }
 
-export interface Review {
-  id: number
-  candidate_id: number
-  review_type: 'day7' | 'day30' | 'day60' | 'day90'
-  status: 'pending' | 'completed'
-  content: string | null
-  triggered_at: string | null
-  completed_at: string | null
-}
-
 export interface Candidate {
   id: number
   name: string
@@ -29,16 +19,15 @@ export interface Candidate {
   started_at: string | null
   created_at: string
   nodes: PrepNode[]
-  reviews: Review[]
 }
 
-export type Department = 'hr' | 'it' | 'admin' | 'training' | 'buddy' | 'overview'
+export type Department = 'hr' | 'it' | 'admin' | 'training' | 'buddy'
 
 export interface DepartmentConfig {
   key: Department
   label: string
   icon: string
-  nodeType: string | null  // null = overview (read-only all)
+  nodeType: PrepNode['node_type']
 }
 
 export const DEPARTMENTS: DepartmentConfig[] = [
@@ -47,7 +36,6 @@ export const DEPARTMENTS: DepartmentConfig[] = [
   { key: 'admin',    label: '行政',   icon: '🏢', nodeType: 'device' },
   { key: 'training', label: '培训部', icon: '📚', nodeType: 'training' },
   { key: 'buddy',    label: '用人部门', icon: '🤝', nodeType: 'buddy' },
-  { key: 'overview', label: '全局看板', icon: '📊', nodeType: null },
 ]
 
 export const NODE_LABELS: Record<string, string> = {

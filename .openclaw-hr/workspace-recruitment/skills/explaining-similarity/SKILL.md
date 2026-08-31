@@ -40,5 +40,5 @@ python3 skills/explaining-similarity/scripts/explain_similarity.py --search tale
 
 - 这个 Skill 必然调 LLM，但 LLM 只做「解释组织」——**算分、排名是上游 `searching-talent-pool` 用余弦相似度做掉的，这个 Skill 绝不让 LLM 重算分数或重排名次。** 这是防「数字串台」的根本。
 - 输入必须是 `searching-talent-pool` 产出的候选人锚点检索结果（`query_type = candidate`）。JD 检索结果没有候选人锚点，不支持。
-- 它依赖 `DEEPSEEK_API_KEY` 环境变量，运行前确认已 `source ~/.openclaw-hr/env.sh`。
+- 它依赖 `XIAOMI_API_KEY`（mimo）。运行前确认已 `source` 本机 `env.sh`。不要切 DeepSeek。
 - 这个 Skill 是流水线最后一环——它读 `searching-talent-pool` 的产物，不读简历、不读人才库原始向量。

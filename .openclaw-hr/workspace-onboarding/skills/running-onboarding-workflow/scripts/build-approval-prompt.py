@@ -12,11 +12,11 @@ build-approval-prompt.py —— 入职审批门 prompt 构建器
   2. 按门类型拼出中文 prompt + items，输出 Lobster 期望的 JSON。
 
 业务保鲜范围：
-  · contract 门：只读合同节点
-  · account 门：读 account + device + training 三个节点（IT/行政/培训并行准备的产物），
-    审批人一次看齐「账号能否开通 + 设备是否配齐 + 培训是否排期」
+  · contract 门：只读 HCM 合同节点
+  · account 门：读 account + device + training + buddy（HCM 真实状态）。
+    任一仍为 pending 时，prompt 明确写「请勿批准」，入职小慧不代替部门填写。
 
-§13 升级：在 prompt 末尾追加各 stub 准备时间 + 人话等待时长。
+§13 升级：在 prompt 末尾追加各节点落盘时间 + 人话等待时长。
 """
 import datetime as dt
 import json
@@ -33,14 +33,22 @@ except ImportError:
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 
+STATUS_LABELS = {
+    "pending": "未开始",
+    "in_progress": "进行中",
+    "completed": "已完成",
+    "paused": "暂停",
+    "rejected": "否决",
+}
+
 
 def _read_state(path):
     """从本地 JSON 文件读取状态（回退方案）。"""
     if not os.path.exists(path):
         sys.stderr.write(
             f"[build-approval-prompt] 缺少状态文件：{path}\n"
-            "——通常因为 4 路并行准备没跑完、或被人手动删了。"
-            "请重新执行 run-onboarding.sh start ... 让 prep 步骤重写 stub-state。\n"
+            "——通常因为尚未从 HCM 快照，或 stub 被人手动删了。"
+            "请重新执行 run-onboarding.sh start ... 让 prep 从 HCM 重写 stub-state。\n"
         )
         sys.exit(2)
     with open(path, encoding="utf-8") as f:
@@ -48,11 +56,26 @@ def _read_state(path):
 
 
 def _read_node_from_api(pinyin, node_type):
-    """从 HCM API 读取节点数据（优先数据源）。返回 dict 或 None。"""
+    """从 HCM 读节点：顶层 status + data，不编造部门产出。"""
     if not _HCM_AVAILABLE:
         return None
-    data = hcm_api.get_prep_node_data(pinyin, node_type)
-    return data if data else None
+    node = hcm_api.get_prep_node(pinyin, node_type)
+    if not node:
+        return None
+    data = dict(node.get("data") or {})
+    hcm_status = node.get("status") or "pending"
+    info = hcm_api.get_candidate_info(pinyin) or {}
+    rec = {
+        "candidate": info.get("name") or data.get("candidate") or pinyin,
+        "hcm_status": hcm_status,
+        "status": STATUS_LABELS.get(hcm_status, hcm_status),
+        "source": "hcm",
+        "role": data.get("role") or info.get("role") or "",
+        "salary": data.get("salary") or info.get("salary") or "",
+        **{k: v for k, v in data.items()
+           if k not in ("status", "system", "candidate", "hcm_status", "role", "salary")},
+    }
+    return rec
 
 
 def _read_state_with_fallback(api_pinyin, node_type, local_path):
@@ -64,8 +87,12 @@ def _read_state_with_fallback(api_pinyin, node_type, local_path):
     if os.path.exists(local_path):
         with open(local_path, encoding="utf-8") as f:
             return json.load(f)
-    # 无数据时返回默认占位（不 exit，让调用方处理“未就绪”）
-    return {}
+    return {
+        "candidate": api_pinyin,
+        "hcm_status": "pending",
+        "status": "未开始",
+        "source": "none",
+    }
 
 
 def _parse_iso(s):
@@ -141,78 +168,111 @@ def _append_multi_age_clause(prompt, labeled_stubs):
     return f"{prompt}\n\n（{'；'.join(parts)}）"
 
 
+def _hcm_line(rec):
+    hcm = rec.get("hcm_status") or ""
+    label = rec.get("status") or STATUS_LABELS.get(hcm, hcm or "未知")
+    if hcm:
+        return f"{label}（HCM {hcm}）"
+    return label or "未知"
+
+
+def _pending_warn(labeled_recs):
+    pending = [
+        label for label, rec in labeled_recs
+        if (rec.get("hcm_status") or "pending") == "pending"
+    ]
+    if not pending:
+        return ""
+    return (
+        "\n\n⚠️ 以下节点在 HCM 仍为 pending（未开始）："
+        + "、".join(pending)
+        + "。材料未齐，请勿批准。请先催对应部门在 HCM 填写。"
+        "入职小慧不代替部门执行。"
+    )
+
+
 def build_contract_prompt(state_dir, pinyin):
     c = _read_state_with_fallback(
         pinyin, "contract",
         os.path.join(state_dir, pinyin, "contract.json"),
     )
-    status = (c.get("status") or "").strip() or "待审批"
-    # 状态必须进第一行：Agent 常只保留首句再自造表格，放后面会被丢掉
+    name = c.get("candidate") or pinyin
+    status_line = _hcm_line(c)
     lines = [
-        f'HR 主管，请审批 {c["candidate"]} 的劳动合同【当前状态：{status}】：',
-        f'· 状态：{status}',
+        f'HR 主管，请审批 {name} 的劳动合同【当前状态：{status_line}】：',
+        f'· HCM 合同节点：{status_line}',
         f'· 岗位：{c.get("role", "")} / 薪资：{c.get("salary", "")} / 试用期：{c.get("probation", "")}',
-        f'· 合同：{c.get("contract", "")}',
     ]
-    # 配套文件：数据里有且非空才展示；没有就整行省略
+    contract = (c.get("contract") or "").strip()
+    if contract:
+        lines.append(f'· 合同：{contract}')
     files = (c.get("files") or "").strip()
     if files:
         lines.append(f'· 配套文件：{files}')
-    lines.append('是否批准进入签约？')
-    prompt = "\n".join(lines)
+    warn = _pending_warn([("合同", c)])
+    if warn:
+        lines.append('合同材料尚未在 HCM 开始填写，请勿批准。')
+    else:
+        lines.append('是否批准进入签约？')
+    prompt = "\n".join(lines) + warn
     prompt = _append_age_clause(prompt, c)
 
-    # items：空 files 删掉；把 status 提到最前，降低 Agent 漏画概率
     item = dict(c)
     if not (item.get("files") or "").strip():
         item.pop("files", None)
-    ordered = {"status": status}
+    ordered = {"hcm_status": c.get("hcm_status") or "pending", "status": c.get("status") or ""}
     for k, v in item.items():
-        if k == "status":
+        if k in ordered:
             continue
         ordered[k] = v
     return {"prompt": prompt, "items": [ordered]}
 
 
 def build_account_prompt(state_dir, pinyin):
-    """第二道门：账号 + 设备 + 培训 + Buddy 四合一审批。"""
+    """第二道门：账号 + 设备 + 培训 + Buddy，展示 HCM 真实状态。"""
     base = os.path.join(state_dir, pinyin)
     a = _read_state_with_fallback(pinyin, "account", os.path.join(base, "account.json"))
     d = _read_state_with_fallback(pinyin, "device", os.path.join(base, "device.json"))
     t = _read_state_with_fallback(pinyin, "training", os.path.join(base, "training.json"))
     b = _read_state_with_fallback(pinyin, "buddy", os.path.join(base, "buddy.json"))
 
-    a_status = (a.get("status") or "").strip() or "待审批"
-    d_status = (d.get("status") or "").strip()
-    t_status = (t.get("status") or "").strip()
-    b_status = (b.get("status") or "").strip()
-    # Buddy 未就绪时显式标记，防止无声跳过
-    buddy_line = f'· Buddy：{b.get("buddy", "")} / 带教导师：{b.get("mentor", "")}'
-    if b_status:
-        buddy_line += f'（{b_status}）'
-    else:
-        buddy_line += '（未就绪 — 用人部门尚未匹配 Buddy）'
+    name = a.get("candidate") or pinyin
+    a_line, d_line, t_line, b_line = _hcm_line(a), _hcm_line(d), _hcm_line(t), _hcm_line(b)
+    warn = _pending_warn([
+        ("IT 账号", a), ("设备", d), ("培训", t),
+    ])
+    buddy_bits = []
+    if b.get("buddy"):
+        buddy_bits.append(str(b["buddy"]))
+    if b.get("mentor"):
+        buddy_bits.append(f"导师 {b['mentor']}")
+    buddy_detail = " / ".join(buddy_bits) if buddy_bits else "（HCM 未填）"
 
     lines = [
-        f'IT 安全负责人，请审批 {a["candidate"]} 的入职 IT/行政准备【账号状态：{a_status}】：',
-        f'· 账号：工号 {a.get("workno", "")} / 邮箱 {a.get("email", "")}'
-        f' / 企业微信 {a.get("wecom", "")}（{a_status}）',
-        f'· 设备：{d.get("laptop", "")} / {d.get("badge", "")} / {d.get("desk", "")}'
-        + (f'（{d_status}）' if d_status else ''),
-        f'· 培训：{t.get("course", "")} · {t.get("date", "")}'
-        + (f'（{t_status}）' if t_status else ''),
-        buddy_line,
-        '是否批准开通账号，并确认设备/培训/Buddy 已就绪？',
+        f'IT 安全负责人，请审批 {name} 的入职 IT/行政准备【账号：{a_line}】：',
+        f'· 账号：工号 {a.get("workno") or "未填"} / 邮箱 {a.get("email") or "未填"}'
+        f' / 企业微信 {a.get("wecom") or "未填"}（{a_line}）',
+        f'· 设备：{d.get("laptop") or "未填"} / {d.get("badge") or "未填"} / {d.get("desk") or "未填"}'
+        f'（{d_line}）',
+        f'· 培训：{t.get("course") or "未填"} · {t.get("date") or "未填"}（{t_line}）',
+        f'· Buddy：{buddy_detail}（{b_line}）',
     ]
-    prompt = "\n".join(lines)
+    if warn:
+        lines.append('账号/设备/培训在 HCM 尚未开始，请勿批准开通。')
+    else:
+        lines.append('是否批准开通账号，并确认设备/培训已由对应部门在 HCM 填写？')
+    prompt = "\n".join(lines) + warn
     prompt = _append_multi_age_clause(prompt, [
         ("账号", a),
         ("设备", d),
         ("培训", t),
         ("Buddy", b),
     ])
-    # status 提到 items 最前
-    a_ord = {"status": a_status, **{k: v for k, v in a.items() if k != "status"}}
+    a_ord = {
+        "hcm_status": a.get("hcm_status") or "pending",
+        "status": a.get("status") or "",
+        **{k: v for k, v in a.items() if k not in ("hcm_status", "status")},
+    }
     return {"prompt": prompt, "items": [a_ord, d, t, b]}
 
 

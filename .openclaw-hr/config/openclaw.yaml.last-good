@@ -200,42 +200,40 @@
       "groupPolicy": "allowlist",
       "requireMention": true,
       "groupAllowFrom": [
-        "oc_b0a9477b74b9476f876c1a1e29635a57"
+        "oc_65551edeef1db539a87122dd4833663d"
       ],
       "groups": {
         "*": {
           "tools": {
             "allow": [
               "exec",
-              "read"
-            ],
-            "deny": [
+              "read",
               "write",
               "edit",
-              "apply_patch",
+              "apply_patch"
+            ],
+            "deny": [
               "browser",
               "cron",
-              "group:fs",
               "sessions_spawn",
               "sessions_yield"
             ]
           }
         },
-        "oc_b0a9477b74b9476f876c1a1e29635a57": {
+        "oc_65551edeef1db539a87122dd4833663d": {
           "enabled": true,
           "requireMention": true,
           "tools": {
             "allow": [
               "exec",
-              "read"
-            ],
-            "deny": [
+              "read",
               "write",
               "edit",
-              "apply_patch",
+              "apply_patch"
+            ],
+            "deny": [
               "browser",
               "cron",
-              "group:fs",
               "sessions_spawn",
               "sessions_yield"
             ]
@@ -285,22 +283,6 @@
       ]
     },
     "toolsBySender": {
-      "channel:feishu:ou_a8cf75f38e774b2c1a5c79117004d965": {
-        "allow": [
-          "exec",
-          "read"
-        ],
-        "deny": [
-          "write",
-          "edit",
-          "apply_patch",
-          "browser",
-          "cron",
-          "group:fs",
-          "sessions_spawn",
-          "sessions_yield"
-        ]
-      },
       "*": {
         "allow": [
           "*"
@@ -351,7 +333,26 @@
           },
           "exec": {
             "security": "allowlist",
-            "ask": "off"
+            "ask": "off",
+            "safeBins": [
+              "python3",
+              "node",
+              "bash",
+              "pip",
+              "pip3",
+              "source",
+              "cat",
+              "ls",
+              "head",
+              "tail",
+              "grep",
+              "wc",
+              "find",
+              "mkdir",
+              "cp",
+              "mv",
+              "echo"
+            ]
           }
         },
         "subagents": {
@@ -413,7 +414,110 @@
         "tools": {
           "allow": [
             "exec",
-            "read"
+            "read",
+            "write",
+            "edit",
+            "apply_patch"
+          ],
+          "deny": [
+            "browser",
+            "cron",
+            "sessions_spawn",
+            "sessions_yield"
+          ],
+          "fs": {
+            "workspaceOnly": true
+          },
+          "toolsBySender": {
+            "channel:feishu:ou_2f67ed66e57e214e72c318a57c60d1c4": {
+              "allow": [
+                "exec",
+                "read",
+                "write",
+                "edit",
+                "apply_patch"
+              ],
+              "deny": [
+                "browser",
+                "cron",
+                "sessions_spawn",
+                "sessions_yield"
+              ]
+            },
+            "channel:feishu:ou_85759e2571f33307b6fc7b265060d5c1": {
+              "allow": [
+                "exec",
+                "read"
+              ],
+              "deny": [
+                "write",
+                "edit",
+                "apply_patch",
+                "browser",
+                "cron",
+                "sessions_spawn",
+                "sessions_yield"
+              ]
+            },
+            "channel:feishu:ou_66cfc2fa5b3142c6b232fc9114fc7b94": {
+              "allow": [
+                "exec",
+                "read"
+              ],
+              "deny": [
+                "write",
+                "edit",
+                "apply_patch",
+                "browser",
+                "cron",
+                "sessions_spawn",
+                "sessions_yield"
+              ]
+            },
+            "channel:feishu:ou_a8cf75f38e774b2c1a5c79117004d965": {
+              "allow": [
+                "exec",
+                "read"
+              ],
+              "deny": [
+                "write",
+                "edit",
+                "apply_patch",
+                "browser",
+                "cron",
+                "sessions_spawn",
+                "sessions_yield"
+              ]
+            },
+            "*": {
+              "allow": [
+                "exec",
+                "read"
+              ],
+              "deny": [
+                "write",
+                "edit",
+                "apply_patch",
+                "browser",
+                "cron",
+                "sessions_spawn",
+                "sessions_yield"
+              ]
+            }
+          }
+        },
+        "subagents": {
+          "allowAgents": []
+        }
+      },
+      {
+        "id": "er-admin-cron",
+        "name": "er-admin-cron",
+        "workspace": "/home/yhwz/openclaw-hr/.openclaw-hr/workspace-er-admin",
+        "agentDir": "/home/yhwz/openclaw-hr/.openclaw-hr/agent-dirs/er-admin-cron",
+        "tools": {
+          "allow": [
+            "exec"
           ],
           "deny": [
             "write",
@@ -421,10 +525,8 @@
             "apply_patch",
             "browser",
             "cron",
-            "group:fs",
             "sessions_spawn",
-            "sessions_yield",
-            "process"
+            "sessions_yield"
           ],
           "fs": {
             "workspaceOnly": true
@@ -473,14 +575,14 @@
       },
       "model": {
         "primary": "xiaomi/mimo-v2.5-pro",
-        "fallbacks": [
-          "deepseek/deepseek-v4-pro",
-          "qwen/qwen-max"
-        ]
+        "fallbacks": []
       },
       "subagents": {
         "allowAgents": [],
-        "requireAgentId": true
+        "requireAgentId": true,
+        "maxChildrenPerAgent": 8,
+        "maxConcurrent": 8,
+        "runTimeoutSeconds": 1800
       }
     }
   },
@@ -600,7 +702,10 @@
             "name": "火山方舟 DeepSeek V4 Flash",
             "api": "openai-completions",
             "reasoning": false,
-            "input": ["text", "image"],
+            "input": [
+              "text",
+              "image"
+            ],
             "contextWindow": 128000,
             "maxTokens": 32000
           }
@@ -626,5 +731,8 @@
     "groupChat": {
       "visibleReplies": "message_tool"
     }
+  },
+  "session": {
+    "dmScope": "per-channel-peer"
   }
 }

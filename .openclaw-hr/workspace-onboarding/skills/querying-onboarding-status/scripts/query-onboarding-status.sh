@@ -12,6 +12,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_PREPEND_NODE="$(cd "$SCRIPT_DIR/../../../.." && pwd)/scripts/prepend-node22.sh"
+# shellcheck disable=SC1090
+[ -f "$_PREPEND_NODE" ] && . "$_PREPEND_NODE"
 SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 # 优先用外部传入的 $WORKSPACE（如 run-onboarding.sh / 测试 export），
 # 否则按脚本位置倒推：.../workspace-onboarding/skills/querying-onboarding-status/scripts

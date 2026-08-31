@@ -1,0 +1,34 @@
+{
+  "candidate": "张三",
+  "pinyin": "zhangsan-dup",
+  "role": "测试岗",
+  "salary": "1K",
+  "status": "halted",
+  "current_step": "contract_gate",
+  "started_at": "2026-08-30T22:47:24+08:00",
+  "updated_at": "2026-08-30T22:47:25+08:00",
+  "halted_at": "2026-08-30T22:47:25+08:00",
+  "completed_at": null,
+  "approval_id": "01ace06b",
+  "resume_token": "eyJwcm90b2NvbFZlcnNpb24iOjEsInYiOjEsImtpbmQiOiJ3b3JrZmxvdy1maWxlIiwic3RhdGVLZXkiOiJ3b3JrZmxvd19yZXN1bWVfZmQ0NTExZjctZjI0Yy00NTVjLTg0MDQtNDUwYWM2ZmM4MDA4In0",
+  "events": [
+    {
+      "at": "2026-08-30T22:47:24+08:00",
+      "step": "prep",
+      "action": "started",
+      "note": "入职流程启动：张三（测试岗, 1K）"
+    },
+    {
+      "at": "2026-08-30T22:47:24+08:00",
+      "step": "prep",
+      "action": "completed",
+      "note": "已快照 HCM 四部门节点（未代替部门执行）"
+    },
+    {
+      "at": "2026-08-30T22:47:25+08:00",
+      "step": "contract_gate",
+      "action": "halted",
+      "note": "等待 HR 主管审批合同"
+    }
+  ]
+}

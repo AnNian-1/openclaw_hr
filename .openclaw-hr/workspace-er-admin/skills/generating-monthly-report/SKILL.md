@@ -24,9 +24,9 @@ metadata:
 
 对话/`exec` **只跑** `bash scripts/er-admin-run.sh monthly-report [YYYY-MM] [--force] [--no-publish]`（内部再调 `run_monthly_report.sh`）。不要直接 `bash skills/.../run_monthly_report.sh`（不在 allowlist）、不要系统 `python3` / 不要 `pip install` / 不要用 `tee` 写 md。非法月（如 2099-12）也走同一入口，把脚本失败原文交回。
 
-OpenClaw `exec` 的 PATH 常把 `python3` 解析成 `/usr/bin/python3`（无 pandas）；依赖已装在 conda `py312`。壳脚本会自动选用：
+OpenClaw `exec` 的 PATH 常把 `python3` 解析成 `/usr/bin/python3`（无 pandas）；依赖已装在 conda `openclaw-hr`。壳脚本会自动选用：
 
-`/usr/local/miniconda3/envs/py312/bin/python3`
+`~/miniconda3/envs/openclaw-hr/bin/python3`
 
 （可用环境变量 `MONTHLY_REPORT_PYTHON` 覆盖。）
 
@@ -47,7 +47,7 @@ bash skills/generating-monthly-report/scripts/run_monthly_report.sh --force --no
 仅在已确认解释器时直调（一般不必）：
 
 ```bash
-/usr/local/miniconda3/envs/py312/bin/python3 \
+~/miniconda3/envs/openclaw-hr/bin/python3 \
   skills/generating-monthly-report/scripts/generate_monthly_report.py 2026-07 --publish --force
 ```
 

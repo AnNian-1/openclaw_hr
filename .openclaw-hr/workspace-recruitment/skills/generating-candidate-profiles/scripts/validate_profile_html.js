@@ -23,6 +23,41 @@
 
 'use strict';
 const fs = require('fs');
+const path = require('path');
+
+function autoloadParsed(targetName) {
+  const cands = [
+    path.join('parsed', `${targetName}.json`),
+    path.join('scoring', `clean-${targetName}.json`),
+  ];
+  for (const p of cands) {
+    if (!fs.existsSync(p)) continue;
+    try {
+      const data = JSON.parse(fs.readFileSync(p, 'utf8'));
+      if (data.name === targetName) return data;
+    } catch (_) { /* skip */ }
+  }
+  return null;
+}
+
+function findDetail(ranking, targetName) {
+  const details = ranking.details || [];
+  for (const d of details) {
+    const name = (d.parsed && d.parsed.name) || d.name;
+    if (name !== targetName) continue;
+    let parsed = d.parsed;
+    if (!parsed && d.resume_json && fs.existsSync(d.resume_json)) {
+      try {
+        parsed = JSON.parse(fs.readFileSync(d.resume_json, 'utf8'));
+      } catch (_) { /* skip */ }
+    }
+    if (d.score) return { parsed: parsed || autoloadParsed(targetName), score: d.score };
+  }
+  if (ranking.dimension_scores) {
+    return { parsed: autoloadParsed(targetName), score: ranking };
+  }
+  return null;
+}
 
 // 画像七区块。前 6 个用 section-title 文本匹配，基本信息卡在 <div class="header">
 // 里不带 section-title，单独用 class="header" 判定。
@@ -125,10 +160,8 @@ function main() {
         problems.push(`数据源 ranking JSON 无法解析：${e.message}`);
       }
       if (ranking) {
-        const detail = (ranking.details || []).find(
-          (d) => (d.parsed || {}).name === targetName
-        );
-        if (!detail) {
+        const detail = findDetail(ranking, targetName);
+        if (!detail || !detail.score) {
           problems.push(
             `数据源里找不到候选人「${targetName}」，无法做一致性核对`
           );
@@ -145,15 +178,17 @@ function main() {
             );
           }
           // 5b. 技能数一致
-          const expectSkills = (detail.parsed.skills || []).length;
-          const skillInHtml = (html.match(/共\s*(\d+)\s*项技能/) || [])[1];
-          if (
-            skillInHtml !== undefined &&
-            Number(skillInHtml) !== expectSkills
-          ) {
-            problems.push(
-              `画像技能数 ${skillInHtml} 与数据源 ${expectSkills} 不一致`
-            );
+          if (detail.parsed) {
+            const expectSkills = (detail.parsed.skills || []).length;
+            const skillInHtml = (html.match(/共\s*(\d+)\s*项技能/) || [])[1];
+            if (
+              skillInHtml !== undefined &&
+              Number(skillInHtml) !== expectSkills
+            ) {
+              problems.push(
+                `画像技能数 ${skillInHtml} 与数据源 ${expectSkills} 不一致`
+              );
+            }
           }
           // 5c. 评级首字母一致
           const rawRating = String(detail.score.overall_rating || '');

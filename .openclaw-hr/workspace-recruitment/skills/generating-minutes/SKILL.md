@@ -38,12 +38,12 @@ python3 skills/generating-minutes/scripts/gen_minutes.py \
 脚本做三件事：
 
 1. **按说话人重组转写稿**——把连续的同说话人片段合并成对话稿。
-2. **大模型生成结构化纪要**——调 DeepSeek V4，产出关键问答 / 优势 / 待考察点 / 高亮时刻 / 评分建议，并提取候选人口述的项目数字。
+2. **大模型生成结构化纪要**——调 Xiaomi `mimo-v2.5-pro`，产出关键问答 / 优势 / 待考察点 / 高亮时刻 / 评分建议，并提取候选人口述的项目数字。
 3. **数字回核**——把纪要里候选人口述的数字逐项对照原简历核对，能追溯的标"可追溯"，找不到的标"需人工核实"。
 
 关于 `--interviewer`：转写稿里的说话人标签是 `speaker_A` / `speaker_B`（CAM++ 凝聚聚类只知道有 N 个人、不知道谁是面试官）。`--interviewer` 指定哪个标签是面试官，默认 `speaker_A`——按面试录音里通常面试官先开口的惯例。如果生成的纪要里"面试官说的话"和"候选人说的话"明显反了，把它换成 `speaker_B` 重跑。
 
-跑脚本需要 `exec` 工具（`group:runtime` 权限组），并依赖环境变量 `DEEPSEEK_API_KEY`。
+跑脚本需要 `exec` 工具（`group:runtime` 权限组），并依赖环境变量 `XIAOMI_API_KEY`（mimo）。不要切 DeepSeek。
 
 ### 第 2 步 · 校验
 

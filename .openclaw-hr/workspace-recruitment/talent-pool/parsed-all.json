@@ -157,5 +157,197 @@
       "政策宣讲"
     ],
     "self_evaluation": "行政后勤与政策宣贯。测试夹具，非真实候选人。无研发经验。"
+  },
+  "resume-tech-李娜.md": {
+    "name": "李娜",
+    "target_position": "高级前端工程师 / 前端架构",
+    "expected_salary": "38K-45K",
+    "expected_city": "北京",
+    "available_date": "一个月内",
+    "education": {
+      "school": "清华大学",
+      "major": "计算机科学与技术",
+      "degree": "本科",
+      "graduation_year": "2018"
+    },
+    "work_experience": [
+      {
+        "company": "某头部电商集团 · 用户增长前端",
+        "position": "高级前端工程师",
+        "start_date": "2018-07",
+        "end_date": "至今",
+        "industry": "电子商务"
+      },
+      {
+        "company": "某在线教育公司",
+        "position": "前端开发工程师",
+        "start_date": "2016-07",
+        "end_date": "2018-06",
+        "industry": "在线教育"
+      }
+    ],
+    "total_experience_years": 8,
+    "job_count": 2,
+    "skills": [
+      "TypeScript",
+      "React 18",
+      "Redux",
+      "Zustand",
+      "Vite",
+      "Webpack",
+      "qiankun",
+      "Module Federation",
+      "Node.js BFF",
+      "GraphQL",
+      "ECharts",
+      "Core Web Vitals"
+    ],
+    "self_evaluation": "电商 C 端高级前端，组件库与微前端，大促性能优化。 测试夹具，非真实候选人。"
+  },
+  "resume-tech-王强.md": {
+    "name": "王强",
+    "target_position": "后端技术专家 / 交易中台",
+    "expected_salary": "45K-55K",
+    "expected_city": "上海",
+    "available_date": "一个月内",
+    "education": {
+      "school": "浙江大学",
+      "major": "软件工程",
+      "degree": "硕士",
+      "graduation_year": "2016"
+    },
+    "work_experience": [
+      {
+        "company": "某头部电商集团 · 交易中台",
+        "position": "后端技术专家（P7）",
+        "start_date": "2016-07",
+        "end_date": "至今",
+        "industry": "电商"
+      },
+      {
+        "company": "某互联网金融公司",
+        "position": "高级后端工程师",
+        "start_date": "2012-07",
+        "end_date": "2016-06",
+        "industry": "互联网金融"
+      }
+    ],
+    "total_experience_years": 12,
+    "job_count": 2,
+    "skills": [
+      "Java",
+      "Go",
+      "Spring Boot",
+      "Spring Cloud",
+      "Dubbo",
+      "MySQL",
+      "Redis",
+      "Kafka",
+      "RocketMQ",
+      "微服务",
+      "分布式事务",
+      "Kubernetes"
+    ],
+    "self_evaluation": "交易中台后端，高并发与消息中间件，Java 微服务。 测试夹具，非真实候选人。"
+  },
+  "resume-tech-赵敏.md": {
+    "name": "赵敏",
+    "target_position": "前端开发工程师",
+    "expected_salary": "15K-18K",
+    "expected_city": "成都",
+    "available_date": "随时",
+    "education": {
+      "school": "某师范大学",
+      "major": "汉语言文学",
+      "degree": "本科",
+      "graduation_year": "2022"
+    },
+    "work_experience": [
+      {
+        "company": "某本地生活服务公司运营部",
+        "position": "运营专员",
+        "start_date": "2022-07",
+        "end_date": "至今",
+        "industry": "本地生活服务运营"
+      }
+    ],
+    "total_experience_years": 2,
+    "job_count": 1,
+    "skills": [
+      "Office",
+      "飞书文档",
+      "HTML",
+      "CSS",
+      "低代码搭建",
+      "活动运营"
+    ],
+    "self_evaluation": "运营转前端意向，无完整 React 交付。 测试夹具，非真实候选人。"
+  },
+  "resume-tech-刘洋.md": {
+    "name": "刘洋",
+    "target_position": "前端开发（应届 / 初级）",
+    "expected_salary": "12K-16K",
+    "expected_city": "北京",
+    "available_date": "2026年7月毕业后",
+    "education": {
+      "school": "北京邮电大学",
+      "major": "软件工程",
+      "degree": "本科",
+      "graduation_year": "2026"
+    },
+    "work_experience": [
+      {
+        "company": "某互联网公司实习",
+        "position": "前端实习生",
+        "start_date": "2025-07",
+        "end_date": "2025-09",
+        "industry": "互联网"
+      }
+    ],
+    "total_experience_years": 0.2,
+    "job_count": 1,
+    "skills": [
+      "JavaScript",
+      "React",
+      "Ant Design",
+      "Git",
+      "HTML",
+      "CSS"
+    ],
+    "self_evaluation": "应届前端实习，列表页 PR，无独立上线。 测试夹具，非真实候选人。"
+  },
+  "resume-tech-陈芳.md": {
+    "name": "陈芳",
+    "target_position": "前端开发工程师",
+    "expected_salary": "28K-32K",
+    "expected_city": "北京",
+    "available_date": "两周内",
+    "education": {
+      "school": "复旦大学",
+      "major": "计算机科学与技术",
+      "degree": "本科",
+      "graduation_year": "2019"
+    },
+    "work_experience": [
+      {
+        "company": "某在线教育集团 · 学习机前端",
+        "position": "前端开发工程师",
+        "start_date": "2019-07",
+        "end_date": "至今",
+        "industry": "在线教育"
+      }
+    ],
+    "total_experience_years": 5,
+    "job_count": 1,
+    "skills": [
+      "TypeScript",
+      "React",
+      "Redux",
+      "Webpack",
+      "Jest",
+      "ECharts",
+      "Node.js"
+    ],
+    "self_evaluation": "在线教育前端五年，学习机 30 万 DAU，接口聚合降耗 40%。 测试夹具，非真实候选人。"
   }
 }

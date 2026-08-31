@@ -1,0 +1,40 @@
+{
+  "candidate": "李明",
+  "pinyin": "liming",
+  "role": "Java开发工程师",
+  "salary": "面议",
+  "status": "cancelled",
+  "current_step": "contract_gate",
+  "started_at": "2026-08-30T11:02:38+08:00",
+  "updated_at": "2026-08-30T11:02:45+08:00",
+  "halted_at": null,
+  "completed_at": null,
+  "approval_id": null,
+  "resume_token": null,
+  "events": [
+    {
+      "at": "2026-08-30T11:02:38+08:00",
+      "step": "prep",
+      "action": "started",
+      "note": "入职流程启动：李明（Java开发工程师, 面议）"
+    },
+    {
+      "at": "2026-08-30T11:02:38+08:00",
+      "step": "prep",
+      "action": "completed",
+      "note": "4 路并行准备全部完成"
+    },
+    {
+      "at": "2026-08-30T11:02:38+08:00",
+      "step": "contract_gate",
+      "action": "halted",
+      "note": "等待 HR 主管审批合同"
+    },
+    {
+      "at": "2026-08-30T11:02:45+08:00",
+      "step": "contract_gate",
+      "action": "rejected",
+      "note": "审批已拒绝，工作流取消"
+    }
+  ]
+}

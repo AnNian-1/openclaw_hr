@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useCandidatesStore } from '../stores/candidates'
 import { useWebSocket } from '../composables/useWebSocket'
+import { NODE_LABELS } from '../types'
 import DepartmentTab from './DepartmentTab.vue'
 import CandidateCard from './CandidateCard.vue'
 import NewCandidateDialog from './NewCandidateDialog.vue'
@@ -29,30 +30,33 @@ async function handleCreate(data: { name: string; pinyin: string; role: string; 
       <h1>📋 HCM 入职管理看板</h1>
       <div class="header-meta">
         <span class="dept-label">
-          当前视角：{{ store.currentDeptConfig.icon }} {{ store.currentDeptConfig.label }}
+          {{ store.currentDeptConfig.icon }} {{ store.currentDeptConfig.label }}
+          · {{ NODE_LABELS[store.currentDeptConfig.nodeType] }}
         </span>
         <button class="add-btn" @click="showNewDialog = true">➕ 新建候选人</button>
         <button class="refresh-btn" @click="store.fetchCandidates()">🔄 刷新</button>
       </div>
     </header>
 
-    <DepartmentTab />
+    <div class="app-body">
+      <DepartmentTab />
 
-    <main class="kanban-board">
-      <div v-if="store.loading" class="loading">加载中...</div>
+      <main class="kanban-board">
+        <div v-if="store.loading" class="loading">加载中...</div>
 
-      <div v-else-if="store.candidates.length === 0" class="empty">
-        暂无候选人数据，请先运行 <code>seed.py</code> 导入数据
-      </div>
+        <div v-else-if="store.candidates.length === 0" class="empty">
+          暂无候选人数据，请先运行 <code>seed.py</code> 导入数据
+        </div>
 
-      <div v-else class="cards-grid">
-        <CandidateCard
-          v-for="c in store.candidates"
-          :key="c.id"
-          :candidate="c"
-        />
-      </div>
-    </main>
+        <div v-else class="cards-grid">
+          <CandidateCard
+            v-for="c in store.candidates"
+            :key="c.id"
+            :candidate="c"
+          />
+        </div>
+      </main>
+    </div>
 
     <NewCandidateDialog
       v-if="showNewDialog"
@@ -79,6 +83,8 @@ body {
 <style scoped>
 .kanban-app {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-header {
@@ -88,6 +94,7 @@ body {
   padding: 16px 24px;
   background: white;
   border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
 }
 
 .app-header h1 {
@@ -132,13 +139,21 @@ body {
 
 .add-btn:hover { background: #1976d2; }
 
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
 .kanban-board {
+  flex: 1;
   padding: 20px 24px;
+  overflow-y: auto;
 }
 
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
   gap: 16px;
 }
 
