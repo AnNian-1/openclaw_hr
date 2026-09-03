@@ -6,7 +6,7 @@
 
 | 文件 | 说明 |
 |---|---|
-| `360-feedback-form-blank.docx` | 通用模板（公司人力资源部 · 2026年版） |
+| `360-feedback-form-blank.docx` | 通用模板；评估人代号填 领导1 / 同事1 / 下属1 / 自评 |
 | `build_templates.py` | 再生脚本 |
 
 ## 字体层级

@@ -64,7 +64,7 @@ def fetch_candidates():
 
 
 def list_candidates():
-    """GET /api/candidates → 候选人列表（含 nodes + reviews）。失败时返回 []。"""
+    """GET /api/candidates → 候选人列表（含 prep nodes）。失败时返回 []。"""
     ok, data = fetch_candidates()
     if ok:
         return data

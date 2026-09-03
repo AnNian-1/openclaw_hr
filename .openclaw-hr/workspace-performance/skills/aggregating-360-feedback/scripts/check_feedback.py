@@ -13,8 +13,9 @@
   1. 每个 JSON 文件可解析
   2. 必需字段齐全：reviewer_relation / scores / comments
   3. reviewer_relation 取值合法（manager / peer / report / self 之一）
-  4. scores 含 5 个维度且每个维度评分为 1-5 整数
-  5. 至少有 1 份 manager + 1 份 self（360 反馈的视角完整性下限）
+  4. 评估人代号为 领导N / 同事N / 下属N / 自评（校验前按文件名改写，禁止真人名）
+  5. scores 含 5 个维度且每个维度评分为 1-5 整数
+  6. 至少有 1 份 manager + 1 份 self（360 反馈的视角完整性下限）
 
 CLI：python3 check_feedback.py <json_dir>
   退出码 0 = 全部合法；1 = 校验失败（列出全部问题）；2 = 用法错误
@@ -25,10 +26,17 @@ import glob
 import os
 import sys
 
+from reviewer_alias import (
+    alias_from_json_name,
+    anonymize_feedback_dir,
+    is_role_alias,
+    looks_like_person_name,
+)
+
 # 非单份反馈表（与原料同目录的聚合产物），校验时跳过
 SKIP_JSON_NAMES = {"aggregated-data.json"}
 
-# 5 个评估维度，源自星桥科技绩效制度第四条（业绩结果 + 行为价值观）。
+# 5 个评估维度，源自公司绩效制度第四条（业绩结果 + 行为价值观）。
 DIMENSIONS = ["goal_achievement", "professional_skill",
               "collaboration", "responsibility", "growth"]
 # 360 反馈的四类视角。少一类都构不成"360"（全方位）。
@@ -55,6 +63,13 @@ def main():
     problems = []
     rows = []
     relation_count = {}
+
+    rewritten = anonymize_feedback_dir(raw_dir)
+    if rewritten:
+        print("评估人代号已按文件名改写（禁止真人名进入聚合）：")
+        for fname, old, new in rewritten:
+            print(f"  {fname}: {old or '（空）'} → {new}")
+        print()
 
     files = sorted(glob.glob(os.path.join(raw_dir, "*.json")))
     if not files:
@@ -88,6 +103,24 @@ def main():
                 f"{fname} 的 reviewer_relation=\"{rel}\" 非法，"
                 f"必须是 manager/peer/report/self 之一")
         relation_count[rel] = relation_count.get(rel, 0) + 1
+
+        alias = str(fb.get("reviewer_alias") or "").strip()
+        expected = alias_from_json_name(fname)
+        if not expected:
+            problems.append(
+                f"{fname} 文件名须为 manager.json / peer-NN.json / "
+                "report-NN.json / self.json"
+            )
+        elif alias != expected:
+            problems.append(
+                f"{fname} 的 reviewer_alias={alias!r}，须为 {expected!r}"
+                "（领导N/同事N/下属N/自评，禁止真人名）"
+            )
+        elif not is_role_alias(alias) or looks_like_person_name(alias):
+            problems.append(
+                f"{fname} 的 reviewer_alias={alias!r} 非法，"
+                "须为 领导N / 同事N / 下属N / 自评"
+            )
 
         s = fb["scores"]
         for dim in DIMENSIONS:

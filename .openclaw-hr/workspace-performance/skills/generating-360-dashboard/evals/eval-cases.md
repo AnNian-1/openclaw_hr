@@ -6,8 +6,8 @@
 
 ### 场景 1 · 正常双输入生成看板（happy path）
 
-- 输入：`feedback-360/source_feedback/<slug>/` 下同时有 `aggregated-data.json` 与 `aggregated-report.md`（如 `lisi/`）
-- query：把李四的 360 反馈做成一张可视化看板
+- 输入：`feedback-360/source_feedback/<slug>/` 下同时有 `aggregated-data.json` 与 `aggregated-report.md`（如 `yuangong1/`）
+- query：把员工1的 360 反馈做成一张可视化看板
 - expected_behavior：
   - 跑 `build_dashboard.py <slug目录>`，产出同目录 `report.html`
   - **评分/极差**只读 JSON；**判定与卡片**解析 `aggregated-report.md` 并吸入 HTML
@@ -17,7 +17,7 @@
 
 ### 场景 2 · 责任心：报告边界共识 vs 机械极差
 
-- 输入：`lisi/`（责任心极差 1.00，报告标边界共识）
+- 输入：责任心视角极差 1.00、报告标「边界共识」的样本目录
 - expected_behavior：
   - 「极差」列照实显示 JSON 的 1.00
   - 「判定」列为**共识**（来自报告「边界共识」），不是机械分歧

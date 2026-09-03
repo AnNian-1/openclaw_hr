@@ -1,6 +1,6 @@
 # openclaw-hr · HR 数字员工「小慧」
 
-本仓库是可运行的 OpenClaw HR profile（目录 [`.openclaw-hr/`](.openclaw-hr/)）加上 HCM 入职看板。骨架来自课程 profile，**现行事实以 2026-08 配置与实测为准**，不要按旧课安装手册里的 DeepSeek 主模型或 `~/.openclaw-hr` 去配。
+本仓库是可运行的 OpenClaw HR profile（目录 [`.openclaw-hr/`](.openclaw-hr/)）加上 HCM 人力资源管理系统。骨架来自课程 profile，**现行事实以 2026-08 配置与实测为准**，不要按旧课安装手册里的 DeepSeek 主模型或 `~/.openclaw-hr` 去配。
 
 - **人怎么读、怎么跑**：[docs/项目说明.md](docs/项目说明.md)
 - **文档地图**：[docs/README.md](docs/README.md)

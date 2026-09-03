@@ -288,7 +288,7 @@ inbox 简历
   },
   "work_experience": [
     {
-      "company": "某头部电商集团",
+      "company": "某某公司1",
       "position": "后端技术专家",
       "start_date": "2018.04",
       "end_date": "至今",

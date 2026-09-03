@@ -20,6 +20,7 @@
   - 聚合：`python3 skills/aggregating-360-feedback/scripts/aggregate.py feedback-360/source_feedback/<slug>`
     → 写出 `feedback-360/source_feedback/<slug>/aggregated-data.json`（与原料同目录）。
   - 该 `aggregated-data.json` 是后两层的**唯一评分基准**。
+  - `reviewer_alias` / 看板评估人列只保留 领导N、同事N、下属N、自评；校验脚本会按文件名改写。
   - 跑脚本需 `group:runtime` 权限。
   - 极差 ≥ 1.0 是机械信号（标 `suspected_split`），只触发关注，不是最终分歧结论。
 

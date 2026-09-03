@@ -21,6 +21,7 @@ import json
 import os
 import re
 import sys
+import html
 import base64
 import io
 import hashlib
@@ -65,10 +66,46 @@ def resolve_paths(cli_target, out_html=None):
     return data_path, report_path, out_path, person_dir
 
 
+def _strip_fences(text):
+    """去掉 Markdown 代码块和纯装饰线（会把卡片撑破父容器）。"""
+    text = re.sub(r"```.*?```", " ", text, flags=re.S)
+    text = re.sub(r"`+", "", text)
+    text = re.sub(r"^[ \t]*[─━═\-—]{8,}[ \t]*$", " ", text, flags=re.M)
+    text = re.sub(r"[─━═]{8,}", " ", text)
+    return text
+
+
 def _clean_md(text):
+    text = _strip_fences(text)
     text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
     text = re.sub(r"\s+", " ", text).strip()
     return text
+
+
+def _card_excerpt(note: str, limit: int = 220) -> str:
+    """卡片只放归因导语（首句），避免整节 bullet / ASCII 表挤进格子。"""
+    note = (note or "").strip()
+    m = re.match(r"(.+?。)", note)
+    if m and len(m.group(1).strip()) >= 24:
+        return m.group(1).strip()[:limit]
+    if len(note) <= limit:
+        return note
+    cut = note[:limit]
+    for sep in ("。", "！", "？", "；"):
+        i = cut.rfind(sep)
+        if i >= 24:
+            return cut[: i + 1]
+    return cut.rstrip() + "…"
+
+
+def _is_layout_junk(note: str) -> bool:
+    if not note:
+        return True
+    if note.count("─") + note.count("━") >= 8:
+        return True
+    if "组内视角" in note and "跨组视角" in note and "──" in note:
+        return True
+    return False
 
 
 def _label_to_verdict(label: str):
@@ -87,7 +124,7 @@ def _label_to_verdict(label: str):
 def parse_aggregated_report(report_path):
     """从 aggregated-report.md 解析判定与卡片语义文案。
 
-    兼容现有李四版式（总览表判定列 + ### N. 维度 —— … + **判定**/**分歧归因分析**），
+    兼容现有报告版式（总览表判定列 + ### N. 维度 —— … + **判定**/**分歧归因分析**），
     以及更早的 ✅/⚠️ 分节写法。
     返回 (verdict, consensus_notes, split_notes)。
     """
@@ -149,38 +186,56 @@ def parse_aggregated_report(report_path):
             # 分节标题可覆盖总览（更贴近章节归属）
             verdict[key] = decided
 
-        # 语义摘要：共识优先「判定」；分歧优先「分歧归因分析」并多取几段
+        # 语义摘要：共识优先「判定」；分歧优先「分歧归因」散文，不要 ASCII 对照表
         note = ""
+        is_split = verdict.get(key) == "split" or "分歧" in header
         prefer = (
-            ("分歧归因分析", "归因分析", "判定", "结论")
-            if (verdict.get(key) == "split" or "分歧" in header)
+            ("分歧归因分析", "分歧归因", "归因分析", "分歧本质", "判定", "结论")
+            if is_split
             else ("判定", "结论", "统一叙事", "归因分析")
         )
         for label in prefer:
-            if label in ("分歧归因分析", "归因分析"):
+            # f-string 里 {2,4} 必须写成 {{2,4}}，否则会变成字面量 "(2, 4)"
+            nm = re.search(
+                rf"^#{{2,4}}\s*{re.escape(label)}\s*\n+"
+                rf"(.+?)"
+                rf"(?=\n#{{2,4}}\s|\n## |\Z)",
+                block,
+                re.M | re.S,
+            )
+            if not nm and label in (
+                "分歧归因分析", "分歧归因", "归因分析", "分歧本质",
+            ):
                 nm = re.search(
-                    rf"\*\*{label}[：:]?\*\*[：:]*\s*(.+?)"
-                    rf"(?=\n\*\*建议|\n\*\*需要探讨|\n###|\n##|\Z)",
+                    rf"\*\*{re.escape(label)}[：:]?\*\*[：:]*\s*(.+?)"
+                    rf"(?=\n\*\*建议|\n\*\*需要探讨|\n#### |\n### |\n## |\Z)",
                     block,
                     re.S,
                 )
-            else:
+            elif not nm:
                 nm = re.search(
-                    rf"\*\*{label}[：:]?\*\*[：:]*\s*(.+?)"
-                    rf"(?=\n\n|\n\*\*|\n###|\n##|\Z)",
+                    rf"\*\*{re.escape(label)}[：:]?\*\*[：:]*\s*(.+?)"
+                    rf"(?=\n\n|\n\*\*|\n### |\n## |\Z)",
                     block,
                     re.S,
                 )
             if nm:
-                note = _clean_md(nm.group(1))
-                if len(note) >= 8:
+                note = _card_excerpt(_clean_md(nm.group(1)))
+                if len(note) >= 8 and not _is_layout_junk(note):
                     break
+                note = ""
         if not note:
-            # 首个足够长的非表格段落
-            for para in re.split(r"\n\s*\n", block):
+            # 首个足够长的非表格、非对照表、非「极差判定」段落
+            stripped = re.sub(r"```.*?```", "\n", block, flags=re.S)
+            for para in re.split(r"\n\s*\n", stripped):
                 para = _clean_md(re.sub(r"^\|.+", "", para, flags=re.M))
-                if len(para) >= 20 and not para.startswith(("#", "各视角", "建议")):
-                    note = para[:420]
+                if (
+                    len(para) >= 20
+                    and not para.startswith(("#", "各视角", "建议"))
+                    and "视角极差" not in para[:12]
+                    and not _is_layout_junk(para)
+                ):
+                    note = _card_excerpt(para)
                     break
 
         if not note:
@@ -401,7 +456,7 @@ def main():
 
     peer_rows = ""
     for alias, sc in zip(peer_reviewers, peer_collab):
-        peer_rows += f"<tr><td>{alias}</td>{score_cell(float(sc))}</tr>\n"
+        peer_rows += f"<tr><td>{html.escape(str(alias))}</td>{score_cell(float(sc))}</tr>\n"
 
     consensus_cards = ""
     for r in consensus:
@@ -411,8 +466,8 @@ def main():
         )
         consensus_cards += f"""
     <div class="card consensus-card">
-      <div class="card-h"><span class="dot c"></span>{r['cn']}<span class="range">极差 {r['range']:.2f}</span></div>
-      <p>{note}</p>
+      <div class="card-h"><span class="dot c"></span>{html.escape(str(r['cn']))}<span class="range">极差 {r['range']:.2f}</span></div>
+      <p>{html.escape(str(note))}</p>
     </div>"""
 
     split_cards = ""
@@ -428,9 +483,9 @@ def main():
                               for p, v in zip(PERSP_ORDER, r["avgs"]))
         split_cards += f"""
     <div class="card split-card">
-      <div class="card-h"><span class="dot s"></span>{n['title']}<span class="range">极差 {r['range']:.2f}</span></div>
-      <p class="avgs">{avgs_str}</p>
-      <p>{n['body']}</p>
+      <div class="card-h"><span class="dot s"></span>{html.escape(str(n['title']))}<span class="range">极差 {r['range']:.2f}</span></div>
+      <p class="avgs">{html.escape(avgs_str)}</p>
+      <p>{html.escape(str(n['body']))}</p>
     </div>"""
 
     subject = data.get("subject", "")
@@ -438,7 +493,7 @@ def main():
     period = data.get("period", "")
     total = data.get("total_feedback_count", 0)
 
-    html = f"""<!DOCTYPE html>
+    page_html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -447,14 +502,14 @@ def main():
 <style>
   * {{ margin:0; padding:0; box-sizing:border-box; }}
   body {{ font-family:"PingFang SC","Songti SC",sans-serif; background:#f4f5f7; color:#1f2937; line-height:1.7; }}
-  .wrap {{ max-width:980px; margin:0 auto; padding:32px 28px 56px; }}
+  .wrap {{ max-width:980px; margin:0 auto; padding:32px 28px 56px; overflow-x:hidden; }}
   .banner {{ background:#fff7ed; border:1px solid #fdba74; border-radius:8px; padding:14px 18px; margin-bottom:24px; font-size:14px; color:#9a3412; }}
   .banner b {{ color:#c2410c; }}
   h1 {{ font-size:24px; margin-bottom:6px; }}
   .sub {{ color:#6b7280; font-size:14px; margin-bottom:24px; }}
   .meta {{ display:flex; flex-wrap:wrap; gap:10px 24px; background:#fff; border-radius:8px; padding:16px 20px; margin-bottom:24px; font-size:14px; }}
   .meta span b {{ color:#374151; }}
-  section {{ background:#fff; border-radius:8px; padding:22px 24px; margin-bottom:22px; }}
+  section {{ background:#fff; border-radius:8px; padding:22px 24px; margin-bottom:22px; min-width:0; overflow:hidden; }}
   h2 {{ font-size:17px; margin-bottom:14px; padding-left:10px; border-left:4px solid #2563eb; }}
   .radar {{ text-align:center; }}
   .radar img {{ max-width:560px; width:100%; }}
@@ -465,11 +520,12 @@ def main():
   .tag {{ font-size:12px; padding:2px 9px; border-radius:10px; color:#fff; }}
   .tag.consensus {{ background:#059669; }}
   .tag.split {{ background:#d97706; }}
-  .cards {{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }}
-  .card {{ border-radius:8px; padding:14px 16px; font-size:13.5px; }}
+  .cards {{ display:grid; grid-template-columns:1fr 1fr; gap:14px; min-width:0; }}
+  .card {{ border-radius:8px; padding:14px 16px; font-size:13.5px; min-width:0; overflow:hidden; overflow-wrap:anywhere; word-break:break-word; }}
+  .card p {{ overflow-wrap:anywhere; word-break:break-word; }}
+  .card-h {{ font-weight:700; font-size:14.5px; margin-bottom:6px; display:flex; align-items:center; gap:6px; min-width:0; }}
   .consensus-card {{ background:#ecfdf5; border:1px solid #a7f3d0; }}
   .split-card {{ background:#fffbeb; border:1px solid #fde68a; }}
-  .card-h {{ font-weight:700; font-size:14.5px; margin-bottom:6px; display:flex; align-items:center; gap:6px; }}
   .dot {{ width:9px; height:9px; border-radius:50%; display:inline-block; }}
   .dot.c {{ background:#059669; }}
   .dot.s {{ background:#d97706; }}
@@ -565,7 +621,7 @@ def main():
 """
 
     with open(out_path, "w", encoding="utf-8") as f:
-        f.write(html)
+        f.write(page_html)
 
     print(f"✅ 看板生成：{out_path}")
     print(f"   人员目录：{person_dir}")

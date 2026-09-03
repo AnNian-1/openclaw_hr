@@ -110,6 +110,7 @@ python3 skills/aggregating-360-feedback/scripts/aggregate.py \
 ## 关键规则
 
 - **源头走压缩包摄入**；原料与聚合产物都在 `source_feedback/<slug>/`。
+- **评估人代号**：JSON 的 `reviewer_alias` 必须是 `领导N` / `同事N` / `下属N` / `自评`。Agent 自己填表时按这个写；`check_feedback.py` 会按文件名强制改写，禁止真人名进入聚合。
 - **聚合前必须先过校验**。
 - **产物路径**：`<slug>/aggregated-data.json` + `<slug>/aggregated-report.md`。
 - **`aggregated-data.json` 是唯一评分基准**；下游看板从该路径取数。

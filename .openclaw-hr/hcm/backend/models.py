@@ -23,7 +23,6 @@ class Candidate(Base):
     created_at = Column(DateTime, nullable=False, default=_utcnow)
 
     nodes = relationship("PrepNode", back_populates="candidate", cascade="all, delete-orphan")
-    reviews = relationship("Review", back_populates="candidate", cascade="all, delete-orphan")
 
 
 class PrepNode(Base):
@@ -38,16 +37,3 @@ class PrepNode(Base):
 
     candidate = relationship("Candidate", back_populates="nodes")
 
-
-class Review(Base):
-    __tablename__ = "reviews"
-
-    id = Column(Integer, primary_key=True, index=True)
-    candidate_id = Column(Integer, ForeignKey("candidates.id"), nullable=False)
-    review_type = Column(String(10), nullable=False)  # day7/day30/day60/day90
-    status = Column(String(20), nullable=False, default="pending")
-    content = Column(Text, nullable=True)
-    triggered_at = Column(DateTime, nullable=True)
-    completed_at = Column(DateTime, nullable=True)
-
-    candidate = relationship("Candidate", back_populates="reviews")

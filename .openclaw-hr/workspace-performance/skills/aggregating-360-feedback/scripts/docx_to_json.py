@@ -17,6 +17,8 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+from reviewer_alias import assign_alias_from_json_name, assign_numbered_json_names
+
 
 def _reexec_openclaw_hr():
     try:
@@ -202,7 +204,8 @@ def assign_json_names(rows: list[dict]) -> None:
       自评 → self.json
       平级 → peer-01.json, peer-02.json, …
       下属 → report-01.json, report-02.json, …
-    同关系多份时按评估人别名 + 源文件名排序，保证可复现。
+    平级/下属若表内已写 同事N/下属N，按该编号落盘（peer-01=同事1）；
+    未写代号的再按别名 + 源文件名补号。写出前强制改成角色代号。
     """
     buckets = defaultdict(list)
     for row in rows:
@@ -216,12 +219,6 @@ def assign_json_names(rows: list[dict]) -> None:
 
     used = set()
     for relation, items in buckets.items():
-        items.sort(
-            key=lambda r: (
-                (r.get("reviewer_alias") or ""),
-                (r.get("_source_docx") or ""),
-            )
-        )
         if relation in ("manager", "self"):
             if len(items) != 1:
                 names = ", ".join(r.get("_source_docx", "?") for r in items)
@@ -234,11 +231,12 @@ def assign_json_names(rows: list[dict]) -> None:
             items[0]["_json_name"] = candidate
             used.add(candidate)
             continue
-        for i, item in enumerate(items, start=1):
-            candidate = f"{relation}-{i:02d}.json"
+        prefix = "同事" if relation == "peer" else "下属"
+        assign_numbered_json_names(items, relation, prefix)
+        for item in items:
+            candidate = item["_json_name"]
             if candidate in used:
                 raise ValueError(f"命名冲突：{candidate}")
-            item["_json_name"] = candidate
             used.add(candidate)
 
     for row in rows:
@@ -270,6 +268,7 @@ def convert_dir(docx_dir: Path, out_dir: Path | None = None) -> list[Path]:
     for row in rows:
         json_name = row.pop("_json_name")
         row.pop("_source_docx", None)
+        assign_alias_from_json_name(row, json_name)
         out = out_dir / json_name
         out.write_text(
             json.dumps(row, ensure_ascii=False, indent=2) + "\n",

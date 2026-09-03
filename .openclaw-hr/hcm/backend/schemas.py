@@ -38,29 +38,6 @@ class PrepNodeOut(PrepNodeBase):
         from_attributes = True
 
 
-# ── Review ────────────────────────────────────────────────
-
-class ReviewBase(BaseModel):
-    review_type: str = Field(..., pattern="^(day7|day30|day60|day90)$")
-    status: str = Field(default="pending", pattern="^(pending|completed)$")
-    content: Optional[str] = None
-
-
-class ReviewUpdate(BaseModel):
-    status: Optional[str] = Field(None, pattern="^(pending|completed)$")
-    content: Optional[str] = None
-
-
-class ReviewOut(ReviewBase):
-    id: int
-    candidate_id: int
-    triggered_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
-
-
 # ── Candidate ─────────────────────────────────────────────
 
 class CandidateCreate(BaseModel):
@@ -81,7 +58,6 @@ class CandidateOut(BaseModel):
     started_at: Optional[datetime] = None
     created_at: datetime
     nodes: list[PrepNodeOut] = []
-    reviews: list[ReviewOut] = []
 
     class Config:
         from_attributes = True
@@ -104,4 +80,3 @@ class CandidateBrief(BaseModel):
 
 class CandidateWithNodes(CandidateBrief):
     nodes: list[PrepNodeOut] = []
-    reviews: list[ReviewOut] = []

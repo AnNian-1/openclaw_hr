@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 按 models/360-feedback-form-blank.docx 模板，
-将 raw/*.json 填成可阅读的 DOCX，输出到 source_feedback/yuangong1/。
+将 source_feedback/yuangong1/*.json 填成可阅读的 DOCX，评估人代号为 领导N/同事N/下属N/自评。
 """
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from docx.shared import Pt, RGBColor
 
 ROOT = Path(__file__).resolve().parents[1]
 BLANK = ROOT / "models" / "360-feedback-form-blank.docx"
-RAW = ROOT / "raw"
+SRC = ROOT / "source_feedback" / "yuangong1"
 OUT = ROOT / "source_feedback" / "yuangong1"
 
 FONT_BODY = "宋体"
@@ -49,14 +49,14 @@ SCORE_LABEL = {
     1: "1-明显未达",
 }
 
-# raw 文件名 → 输出文件名
+# source JSON → 输出 DOCX 文件名（评估人只用角色代号）
 FILE_MAP = [
-    ("manager.json", "360-反馈表-员工1-上级-王建华.docx"),
-    ("peer-01.json", "360-反馈表-员工1-平级-陈思远.docx"),
-    ("peer-02.json", "360-反馈表-员工1-平级-刘婷.docx"),
-    ("peer-03.json", "360-反馈表-员工1-平级-赵宇.docx"),
-    ("report-01.json", "360-反馈表-员工1-下属-孙浩.docx"),
-    ("report-02.json", "360-反馈表-员工1-下属-周琳.docx"),
+    ("manager.json", "360-反馈表-员工1-上级-领导1.docx"),
+    ("peer-01.json", "360-反馈表-员工1-平级-同事1.docx"),
+    ("peer-02.json", "360-反馈表-员工1-平级-同事2.docx"),
+    ("peer-03.json", "360-反馈表-员工1-平级-同事3.docx"),
+    ("report-01.json", "360-反馈表-员工1-下属-下属1.docx"),
+    ("report-02.json", "360-反馈表-员工1-下属-下属2.docx"),
     ("self.json", "360-反馈表-员工1-自评.docx"),
 ]
 
@@ -153,7 +153,7 @@ def normalize_period(period: str) -> str:
 
 
 def short_name(alias: str) -> str:
-    """王建华（研发组组长…）→ 王建华"""
+    """领导1（…）→ 领导1；已是角色代号则原样返回。"""
     m = re.match(r"^([^（(]+)", alias.strip())
     return m.group(1).strip() if m else alias.strip()
 
@@ -225,7 +225,7 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
 
     for src_name, out_name in FILE_MAP:
-        src = RAW / src_name
+        src = SRC / src_name
         data = json.loads(src.read_text(encoding="utf-8"))
         out_path = OUT / out_name
         fill_one(data, out_path)

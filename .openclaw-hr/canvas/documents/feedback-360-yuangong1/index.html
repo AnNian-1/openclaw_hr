@@ -7,14 +7,14 @@
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:"PingFang SC","Songti SC",sans-serif; background:#f4f5f7; color:#1f2937; line-height:1.7; }
-  .wrap { max-width:980px; margin:0 auto; padding:32px 28px 56px; }
+  .wrap { max-width:980px; margin:0 auto; padding:32px 28px 56px; overflow-x:hidden; }
   .banner { background:#fff7ed; border:1px solid #fdba74; border-radius:8px; padding:14px 18px; margin-bottom:24px; font-size:14px; color:#9a3412; }
   .banner b { color:#c2410c; }
   h1 { font-size:24px; margin-bottom:6px; }
   .sub { color:#6b7280; font-size:14px; margin-bottom:24px; }
   .meta { display:flex; flex-wrap:wrap; gap:10px 24px; background:#fff; border-radius:8px; padding:16px 20px; margin-bottom:24px; font-size:14px; }
   .meta span b { color:#374151; }
-  section { background:#fff; border-radius:8px; padding:22px 24px; margin-bottom:22px; }
+  section { background:#fff; border-radius:8px; padding:22px 24px; margin-bottom:22px; min-width:0; overflow:hidden; }
   h2 { font-size:17px; margin-bottom:14px; padding-left:10px; border-left:4px solid #2563eb; }
   .radar { text-align:center; }
   .radar img { max-width:560px; width:100%; }
@@ -25,11 +25,12 @@
   .tag { font-size:12px; padding:2px 9px; border-radius:10px; color:#fff; }
   .tag.consensus { background:#059669; }
   .tag.split { background:#d97706; }
-  .cards { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  .card { border-radius:8px; padding:14px 16px; font-size:13.5px; }
+  .cards { display:grid; grid-template-columns:1fr 1fr; gap:14px; min-width:0; }
+  .card { border-radius:8px; padding:14px 16px; font-size:13.5px; min-width:0; overflow:hidden; overflow-wrap:anywhere; word-break:break-word; }
+  .card p { overflow-wrap:anywhere; word-break:break-word; }
+  .card-h { font-weight:700; font-size:14.5px; margin-bottom:6px; display:flex; align-items:center; gap:6px; min-width:0; }
   .consensus-card { background:#ecfdf5; border:1px solid #a7f3d0; }
   .split-card { background:#fffbeb; border:1px solid #fde68a; }
-  .card-h { font-weight:700; font-size:14.5px; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
   .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
   .dot.c { background:#059669; }
   .dot.s { background:#d97706; }
@@ -87,9 +88,9 @@
       <table>
         <thead><tr><th>平级评估人</th><th>协作沟通评分</th></tr></thead>
         <tbody>
-        <tr><td>刘婷（风控组工程师，跨组接口对接）</td><td style="color:#dc2626;font-weight:600">2.00</td></tr>
-<tr><td>赵宇（前端组工程师，接口联调对接）</td><td style="color:#d97706;font-weight:600">3.00</td></tr>
-<tr><td>陈思远（同组后端工程师）</td><td style="color:#2563eb;font-weight:600">4.00</td></tr>
+        <tr><td>同事1</td><td style="color:#dc2626;font-weight:600">2.00</td></tr>
+<tr><td>同事2</td><td style="color:#d97706;font-weight:600">3.00</td></tr>
+<tr><td>同事3</td><td style="color:#2563eb;font-weight:600">4.00</td></tr>
 
         </tbody>
       </table>
@@ -103,7 +104,7 @@
     
     <div class="card consensus-card">
       <div class="card-h"><span class="dot c"></span>目标达成<span class="range">极差 0.00</span></div>
-      <p>支付网关重构和对账系统优化两项核心 OKR 按时交付，交付质量高。网关重构是最大亮点——P99 延迟从 320ms 降至 180ms，接口更稳定，前端联调和风控对接都予以认可。唯一美中不足是上级提到对账系统优化「大概 85%，剩下的边界场景没收尾」。</p>
+      <p>支付网关重构和对账系统优化两项核心 OKR 按时交付，交付质量高。</p>
     </div>
     <div class="card consensus-card">
       <div class="card-h"><span class="dot c"></span>专业能力<span class="range">极差 0.33</span></div>
@@ -111,7 +112,7 @@
     </div>
     <div class="card consensus-card">
       <div class="card-h"><span class="dot c"></span>责任心<span class="range">极差 1.00</span></div>
-      <p>所有评语在同一方向上，没有相互矛盾的叙事——每个人都认为员工1对自己的职责范围高度负责。评分的梯度（下属 5.0 → 自评 5.0 → 平级 4.33 → 上级 4.0）反映的是「责任制的宽度差异」而非「是否负责」的争议： - 下属（5.0 满分） 体验的是他带教端的极致投入：孙浩提到员工1 review 代码时发现了隐藏 bug「帮我避免了一次线上事故」，周琳提到员工1「每周专门留时间和我过一遍进展」。 - 上级（4.0） 的评语「对自己负责的模块很上心」完全正面，4 分更可能是上级在 5 分制上习惯性留成长空间，以及希望他将责任范围从「自己的模块」扩展到更宽的领域——这与成长维度的关切一脉相承。 - 平级（4.33） 中唯一 4 分的来自跨组对接人（刘婷：「对他自己模块的事很负责这一点我不否认」、赵宇：「接口文档维护及时，挺负责的」），措辞均无保留。 > 判定规则：视角极差恰好 1.0 且所有评语方向一致 = 正常打分尺度差异，归</p>
+      <p>所有评语在同一方向上，没有相互矛盾的叙事——每个人都认为员工1对自己的职责范围高度负责。</p>
     </div>
     </div>
   </section>
@@ -123,12 +124,12 @@
     <div class="card split-card">
       <div class="card-h"><span class="dot s"></span>协作沟通<span class="range">极差 1.50</span></div>
       <p class="avgs">上级 3.00 / 平级 3.00 / 下属 4.50 / 自评 4.00</p>
-      <p>``` 组内视角（平级-同组 + 下属 + 自评） 跨组视角（平级-跨组 + 上级） ───────────────────────────────────────────────────────────── 同组陈思远 4：乐于分享、主动整理文档 风控刘婷 2：三次接口评审僵持， 下属全员 4-5：耐心、真心带人 方案确认拖一两周 自评 4：组内协作做得不错 前端赵宇 3：偏技术导向，先质疑 上级 3：收到风控组反馈， 已单独和他谈过 ```</p>
+      <p>这不是随机的评分噪声，而是一个方向性分歧——分歧点不在「员工1是不是一个好合作的人」，而在于 「员工1对内部、对下属、对跨组同事，展现的是同一面吗？」。</p>
     </div>
     <div class="card split-card">
       <div class="card-h"><span class="dot s"></span>学习成长<span class="range">极差 2.00</span></div>
       <p class="avgs">上级 3.00 / 平级 3.33 / 下属 4.50 / 自评 5.00</p>
-      <p>视角极差 2.00，是全表最大的分歧维度。判定为真分歧。</p>
+      <p>这个分歧的本质不是「他有没有成长」，而是「成长」的定义权在谁手上。</p>
     </div>
     </div>
     <p class="note">分歧点是 360 反馈最有诊断价值的产出。聚合分析只负责把分歧摆出来、给出原因假设，不下结论——结论由主管在面谈中与本人对齐。</p>
@@ -144,7 +145,7 @@
 
   <footer>
     评估对象目录：yuangong1 ·
-    数据来源：aggregated-data.json（md5 782294d4a460） ·
+    数据来源：aggregated-data.json（md5 04f9bb9a7307） ·
     判定来源：aggregated-report.md ·
     看板不重新计算分数
   </footer>

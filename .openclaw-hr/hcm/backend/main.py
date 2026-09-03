@@ -5,14 +5,19 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from routers import candidates, reviews
+from routers import candidates
 from websocket import manager
+from sqlalchemy import inspect, text
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Create database tables on startup."""
+    """Create database tables on startup; drop leftover reviews table."""
     Base.metadata.create_all(bind=engine)
+    inspector = inspect(engine)
+    if "reviews" in inspector.get_table_names():
+        with engine.begin() as conn:
+            conn.execute(text("DROP TABLE IF EXISTS reviews"))
     yield
 
 
@@ -34,7 +39,6 @@ app.add_middleware(
 
 # Register REST routers
 app.include_router(candidates.router)
-app.include_router(reviews.router)
 
 
 @app.websocket("/ws/dashboard")

@@ -1,7 +1,7 @@
 # 360 反馈聚合细则
 
 > aggregating-360-feedback Skill 的聚合细则。SKILL.md 在需要时引用本文件。
-> 评估维度对齐星桥科技绩效管理制度第四条。
+> 评估维度对齐公司绩效管理制度第四条。
 
 ## 目录
 
@@ -37,7 +37,7 @@
   "subject_role": "评估对象岗位",
   "period": "考核周期，如 2026-H1",
   "reviewer_relation": "manager / peer / report / self",
-  "reviewer_alias": "评估人化名",
+  "reviewer_alias": "领导1 / 同事1 / 下属1 / 自评（禁止真人名）",
   "submitted_at": "提交日期",
   "scores": {
     "goal_achievement": 1-5,
@@ -125,13 +125,15 @@
 1. 每个 JSON 文件可解析。
 2. 必需字段齐全：`reviewer_relation` / `scores` / `comments`。
 3. `reviewer_relation` 取值是 `manager / peer / report / self` 之一。
-4. `scores` 含 5 个维度，每个维度评分为 1-5 的整数。
-5. 至少 1 份 `manager` + 1 份 `self`——360 反馈缺了上级或自评视角就不成立。
+4. `reviewer_alias` 为 `领导N` / `同事N` / `下属N` / `自评`（校验前按文件名改写）。
+5. `scores` 含 5 个维度，每个维度评分为 1-5 的整数。
+6. 至少 1 份 `manager` + 1 份 `self`——360 反馈缺了上级或自评视角就不成立。
 
 ## 7. 合规边界
 
 本 Skill 聚合的是绩效数据，受合规红线约束：
 
 - 产出 `aggregated-data.json` 是**评分聚合数据**，不是绩效评级。
-- 绝不输出 S/A/B/C/D 等绩效等级。绩效定级由「直接主管初评 → 隔级主管复核 → 校准会确认」三级人工流程确定（依据《个人信息保护法》第 24 条自动化决策条款、星桥科技绩效管理制度第五条）。
+- 绝不输出 S/A/B/C/D 等绩效等级。绩效定级由「直接主管初评 → 隔级主管复核 → 校准会确认」三级人工流程确定（依据《个人信息保护法》第 24 条自动化决策条款、公司绩效管理制度第五条）。
+- **评价人只出角色代号**（领导N / 同事N / 下属N / 自评），`reviewers[].alias` 不得保留真人名。
 - 聚合产出定位是「供绩效面谈与校准会 review 的输入材料」。

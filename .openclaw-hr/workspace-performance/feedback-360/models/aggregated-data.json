@@ -9,7 +9,7 @@
       "count": 1,
       "reviewers": [
         {
-          "alias": "王建华（研发组组长，直接主管）",
+          "alias": "领导1",
           "file": "manager.json"
         }
       ],
@@ -66,15 +66,15 @@
       "count": 3,
       "reviewers": [
         {
-          "alias": "陈思远（同组后端工程师）",
+          "alias": "同事1",
           "file": "peer-01.json"
         },
         {
-          "alias": "刘婷（风控组工程师，跨组接口对接）",
+          "alias": "同事2",
           "file": "peer-02.json"
         },
         {
-          "alias": "赵宇（前端组工程师，接口联调对接）",
+          "alias": "同事3",
           "file": "peer-03.json"
         }
       ],
@@ -93,8 +93,8 @@
         "professional_skill": {
           "scores": [
             5,
-            5,
-            4
+            4,
+            5
           ],
           "count": 3,
           "average": 4.67,
@@ -103,9 +103,9 @@
         },
         "collaboration": {
           "scores": [
-            4,
             2,
-            3
+            3,
+            4
           ],
           "count": 3,
           "average": 3.0,
@@ -114,9 +114,9 @@
         },
         "responsibility": {
           "scores": [
-            5,
             4,
-            4
+            4,
+            5
           ],
           "count": 3,
           "average": 4.33,
@@ -125,9 +125,9 @@
         },
         "growth": {
           "scores": [
-            4,
             3,
-            3
+            3,
+            4
           ],
           "count": 3,
           "average": 3.33,
@@ -141,11 +141,11 @@
       "count": 2,
       "reviewers": [
         {
-          "alias": "孙浩（应届新人，员工1的带教对象）",
+          "alias": "下属1",
           "file": "report-01.json"
         },
         {
-          "alias": "周琳（实习生，员工1的带教对象）",
+          "alias": "下属2",
           "file": "report-02.json"
         }
       ],
@@ -172,8 +172,8 @@
         },
         "collaboration": {
           "scores": [
-            5,
-            4
+            4,
+            5
           ],
           "count": 2,
           "average": 4.5,
@@ -192,8 +192,8 @@
         },
         "growth": {
           "scores": [
-            4,
-            5
+            5,
+            4
           ],
           "count": 2,
           "average": 4.5,
@@ -207,7 +207,7 @@
       "count": 1,
       "reviewers": [
         {
-          "alias": "员工1（本人自评）",
+          "alias": "自评",
           "file": "self.json"
         }
       ],

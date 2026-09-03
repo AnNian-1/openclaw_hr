@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, Body, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Candidate, PrepNode, Review
+from models import Candidate, PrepNode
 from schemas import (
     CandidateCreate, CandidateOut, CandidateBrief, CandidateWithNodes,
     PrepNodeUpdate, PrepNodeOut,
@@ -17,7 +17,6 @@ router = APIRouter(prefix="/api/candidates", tags=["candidates"])
 
 # Default prep node types created for every new candidate
 NODE_TYPES = ["contract", "account", "device", "training", "buddy"]
-REVIEW_TYPES = ["day7", "day30", "day60", "day90"]
 
 # 部门角色 → 唯一可写节点。overview / 缺头 / 错配一律 403（不能只靠前端藏按钮）。
 ROLE_TO_NODE = {
@@ -41,7 +40,7 @@ def _require_dept_can_write_node(node_type: str, x_department_role: Optional[str
 
 @router.get("", response_model=list[CandidateWithNodes])
 def list_candidates(db: Session = Depends(get_db)):
-    """List all candidates with their prep nodes and reviews."""
+    """List all candidates with their prep nodes."""
     candidates = db.query(Candidate).all()
     return candidates
 
@@ -77,7 +76,7 @@ def update_candidate(
 
 @router.post("", response_model=CandidateOut, status_code=201)
 def create_candidate(body: CandidateCreate, db: Session = Depends(get_db)):
-    """Create a new candidate and auto-generate all prep nodes + reviews."""
+    """Create a new candidate and auto-generate all prep nodes."""
     # Check pinyin uniqueness
     existing = db.query(Candidate).filter(Candidate.pinyin == body.pinyin).first()
     if existing:
@@ -96,10 +95,6 @@ def create_candidate(body: CandidateCreate, db: Session = Depends(get_db)):
     # Auto-create 5 prep nodes
     for nt in NODE_TYPES:
         db.add(PrepNode(candidate_id=candidate.id, node_type=nt, status="pending", data="{}"))
-
-    # Auto-create 4 review slots
-    for rt in REVIEW_TYPES:
-        db.add(Review(candidate_id=candidate.id, review_type=rt, status="pending"))
 
     db.commit()
     db.refresh(candidate)

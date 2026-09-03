@@ -16,7 +16,7 @@ Skill 的完整用法看各自的 `SKILL.md`，这里是速查。
 ```
 
 - 花名册、五部门准备节点 → 各部门在 HCM 维护（小慧只读）
-- 试用期 7/30/60/90 跟进 → 本机 `review-state/reviews.json`（HR 确认后小慧 `review-store.sh mark-done`）
+- 试用期 7/30/60/90 跟进 → 本机 `review-state/reviews.json`（HR 在 CLI `review-store.sh record`；飞书只催办）
 - 小慧的职责：查询 HCM 准备状态 + 本地跟进表 → 推进审批流程 → 通知相关人员
 - 审批门（contract_gate / account_gate）是 Lobster 工作流概念，HCM 无此字段，仍读本机 `workflow.json`
 
@@ -45,13 +45,13 @@ Skill 的完整用法看各自的 `SKILL.md`，这里是速查。
 - **做什么**：按入职天数（7/30/60/90 天）查询入职跟进 review 状态，生成报告供通知 HR/主管。
 - **什么时候用**：Cron 定时任务到点触发时；或需要手动查某员工某天的跟进状态时。
 - **数据来源**：花名册与五部门节点 → HCM API（只读）；跟进 completed → 本机 `review-state/reviews.json`。
-- **调用要点**：`onboarding-review.sh <姓名> <入职天数> [pinyin]` 只查询催办；五节点未齐时 `action=not_armed`，**不会**偷偷 ensure。HR 确认后 `review-store.sh mark-done ...`。开通跟进用 `sync-reviews-if-ready.sh`（勿直接 `schedule-onboarding-reviews.sh`，以免未全绿就挂 Cron）。
+- **调用要点**：`onboarding-review.sh <姓名> <入职天数> [pinyin]` 只查询催办；五节点未齐时 `action=not_armed`，**不会**偷偷 ensure。HR 回填：`review-store.sh record ... --outcome ok|watch|risk|skipped`。开通跟进用 `sync-reviews-if-ready.sh`（勿直接 `schedule-onboarding-reviews.sh`，以免未全绿就挂 Cron）。
 
 ### generating-onboarding-dashboard —— 入职进度看板
 
-- **做什么**：从 HCM 读取 5 个准备节点 + 本机 `workflow.json` 审批门角标，生成可视化 HTML 看板并发布到 Canvas。不展示试用期 review。
+- **做什么**：从 HCM 读取 5 个准备节点 + 本机 `workflow.json` 审批门角标 + 本地试用期跟进表，生成可视化 HTML 看板并发布到 Canvas。
 - **什么时候用**：需要总览所有新员工入职进度时。
-- **数据来源**：HCM API（五节点，只读）+ 本机 `workflow.json`（审批门角标）。试用期 review 在本地表，不进看板；HCM review API 后续作废。
+- **数据来源**：HCM API（五节点，只读）+ 本机 `workflow.json`（审批门角标）+ `review-state/reviews.json`（7/30/60/90）。
 - **调用要点**：
   - 仅生成：`bash skills/generating-onboarding-dashboard/scripts/build-dashboard.sh`
   - 生成并发布：`bash skills/generating-onboarding-dashboard/scripts/build-dashboard.sh --publish --force`

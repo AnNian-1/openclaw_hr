@@ -15,7 +15,7 @@
     },
     "work_experience": [
       {
-        "company": "某头部电商集团",
+        "company": "某某公司1",
         "position": "后端技术专家（P7→P8）",
         "start_date": "2018-04",
         "end_date": "至今",
@@ -23,7 +23,7 @@
         "industry_inferred": true
       },
       {
-        "company": "某 O2O 生活服务平台",
+        "company": "某某公司3",
         "position": "高级后端工程师 / 后端 Team Leader",
         "start_date": "2014-07",
         "end_date": "2018-03",
@@ -31,7 +31,7 @@
         "industry_inferred": true
       },
       {
-        "company": "某互联网金融公司",
+        "company": "某某公司2",
         "position": "后端开发工程师",
         "start_date": "2011-07",
         "end_date": "2014-06",
@@ -90,7 +90,7 @@
     },
     "work_experience": [
       {
-        "company": "某头部电商集团（某某公司1）",
+        "company": "某某公司1",
         "position": "高级后端开发工程师",
         "start_date": "2017.07",
         "end_date": "至今",
@@ -128,7 +128,7 @@
     },
     "work_experience": [
       {
-        "company": "某互联网金融公司（某某公司2）",
+        "company": "某某公司2",
         "position": "高级后端开发工程师",
         "start_date": "2018.07",
         "end_date": "2024.02",
@@ -163,7 +163,7 @@
     },
     "work_experience": [
       {
-        "company": "某O2O生活服务平台（某某公司3）",
+        "company": "某某公司3",
         "position": "前端开发工程师",
         "start_date": "2022.07",
         "end_date": "至今",
@@ -269,7 +269,7 @@
     },
     "work_experience": [
       {
-        "company": "某出行平台（某某公司7）",
+        "company": "某某公司7",
         "position": "后端开发工程师",
         "start_date": "2020.07",
         "end_date": "至今",

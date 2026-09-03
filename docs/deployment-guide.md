@@ -132,13 +132,16 @@ source "$PROFILE/env.sh"
 openclaw gateway run                          # 保持运行；飞书/Cron/Lobster 都在此进程
 curl -sS http://127.0.0.1:18790/health
 bash "$PROFILE/nginx/start-canvas-proxy.sh"   # :18999，需 Gateway
+# 可选：乐奇眼镜文件接收（与 Gateway 分进程）
+# bash "$PROFILE/scripts/rokid-app-ingest.sh" start
 ```
 
 | 服务 | 地址 |
 |------|------|
-| HCM 看板 | http://127.0.0.1:5173 |
+| HCM 前端 | http://127.0.0.1:5173 |
 | HCM API / Swagger | http://127.0.0.1:8000 与 `/docs` |
 | Gateway | http://127.0.0.1:18790 |
+| 乐奇眼镜上传 | http://127.0.0.1:18791（需 `ROKID_APP_INGEST_SECRET`） |
 | Canvas 反代 | http://127.0.0.1:18999 |
 
 对话示例见 [`.openclaw-hr/README.md`](../.openclaw-hr/README.md)。**不要**对 router/飞书要月报。
@@ -150,7 +153,7 @@ bash "$PROFILE/nginx/start-canvas-proxy.sh"   # :18999，需 Gateway
 - **找不到 `openclaw`**：把安装目录的 `node_modules/.bin` 加进 PATH，或用你机器上的绝对路径。
 - **Node 太旧**：第三节。
 - **seed 找不到人**：看 `$PROFILE/workspace-onboarding/stub-state/`。
-- **端口占用**：`lsof -ti:8000,5173,18790,18999`。
+- **端口占用**：`lsof -ti:8000,5173,18790,18791,18999`。
 - **前端代理失败**：后端要先在 8000 起来，`curl http://127.0.0.1:8000/api/health`。
 - **Gateway 起不来**：`source env.sh`；主模型要 `XIAOMI_API_KEY`。
 - **lobster 版本不对**：卸掉新版本，装与 OpenClaw 相同的 2026.5.12。

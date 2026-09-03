@@ -27,7 +27,7 @@ async function handleCreate(data: { name: string; pinyin: string; role: string; 
 <template>
   <div class="kanban-app">
     <header class="app-header">
-      <h1>📋 HCM 入职管理看板</h1>
+      <h1>HCM 人力资源管理系统</h1>
       <div class="header-meta">
         <span class="dept-label">
           {{ store.currentDeptConfig.icon }} {{ store.currentDeptConfig.label }}

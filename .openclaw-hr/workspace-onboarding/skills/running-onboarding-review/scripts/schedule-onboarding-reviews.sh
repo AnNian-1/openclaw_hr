@@ -84,6 +84,40 @@ if ! bash "$STORE_SH" ensure "$NAME" "$PINYIN" >/dev/null; then
 fi
 echo "[schedule-reviews] 本地 review 表已 ensure 7/30/60/90"
 
+PROFILE_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+resolve_feishu_to () {
+  local raw="${ONBOARDING_REVIEW_FEISHU_TO:-}"
+  if [ -z "$raw" ]; then
+    local allow="$PROFILE_ROOT/credentials/feishu-default-allowFrom.json"
+    if [ -f "$allow" ]; then
+      raw="$(python3 - "$allow" <<'PY'
+import json, sys
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+ids = data.get("allowFrom") or []
+print(ids[0] if ids else "")
+PY
+)"
+    fi
+  fi
+  raw="$(printf '%s' "$raw" | tr -d '[:space:]')"
+  if [ -z "$raw" ]; then
+    echo ""
+    return 0
+  fi
+  case "$raw" in
+    user:*) ;;
+    *) raw="user:${raw}" ;;
+  esac
+  printf '%s' "$raw"
+}
+
+FEISHU_TO="$(resolve_feishu_to)"
+if [ -n "$FEISHU_TO" ]; then
+  echo "[schedule-reviews] 飞书催办目标=${FEISHU_TO}"
+else
+  echo "[schedule-reviews] 警告：未设 ONBOARDING_REVIEW_FEISHU_TO 且无 allowFrom，隔离会话可能投不到飞书" >&2
+fi
+
 schedule_one () {
   local day="$1"
   local at_iso
@@ -99,7 +133,8 @@ print(when.isoformat())
 PY
 )"
   local job_name="onboard-review-${PINYIN}-day${day}"
-  local msg="请执行命令并把完整输出返回：bash ${REVIEW_SH} ${NAME} ${day} ${PINYIN}"
+  local msg="【飞书催办】请只 exec 下面命令，把输出整理成催办（谁、第几天、重点、尚未回填/未开通原因）。不要 record / mark-done，不要 spawn，不要改表。
+bash ${REVIEW_SH} ${NAME} ${day} ${PINYIN}"
 
   echo "[schedule-reviews] day${day} → ${at_iso}  name=${job_name}"
 
@@ -108,23 +143,28 @@ PY
     return 0
   fi
 
-  # --announce：到点把 review 结果投到聊天；无 channel 时 --best-effort-deliver 不让整次任务失败
+  # --announce + 显式 feishu to：隔离会话没有 last chat，必须写 HR 的 ou_
+  # --best-effort-deliver：投递失败不拖垮任务
   # --delete-after-run：一次性 --at 跑完即删
   # --tools exec：允许 Agent 执行 bash
-  if ! "$OPENCLAW_BIN" cron add \
-      --name "$job_name" \
-      --description "${NAME}入职第${day}天试用期跟进 review" \
-      --agent onboarding \
-      --at "$at_iso" \
-      --tz Asia/Shanghai \
-      --session isolated \
-      --announce \
-      --best-effort-deliver \
-      --delete-after-run \
-      --timeout-seconds 120 \
-      --tools exec \
-      --message "$msg"
-  then
+  local add_args=(
+    --name "$job_name"
+    --description "${NAME}入职第${day}天试用期跟进催办"
+    --agent onboarding
+    --at "$at_iso"
+    --tz Asia/Shanghai
+    --session isolated
+    --announce
+    --best-effort-deliver
+    --delete-after-run
+    --timeout-seconds 180
+    --tools exec
+    --message "$msg"
+  )
+  if [ -n "$FEISHU_TO" ]; then
+    add_args+=(--channel feishu --to "$FEISHU_TO")
+  fi
+  if ! "$OPENCLAW_BIN" cron add "${add_args[@]}"; then
     echo "[schedule-reviews] 警告：注册 day${day} 失败（可稍后手动 cron add）" >&2
     return 1
   fi

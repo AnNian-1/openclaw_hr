@@ -12,28 +12,24 @@ import sys
 from pathlib import Path
 from datetime import datetime, timezone
 from database import engine, Base, SessionLocal
-from models import Candidate, PrepNode, Review
+from models import Candidate, PrepNode
 
 PROFILE = Path(__file__).resolve().parent.parent.parent
 WORKSPACE = PROFILE / "workspace-onboarding"
 FIXTURES_STUB = PROFILE / "fixtures" / "onboarding-stub-state"
-FIXTURES_REVIEW = PROFILE / "fixtures" / "onboarding-review-state"
 STUB_STATE_DIR = WORKSPACE / "stub-state"
-REVIEW_STATE_DIR = WORKSPACE / "review-state"
 
 
-def resolve_seed_dirs() -> tuple[Path, Path]:
-    """Return (stub-state, review-state) dirs for seeding."""
+def resolve_seed_dir() -> Path:
+    """Return stub-state dir for seeding. Trial reviews live in workspace review-state, not HCM."""
     if os.environ.get("HCM_SEED_FIXTURES", "").lower() in ("1", "true", "yes"):
-        return FIXTURES_STUB, FIXTURES_REVIEW
+        return FIXTURES_STUB
     stub_override = os.environ.get("HCM_SEED_STUB_STATE")
     if stub_override:
-        review_override = os.environ.get("HCM_SEED_REVIEW_STATE", str(FIXTURES_REVIEW))
-        return Path(stub_override), Path(review_override)
-    return STUB_STATE_DIR, REVIEW_STATE_DIR
+        return Path(stub_override)
+    return STUB_STATE_DIR
 
 NODE_TYPES = ["contract", "account", "device", "training", "buddy"]
-REVIEW_TYPES = ["day7", "day30", "day60", "day90"]
 
 
 def parse_dt(s: str | None) -> datetime | None:
@@ -49,7 +45,7 @@ def seed():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
-    stub_dir, review_dir = resolve_seed_dirs()
+    stub_dir = resolve_seed_dir()
 
     if not stub_dir.exists():
         print(f"❌ stub-state 目录不存在: {stub_dir}")
@@ -153,34 +149,6 @@ def seed():
                 node_type=node_type,
                 status=status,
                 data=data_str,
-            ))
-
-        # Create review slots
-        for rt in REVIEW_TYPES:
-            # Reviews are stored as review-state/review-<中文名>-<type>.json
-            review_path = review_dir / f"review-{name}-{rt}.json"
-            if review_path.exists():
-                rv = json.loads(review_path.read_text(encoding="utf-8"))
-                review_status = "completed" if rv.get("status") in ("completed", "已跟进") else "pending"
-                # Build content from focus + prep_nodes summary
-                focus = rv.get("focus", "")
-                reviewed_at = rv.get("reviewedAt", "")
-                content = f"{focus} (跟进时间: {reviewed_at})" if reviewed_at else focus
-                triggered_at = parse_dt(rv.get("triggered_at"))
-                completed_at = parse_dt(rv.get("completed_at"))
-            else:
-                review_status = "pending"
-                content = None
-                triggered_at = None
-                completed_at = None
-
-            db.add(Review(
-                candidate_id=candidate.id,
-                review_type=rt,
-                status=review_status,
-                content=content,
-                triggered_at=triggered_at,
-                completed_at=completed_at,
             ))
 
         db.commit()

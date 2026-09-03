@@ -1,0 +1,148 @@
+{
+  "providers": {
+    "deepseek": {
+      "baseUrl": "https://api.deepseek.com",
+      "api": "openai-completions",
+      "models": [
+        {
+          "id": "deepseek-v4-pro",
+          "name": "DeepSeek V4 Pro",
+          "api": "openai-completions",
+          "reasoning": true,
+          "input": [
+            "text"
+          ],
+          "contextWindow": 1000000,
+          "maxTokens": 384000,
+          "cost": {
+            "input": 1.74,
+            "output": 3.48,
+            "cacheRead": 0.145,
+            "cacheWrite": 0
+          }
+        },
+        {
+          "id": "deepseek-v4-flash",
+          "name": "DeepSeek V4 Flash",
+          "api": "openai-completions",
+          "reasoning": true,
+          "input": [
+            "text"
+          ],
+          "contextWindow": 1000000,
+          "maxTokens": 384000,
+          "cost": {
+            "input": 0.14,
+            "output": 0.28,
+            "cacheRead": 0.028,
+            "cacheWrite": 0
+          }
+        }
+      ],
+      "apiKey": "DEEPSEEK_API_KEY"
+    },
+    "qwen": {
+      "baseUrl": "https://llm-5ipvwnjovosmatzx.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
+      "api": "openai-completions",
+      "models": [
+        {
+          "id": "qwen-max",
+          "name": "通义千问 Max",
+          "api": "openai-completions",
+          "input": [
+            "text"
+          ],
+          "contextWindow": 32768
+        },
+        {
+          "id": "qwen-plus",
+          "name": "通义千问 Plus",
+          "api": "openai-completions",
+          "input": [
+            "text"
+          ],
+          "contextWindow": 131072
+        }
+      ],
+      "apiKey": "DASHSCOPE_API_KEY"
+    },
+    "xiaomi": {
+      "baseUrl": "https://token-plan-cn.xiaomimimo.com/v1",
+      "api": "openai-completions",
+      "models": [
+        {
+          "id": "mimo-v2.5-pro",
+          "name": "Xiaomi MiMo V2.5 Pro",
+          "api": "openai-completions",
+          "reasoning": true,
+          "input": [
+            "text"
+          ],
+          "contextWindow": 1048576,
+          "maxTokens": 32000
+        }
+      ],
+      "apiKey": "XIAOMI_API_KEY"
+    },
+    "volcengine": {
+      "baseUrl": "https://ark.cn-beijing.volces.com/api/plan/v3",
+      "api": "openai-completions",
+      "models": [
+        {
+          "id": "deepseek-v4-flash-ark",
+          "name": "火山方舟 DeepSeek V4 Flash",
+          "api": "openai-completions",
+          "reasoning": false,
+          "input": [
+            "text"
+          ],
+          "contextWindow": 128000,
+          "maxTokens": 32000
+        },
+        {
+          "id": "doubao-seed-2.1-turbo",
+          "name": "火山方舟 Doubao Seed 2.1 Turbo",
+          "api": "openai-completions",
+          "reasoning": false,
+          "input": [
+            "text",
+            "image"
+          ],
+          "contextWindow": 256000,
+          "maxTokens": 32000
+        }
+      ],
+      "apiKey": "VOLCANO_DEEPSEEK_API_KEY"
+    },
+    "volcengine-plan": {
+      "baseUrl": "https://ark.cn-beijing.volces.com/api/plan/v3",
+      "api": "openai-completions",
+      "models": [
+        {
+          "id": "deepseek-v4-flash-ark",
+          "name": "火山方舟 DeepSeek V4 Flash",
+          "api": "openai-completions",
+          "reasoning": false,
+          "input": [
+            "text"
+          ],
+          "contextWindow": 128000,
+          "maxTokens": 32000
+        },
+        {
+          "id": "doubao-seed-2.1-turbo",
+          "name": "火山方舟 Doubao Seed 2.1 Turbo",
+          "api": "openai-completions",
+          "reasoning": false,
+          "input": [
+            "text",
+            "image"
+          ],
+          "contextWindow": 256000,
+          "maxTokens": 32000
+        }
+      ],
+      "apiKey": "VOLCANO_DEEPSEEK_API_KEY"
+    }
+  }
+}

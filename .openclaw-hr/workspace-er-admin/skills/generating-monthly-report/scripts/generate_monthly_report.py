@@ -54,19 +54,27 @@ from matplotlib import font_manager
 CANVAS_ID = "hr-monthly-report"
 
 
+def _first_existing(paths):
+    for fp in paths:
+        if os.path.isfile(fp):
+            return fp
+    return None
+
+
 def _setup_chinese_font():
-    """为 matplotlib 图表注册中文字体。
+    """为 matplotlib 图表注册中文字体（含 Bold 字重）。
 
     根因：旧版只探测 macOS PingFang/STHeiti；Linux 上全部失败后回退 DejaVu Sans，
     图表里中文变成缺字方框（tofu）。HTML 正文用系统/浏览器字体通常正常，
     出问题的是内嵌的 matplotlib PNG。
+
+    只注册 Regular 时，标题 fontweight="bold" 会告缺字重（ER-FONT）。
+    Regular 与 Bold 都要 addfont；TTC 的 fname 族名常是 JP，优先选用已注册的 SC。
     """
     here = os.path.dirname(os.path.abspath(__file__))
-    candidates = [
-        # Skill 自带（本仓库 scripts/fonts/，可移植）
+    regular_fp = _first_existing([
         os.path.join(here, "fonts", "NotoSansCJKsc-Regular.otf"),
         os.path.join(here, "fonts", "SourceHanSansSC-Regular.otf"),
-        # Linux 常见安装路径
         "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
         "/usr/share/fonts/opentype/noto/NotoSansCJKsc-Regular.otf",
         "/usr/share/fonts/opentype/chinese/SourceHanSansSC-Regular.otf",
@@ -74,35 +82,54 @@ def _setup_chinese_font():
         "/usr/local/share/fonts/chinese/SourceHanSansSC-Regular.otf",
         "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc",
         "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
-        # macOS
         "/System/Library/Fonts/PingFang.ttc",
         "/System/Library/Fonts/STHeiti Light.ttc",
         "/System/Library/Fonts/Hiragino Sans GB.ttc",
-        # Windows
         "C:/Windows/Fonts/msyh.ttc",
-        "C:/Windows/Fonts/msyhbd.ttc",
         "C:/Windows/Fonts/simhei.ttf",
-    ]
-    for fp in candidates:
-        if not os.path.isfile(fp):
+    ])
+    bold_fp = _first_existing([
+        os.path.join(here, "fonts", "NotoSansCJKsc-Bold.otf"),
+        os.path.join(here, "fonts", "SourceHanSansSC-Bold.otf"),
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
+        "/usr/share/fonts/opentype/noto/NotoSansCJKsc-Bold.otf",
+        "C:/Windows/Fonts/msyhbd.ttc",
+    ])
+    for fp in (regular_fp, bold_fp):
+        if not fp:
             continue
         try:
             font_manager.fontManager.addfont(fp)
-            prop = font_manager.FontProperties(fname=fp)
-            name = prop.get_name()
-            matplotlib.rcParams["font.family"] = name
-            matplotlib.rcParams["font.sans-serif"] = [name, "DejaVu Sans"]
-            matplotlib.rcParams["axes.unicode_minus"] = False
-            print(f"[font] 使用中文字体: {name} <- {fp}")
-            return name
         except Exception as exc:
             print(f"[font] 加载失败 {fp}: {exc}")
-    print(
-        "[font] WARNING: 未找到中文字体，图表中文可能显示为方框。"
-        "请安装 fonts-noto-cjk / 文泉驿，或把 OTF 放到 scripts/fonts/"
+
+    registered = {f.name for f in font_manager.fontManager.ttflist}
+    family = next(
+        (n for n in (
+            "Noto Sans CJK SC",
+            "Source Han Sans SC",
+            "Noto Sans CJK JP",
+            "WenQuanYi Micro Hei",
+            "Microsoft YaHei",
+            "PingFang SC",
+            "Heiti SC",
+        ) if n in registered),
+        None,
     )
+    if family is None and regular_fp:
+        family = font_manager.FontProperties(fname=regular_fp).get_name()
     matplotlib.rcParams["axes.unicode_minus"] = False
-    return None
+    if not family:
+        print(
+            "[font] WARNING: 未找到中文字体，图表中文可能显示为方框。"
+            "请安装 fonts-noto-cjk / 文泉驿，或把 OTF 放到 scripts/fonts/"
+        )
+        return None
+    matplotlib.rcParams["font.family"] = family
+    matplotlib.rcParams["font.sans-serif"] = [family, "DejaVu Sans"]
+    extra = f"; Bold <- {bold_fp}" if bold_fp else "（无独立 Bold 字重，标题可能假粗）"
+    print(f"[font] 使用中文字体: {family} <- {regular_fp}{extra}")
+    return family
 
 
 _setup_chinese_font()

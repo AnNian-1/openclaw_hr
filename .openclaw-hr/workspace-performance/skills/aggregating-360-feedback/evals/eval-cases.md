@@ -13,6 +13,7 @@
   - 跑 `ingest_archive.py`（可无参自动发现，或显式传任意包名）
   - 落盘到 `source_feedback/<被评估人目录>/`（由 DOCX「被评估人」决定，与压缩包名无关）
   - 产出 manager / peer-* / report-* / self JSON
+  - 各份 `reviewer_alias` 为 领导1 / 同事N / 下属N / 自评（即使 DOCX 里写了人名也会被改写）
   - 退出码 0
 
 ### 场景 1 · 正常 7 份反馈（happy path）

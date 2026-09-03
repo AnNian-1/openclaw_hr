@@ -28,7 +28,7 @@ TEMPLATE = {
     "filename": "360-feedback-form-blank.docx",
     "org": "公司人力资源部",
     "subtitle": "2026年版",
-    "focus": "请根据您与被评估人的真实工作接触填写；评分请对照下方标准，评语请尽量写清具体事例。",
+    "focus": "评估人代号填 领导1 / 同事1 / 下属1 / 自评；同视角多人用同事1、同事2。禁止填写真实姓名。评分请对照下方标准，评语请写清具体事例，评语中也不要出现评价人真名。",
 }
 
 # 配色：沉稳公文蓝灰
@@ -381,7 +381,7 @@ def add_basic_info(doc):
 
     table = doc.add_table(rows=4, cols=2)
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    write_label_value_row(table, 0, "被评估人")
+    write_label_value_row(table, 0, "被评估人", "员工1 / 员工2（禁止真实姓名）")
     write_label_value_row(table, 1, "所在岗位")
     write_label_dropdown_row(
         table, 2, "考核周期",
@@ -394,7 +394,10 @@ def add_basic_info(doc):
         ],
         hint="季度评价：H1:一季度　H2:二季度　H3:三季度　H4:四季度",
     )
-    write_label_value_row(table, 3, "评估人姓名")
+    write_label_value_row(
+        table, 3, "评估人代号",
+        "领导1 / 同事1 / 下属1 / 自评（同视角多人用同事1、同事2）",
+    )
 
     para(doc, "", space_before=10, space_after=2)
     add_single_select_row(

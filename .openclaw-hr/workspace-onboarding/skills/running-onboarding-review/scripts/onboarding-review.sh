@@ -4,7 +4,7 @@
 # 用法: onboarding-review.sh <候选人姓名> <入职天数> [pinyin]
 #
 # 数据来源：HCM 花名册 + 五部门准备节点（只读）；review 状态读本地 review-state/reviews.json
-# 到点只催办，不自动标完成；HR 确认后由小慧执行 review-store.sh mark-done
+# 到点只催办，不自动标完成；HR 回填走 CLI：review-store.sh record
 set -euo pipefail
 
 NAME="${1:-新员工}"
@@ -99,15 +99,18 @@ for key in ("contract", "account", "device", "training", "buddy"):
         "detail": data.get("status", ""),
     }
 
-# review 状态（本地表）。未 ensure 则不算已开通跟进。
+# review 状态（本地表）。未 ensure / 未 armed 不算已开通跟进。
+# Cron 才把 pending → due；未开通时不 stamp triggered_at。
 review_rec = review_store.get(pinyin, day) or {}
-if review_rec:
+armed = review_store.is_armed(pinyin)
+if review_rec and armed:
     review_store.touch_triggered(pinyin, day)
     review_rec = review_store.get(pinyin, day) or review_rec
 review_status = review_rec.get("status", "pending")
-review_content = review_rec.get("content") or ""
+review_display = review_rec.get("display_status") or review_status
+review_content = review_rec.get("summary") or review_rec.get("content") or ""
 review_focus = review_rec.get("focus") or focus
-armed = review_store.is_armed(pinyin)
+review_outcome = review_rec.get("outcome")
 
 result = {
     "found": True,
@@ -121,7 +124,13 @@ result = {
     "reviewed_at": now,
     "prep_nodes": prep,
     "review_status": review_status,
+    "review_display_status": review_display,
+    "review_outcome": review_outcome,
     "review_content": review_content,
+    "review_summary": review_content,
+    "review_checklist": review_rec.get("checklist") or [],
+    "review_next_action": review_rec.get("next_action"),
+    "review_next_action_due": review_rec.get("next_action_due"),
     "all_reviews": review_store.all_reviews_map(pinyin),
     "review_source": "local",
     "reviews_armed": armed,
@@ -135,14 +144,14 @@ if not armed:
     if pending_nodes:
         needs_attention.append(f"尚未完成的部门节点: {', '.join(pending_nodes)}")
         result["warnings"] = needs_attention
-elif review_status == "completed":
+elif review_status in ("completed", "skipped"):
     result["action"] = "already_reviewed"
-    result["message"] = f"第 {day} 天 review 已由 HR/主管完成"
+    result["message"] = f"第 {day} 天 review 已回填（{review_status}/{review_outcome or '—'}）"
 else:
     result["action"] = "needs_review"
     if pending_nodes:
         needs_attention.append(f"以下准备节点未完成: {', '.join(pending_nodes)}")
-    result["message"] = f"第 {day} 天 review 待触发，重点: {review_focus}"
+    result["message"] = f"第 {day} 天 review 待回填，重点: {review_focus}"
     if needs_attention:
         result["warnings"] = needs_attention
 
@@ -183,9 +192,15 @@ for key, label in [("contract","合同"), ("account","IT 账号"), ("device","�
     n = data["prep_nodes"].get(key, {})
     print(f"  {label:8s} {n.get('status', '未就绪')}")
 print("-" * 40)
-print(f"Review 状态：{data['review_status']}")
+print(f"Review 状态：{data.get('review_display_status') or data['review_status']}")
+if data.get("review_outcome"):
+    print(f"Review 结论：{data['review_outcome']}")
 if data.get("review_content"):
-    print(f"Review 内容：{data['review_content']}")
+    print(f"Review 纪要：{data['review_content']}")
+if data.get("review_next_action"):
+    due = data.get("review_next_action_due") or ""
+    extra = f"（截止 {due}）" if due else ""
+    print(f"下一步：{data['review_next_action']}{extra}")
 print("-" * 40)
 action = data.get("action", "")
 if action == "already_reviewed":

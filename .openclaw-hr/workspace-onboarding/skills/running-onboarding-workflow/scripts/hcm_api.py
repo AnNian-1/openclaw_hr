@@ -65,7 +65,7 @@ def _request(method, path, body=None):
 
 
 def list_candidates():
-    """GET /api/candidates → 候选人列表（含 nodes + reviews）。"""
+    """GET /api/candidates → 候选人列表（含 prep nodes）。"""
     code, data = _request("GET", "/api/candidates")
     if code == 200:
         return data

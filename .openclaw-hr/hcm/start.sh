@@ -16,7 +16,7 @@ if [ -d /opt/node/node-22/bin ]; then
   export PATH="/opt/node/node-22/bin:$PATH"
 fi
 
-echo "🚀 启动 HCM 入职管理系统..."
+echo "🚀 启动 HCM 人力资源管理系统..."
 
 # 1. 启动后端
 echo "📦 启动 FastAPI 后端 (port 8000)..."
@@ -34,7 +34,7 @@ FRONTEND_PID=$!
 echo ""
 echo "✅ HCM 系统已启动"
 echo "   后端 API: http://0.0.0.0:8000/docs （本机可用 127.0.0.1）"
-echo "   前端看板: http://0.0.0.0:5173"
+echo "   HCM 前端: http://0.0.0.0:5173"
 echo ""
 echo "按 Ctrl+C 停止所有服务"
 

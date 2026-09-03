@@ -115,7 +115,10 @@ def chat(model: str, url: str, key: str, user: str, timeout: int = 180) -> str:
                     "role": "system",
                     "content": (
                         "你是企业内部培训设计师。只根据给定素材与上一阶段文件写作，"
-                        "不编造制度/数字/公司名。讲师手册禁止逐字稿。"
+                        "不编造制度/数字/公司名。本公司只称「某某公司」，"
+                        "产品只称「协同云」「数据洞察」，禁止写星桥或其它像真企业的名称。"
+                        "讲师手册禁止逐字稿。"
+                        "课后测试题每题必须写字面量【对应培训目标T1】，禁止只写【T1】。"
                         "每份文末必须有「AI 辅助生成、讲师审核后交付」。"
                     ),
                 },
@@ -171,6 +174,40 @@ def ensure_ai_mark(text: str) -> str:
     if re.search(r"AI\s*辅助生成", text):
         return text.rstrip() + "\n"
     return text.rstrip() + AI_FOOTER
+
+
+FILE_BANNER = re.compile(r"^(?:===FILE:\s*[^\n=]+===\s*\n)+")
+# 模型常把【对应培训目标T1】缩成【T1】，自检按字面「对应培训目标」匹配
+SHORTHAND_GOAL = re.compile(
+    r"【(?!对应培训目标)(T[1-5](?:\s*[&、,/]\s*T[1-5])*)】"
+)
+
+
+def strip_file_banner(text: str) -> str:
+    """去掉误写进正文开头的 ===FILE: …=== 行。"""
+    return FILE_BANNER.sub("", (text or "").lstrip())
+
+
+def normalize_assessment(text: str) -> str:
+    """把【T1】展开成【对应培训目标T1】；若仍无该字面量则补一行说明。"""
+    text = strip_file_banner(text)
+    text = SHORTHAND_GOAL.sub(r"【对应培训目标\1】", text)
+    if not re.search(r"对应培训目标", text) and re.search(r"\bT[1-5]\b", text):
+        text = re.sub(
+            r"(^# .+?\n)",
+            r"\1\n每题标注对应培训目标（T1–T5）。\n",
+            text,
+            count=1,
+            flags=re.M,
+        )
+    return text
+
+
+def polish_output(name: str, text: str) -> str:
+    text = strip_file_banner(text)
+    if name == "06-assessment.md":
+        text = normalize_assessment(text)
+    return ensure_ai_mark(text)
 
 
 def load_source_docs(src: Path, limit: int = 60000) -> str:
@@ -333,7 +370,7 @@ def main() -> int:
                 text = files.get(name)
                 if not text or len(text) < 50:
                     raise RuntimeError(f"{st['id']} 未产出有效 {name}")
-                (outdir / name).write_text(ensure_ai_mark(text), encoding="utf-8")
+                (outdir / name).write_text(polish_output(name, text), encoding="utf-8")
                 print(f"  wrote {outdir / name} ({(outdir / name).stat().st_size} bytes)")
     except Exception as e:
         print(f"[ERROR] {e}", file=sys.stderr)

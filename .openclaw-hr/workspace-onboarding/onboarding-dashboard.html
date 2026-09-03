@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>星桥科技 · 新员工入职进度看板</title>
+<title>某某公司 · 新员工入职进度看板</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
@@ -64,6 +64,7 @@
     display:flex; justify-content:space-between; align-items:center;
   }
   .stage-count { font-size:12px; font-weight:500; color:#9aa4b6; }
+  .stage-note { font-size:13px; color:#9aa4b6; line-height:1.5; margin-top:-4px; }
   .timeline {
     display:flex; gap:4px;
   }
@@ -87,6 +88,16 @@
   .node.progress .node-status { color:#d8841a; }
   .node.pending .node-dot { background:#c2cad6; box-shadow:0 0 0 3px #eef1f6; }
   .node.pending .node-status { color:#98a2b3; }
+  .node.due     .node-dot { background:#2f6df6; box-shadow:0 0 0 3px #dce6ff; }
+  .node.due     .node-status { color:#2f6df6; }
+  .node.overdue .node-dot { background:#e44a57; box-shadow:0 0 0 3px #fad4d7; }
+  .node.overdue .node-status { color:#e44a57; }
+  .node.watch   .node-dot { background:#f5b13d; box-shadow:0 0 0 3px #fdeccf; }
+  .node.watch   .node-status { color:#d8841a; }
+  .node.risk    .node-dot { background:#e44a57; box-shadow:0 0 0 3px #fad4d7; }
+  .node.risk    .node-status { color:#c62828; }
+  .node.skipped .node-dot { background:#98a2b3; box-shadow:0 0 0 3px #eef1f6; }
+  .node.skipped .node-status { color:#7a869a; }
   .legend {
     max-width:1500px; margin:30px auto 0; display:flex; gap:28px;
     font-size:14px; color:#5b6b85; justify-content:center; flex-wrap:wrap;
@@ -105,12 +116,12 @@
 <body>
   <div class="page-head">
     <div>
-      <h1>星桥科技 · 新员工入职进度看板</h1>
-      <div class="sub">数据来源：HCM 五节点到岗角标 · 审批门单独标记（本机 workflow.json）</div>
+      <h1>某某公司 · 新员工入职进度看板</h1>
+      <div class="sub">HCM 五节点到岗 · 试用期跟进读本地表 · 审批门单独标记</div>
     </div>
     <div class="meta">
       在职新员工 <b>1</b> 人 · 平均进度 <b>40%</b><br>
-      生成时间 2026-08-31 19:44
+      生成时间 2026-09-03 19:20
     </div>
   </div>
   <div class="grid">
@@ -163,16 +174,23 @@
         </div>
         </div>
       </div>
+      <div class="stage">
+        <div class="stage-title">试用期跟进
+          <span class="stage-count">未开通</span></div>
+        <p class="stage-note">入职准备还没办完，试用期跟进还没开始</p>
+      </div>
     </section>
   </div>
   <div class="legend">
     <span><i class="dot done"></i>已完成</span>
     <span><i class="dot progress"></i>进行中</span>
-    <span><i class="dot pending"></i>待办 / 待审批 / 待触发</span>
+    <span><i class="dot pending"></i>待办 / 未到点 / 未开通</span>
+    <span><i class="dot progress"></i>待回填</span>
+    <span><i class="dot done"></i>已回填 · 正常</span>
   </div>
   <div class="foot">
-    到岗角标按 HCM 5 个准备节点 · 试用期 review 不在本看板（本地表维护） ·
-    审批门标记来自本机 stub-state/&lt;pinyin&gt;/workflow.json（halted 满 3 天催办）
+    到岗角标按 HCM 5 个准备节点 · 试用期跟进读本机 review-state/reviews.json（CLI 回填） ·
+    审批门标记来自 stub-state/&lt;pinyin&gt;/workflow.json（halted 满 3 天催办）
   </div>
 </body>
 </html>

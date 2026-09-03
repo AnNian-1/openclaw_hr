@@ -74,10 +74,21 @@
           "api": "openai-completions",
           "reasoning": false,
           "input": [
+            "text"
+          ],
+          "contextWindow": 128000,
+          "maxTokens": 32000
+        },
+        {
+          "id": "doubao-seed-2.1-turbo",
+          "name": "火山方舟 Doubao Seed 2.1 Turbo",
+          "api": "openai-completions",
+          "reasoning": false,
+          "input": [
             "text",
             "image"
           ],
-          "contextWindow": 128000,
+          "contextWindow": 256000,
           "maxTokens": 32000
         }
       ]
@@ -92,10 +103,21 @@
           "api": "openai-completions",
           "reasoning": false,
           "input": [
+            "text"
+          ],
+          "contextWindow": 128000,
+          "maxTokens": 32000
+        },
+        {
+          "id": "doubao-seed-2.1-turbo",
+          "name": "火山方舟 Doubao Seed 2.1 Turbo",
+          "api": "openai-completions",
+          "reasoning": false,
+          "input": [
             "text",
             "image"
           ],
-          "contextWindow": 128000,
+          "contextWindow": 256000,
           "maxTokens": 32000
         }
       ],

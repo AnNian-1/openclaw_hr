@@ -6,7 +6,7 @@
 数据来源：HCM 系统 API（只读）
   - 花名册与五部门准备节点：GET /api/candidates
   - 审批门角标：本机 stub-state/<pinyin>/workflow.json（HCM 无此字段）
-  - 试用期 review 不进看板（本地 review-state 维护；HCM review API 后续作废）
+  - 试用期 7/30/60/90：本机 review-state/reviews.json（HR 监督面；HCM 不再存 review）
 
 不向 HCM 写入，不读本地 stub-state 作为准备节点真相源。
 
@@ -50,7 +50,9 @@ PREP_NODES = [
     ("training", "入职培训"),
 ]
 
-# 看板只展示 5 个准备节点；试用期 review 不进此页
+REVIEW_DAYS = (7, 30, 60, 90)
+REVIEW_LABEL = {7: "第 7 天", 30: "第 30 天", 60: "第 60 天", 90: "第 90 天"}
+OUTCOME_LABEL = {"ok": "正常", "watch": "关注", "risk": "风险", "skipped": "跳过"}
 
 # 状态归类
 DONE_WORDS = (
@@ -197,8 +199,91 @@ def load_workflow(pinyin):
         return {}
 
 
-def build_employee(candidate):
-    """汇总单个员工的 5 个准备节点 + workflow 角标 + 整体进度。"""
+def load_review_table():
+    path = os.path.join(WS, "review-state", "reviews.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {"records": [], "armed": {}}
+    if not isinstance(data, dict):
+        return {"records": [], "armed": {}}
+    data.setdefault("records", [])
+    data.setdefault("armed", {})
+    return data
+
+
+def _parse_iso_date(raw):
+    if not raw:
+        return None
+    try:
+        t = datetime.datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if t.tzinfo is None:
+        t = t.replace(tzinfo=datetime.timezone.utc)
+    return t.astimezone(SHANGHAI).date()
+
+
+def review_display(rec):
+    """pending / due / overdue / completed / skipped."""
+    if not rec:
+        return "pending"
+    status = rec.get("status") or "pending"
+    if status != "due":
+        return status
+    trig = _parse_iso_date(rec.get("triggered_at"))
+    if trig and trig < datetime.datetime.now(SHANGHAI).date():
+        return "overdue"
+    return "due"
+
+
+def build_review_nodes(pinyin, table):
+    pin = (pinyin or "").strip().lower()
+    armed = pin in (table.get("armed") or {})
+    recs = {
+        int(r.get("day") or 0): r
+        for r in (table.get("records") or [])
+        if str(r.get("pinyin") or "").strip().lower() == pin
+    }
+    nodes = []
+    done = 0
+    for day in REVIEW_DAYS:
+        rec = recs.get(day) or {}
+        if not armed:
+            nodes.append({
+                "label": REVIEW_LABEL[day],
+                "raw": "未开通",
+                "cls": "pending",
+            })
+            continue
+        disp = review_display(rec)
+        outcome = rec.get("outcome")
+        if disp in ("completed", "skipped"):
+            done += 1
+            text = OUTCOME_LABEL.get(outcome, disp)
+            cls = "done" if disp == "completed" and outcome in (None, "ok") else (
+                "risk" if outcome == "risk" else (
+                    "watch" if outcome == "watch" else (
+                        "skipped" if disp == "skipped" or outcome == "skipped" else "done"
+                    )
+                )
+            )
+        elif disp == "overdue":
+            text = "逾期未回填"
+            cls = "overdue"
+        elif disp == "due":
+            text = "待回填"
+            cls = "due"
+        else:
+            text = "未到点"
+            cls = "pending"
+        nodes.append({"label": REVIEW_LABEL[day], "raw": text, "cls": cls})
+    return nodes, done, armed
+
+
+def build_employee(candidate, review_table):
+    """汇总单个员工的 5 个准备节点 + 试用期跟进 + workflow 角标。"""
     name = candidate.get("name", "")
     pinyin = candidate.get("pinyin", "")
     role = candidate.get("role", "—")
@@ -222,6 +307,7 @@ def build_employee(candidate):
     wf = load_workflow(pinyin)
     badge = hcm_prep_badge(prep)
     gate = gate_badge(wf)
+    reviews, review_done, review_armed = build_review_nodes(pinyin, review_table)
 
     return {
         "name": name,
@@ -233,6 +319,9 @@ def build_employee(candidate):
         "pct": pct,
         "badge": badge,
         "gate_badge": gate,
+        "reviews": reviews,
+        "review_done": review_done,
+        "review_armed": review_armed,
     }
 
 
@@ -254,6 +343,25 @@ def render_card(data):
     prep_html = "\n".join(
         render_node(n["label"], n["cls"], n["raw"])
         for n in data["prep"])
+    if data.get("review_armed"):
+        review_html = "\n".join(
+            render_node(n["label"], n["cls"], n["raw"])
+            for n in data.get("reviews") or [])
+        review_stage = f"""      <div class="stage">
+        <div class="stage-title">试用期跟进 · 7/30/60/90
+          <span class="stage-count">{data.get('review_done', 0)}/4 已回填</span></div>
+        <div class="timeline">
+{review_html}
+        </div>
+      </div>"""
+    else:
+        # 未开通 = 入职准备还没办完，跟进尚未开始。
+        # 审批取消只体现在角标，不写进跟进说明。
+        review_stage = f"""      <div class="stage">
+        <div class="stage-title">试用期跟进
+          <span class="stage-count">未开通</span></div>
+        <p class="stage-note">入职准备还没办完，试用期跟进还没开始</p>
+      </div>"""
     pct = data["pct"]
     bar_cls = "bar-high" if pct >= 80 else ("bar-mid" if pct >= 50 else "bar-low")
     return f"""    <section class="card">
@@ -281,6 +389,7 @@ def render_card(data):
 {prep_html}
         </div>
       </div>
+{review_stage}
     </section>"""
 
 
@@ -290,7 +399,8 @@ def main():
         print("[dashboard] HCM 花名册为空，无候选人。", file=sys.stderr)
         sys.exit(2)
 
-    cards = [build_employee(c) for c in candidates]
+    review_table = load_review_table()
+    cards = [build_employee(c, review_table) for c in candidates]
     now = datetime.datetime.now(SHANGHAI).strftime("%Y-%m-%d %H:%M")
     total_emp = len(cards)
     avg = round(sum(c["pct"] for c in cards) / total_emp)
@@ -300,7 +410,7 @@ def main():
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>星桥科技 · 新员工入职进度看板</title>
+<title>某某公司 · 新员工入职进度看板</title>
 <style>
   * {{ margin:0; padding:0; box-sizing:border-box; }}
   body {{
@@ -362,6 +472,7 @@ def main():
     display:flex; justify-content:space-between; align-items:center;
   }}
   .stage-count {{ font-size:12px; font-weight:500; color:#9aa4b6; }}
+  .stage-note {{ font-size:13px; color:#9aa4b6; line-height:1.5; margin-top:-4px; }}
   .timeline {{
     display:flex; gap:4px;
   }}
@@ -385,6 +496,16 @@ def main():
   .node.progress .node-status {{ color:#d8841a; }}
   .node.pending .node-dot {{ background:#c2cad6; box-shadow:0 0 0 3px #eef1f6; }}
   .node.pending .node-status {{ color:#98a2b3; }}
+  .node.due     .node-dot {{ background:#2f6df6; box-shadow:0 0 0 3px #dce6ff; }}
+  .node.due     .node-status {{ color:#2f6df6; }}
+  .node.overdue .node-dot {{ background:#e44a57; box-shadow:0 0 0 3px #fad4d7; }}
+  .node.overdue .node-status {{ color:#e44a57; }}
+  .node.watch   .node-dot {{ background:#f5b13d; box-shadow:0 0 0 3px #fdeccf; }}
+  .node.watch   .node-status {{ color:#d8841a; }}
+  .node.risk    .node-dot {{ background:#e44a57; box-shadow:0 0 0 3px #fad4d7; }}
+  .node.risk    .node-status {{ color:#c62828; }}
+  .node.skipped .node-dot {{ background:#98a2b3; box-shadow:0 0 0 3px #eef1f6; }}
+  .node.skipped .node-status {{ color:#7a869a; }}
   .legend {{
     max-width:1500px; margin:30px auto 0; display:flex; gap:28px;
     font-size:14px; color:#5b6b85; justify-content:center; flex-wrap:wrap;
@@ -403,8 +524,8 @@ def main():
 <body>
   <div class="page-head">
     <div>
-      <h1>星桥科技 · 新员工入职进度看板</h1>
-      <div class="sub">数据来源：HCM 五节点到岗角标 · 审批门单独标记（本机 workflow.json）</div>
+      <h1>某某公司 · 新员工入职进度看板</h1>
+      <div class="sub">HCM 五节点到岗 · 试用期跟进读本地表 · 审批门单独标记</div>
     </div>
     <div class="meta">
       在职新员工 <b>{total_emp}</b> 人 · 平均进度 <b>{avg}%</b><br>
@@ -417,11 +538,13 @@ def main():
   <div class="legend">
     <span><i class="dot done"></i>已完成</span>
     <span><i class="dot progress"></i>进行中</span>
-    <span><i class="dot pending"></i>待办 / 待审批 / 待触发</span>
+    <span><i class="dot pending"></i>待办 / 未到点 / 未开通</span>
+    <span><i class="dot progress"></i>待回填</span>
+    <span><i class="dot done"></i>已回填 · 正常</span>
   </div>
   <div class="foot">
-    到岗角标按 HCM 5 个准备节点 · 试用期 review 不在本看板（本地表维护） ·
-    审批门标记来自本机 stub-state/&lt;pinyin&gt;/workflow.json（halted 满 3 天催办）
+    到岗角标按 HCM 5 个准备节点 · 试用期跟进读本机 review-state/reviews.json（CLI 回填） ·
+    审批门标记来自 stub-state/&lt;pinyin&gt;/workflow.json（halted 满 3 天催办）
   </div>
 </body>
 </html>"""
@@ -435,7 +558,8 @@ def main():
         badge = c["badge"]["text"]
         gate = (c.get("gate_badge") or {}).get("text")
         extra = f" · {gate}" if gate else ""
-        print(f"  {c['name']}: [{badge}{extra}] 准备 {c['done_count']}/5 · 整体 {c['pct']}%")
+        rev = "未开通" if not c.get("review_armed") else f"{c.get('review_done', 0)}/4"
+        print(f"  {c['name']}: [{badge}{extra}] 准备 {c['done_count']}/5 · 跟进 {rev} · 整体 {c['pct']}%")
 
 
 if __name__ == "__main__":

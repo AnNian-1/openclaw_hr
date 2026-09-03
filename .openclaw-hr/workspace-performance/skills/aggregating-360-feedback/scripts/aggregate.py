@@ -31,10 +31,12 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+from reviewer_alias import alias_from_json_name, anonymize_feedback_dir
+
 # 非反馈表 JSON（与原料同目录，加载时需跳过）
 SKIP_JSON_NAMES = {"aggregated-data.json"}
 
-# 5 个评估维度，源自星桥科技绩效制度第四条。
+# 5 个评估维度，源自公司绩效制度第四条。
 DIMENSIONS = ["goal_achievement", "professional_skill",
               "collaboration", "responsibility", "growth"]
 DIM_CN = {
@@ -80,6 +82,8 @@ def main():
                 else default_aggregate_out(raw_dir))
     report_path = default_report_out(raw_dir)
 
+    anonymize_feedback_dir(raw_dir)
+
     # ---- 1. 加载所有反馈（_ 开头 / 聚合产物 跳过）----
     feedbacks = []
     for fname in sorted(os.listdir(raw_dir)):
@@ -91,6 +95,9 @@ def main():
         with open(path, "r", encoding="utf-8") as f:
             fb = json.load(f)
             fb["source_file"] = fname
+            forced = alias_from_json_name(fname)
+            if forced:
+                fb["reviewer_alias"] = forced
             feedbacks.append(fb)
 
     if not feedbacks:
@@ -128,8 +135,14 @@ def main():
                 "min": min(scores),
                 "max": max(scores),
             }
-        reviewers = [{"alias": fb["reviewer_alias"], "file": fb["source_file"]}
-                     for fb in fbs]
+        reviewers = [
+            {
+                "alias": (alias_from_json_name(fb["source_file"])
+                          or fb["reviewer_alias"]),
+                "file": fb["source_file"],
+            }
+            for fb in fbs
+        ]
         aggregated["perspectives"][relation] = {
             "label": label,
             "count": len(fbs),

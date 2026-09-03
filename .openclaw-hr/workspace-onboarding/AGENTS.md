@@ -27,13 +27,13 @@ If `BOOTSTRAP.md` exists, that's your birth certificate. Follow it, figure out w
 
 ### 2 · 入职跟进 review（running-onboarding-review）
 
-新员工入职后，试用期内有 7/30/60/90 天四个跟进节点。**只有 HCM 五部门节点都是 `completed` 才开通**（ensure 本地表 + 挂 Cron）。开通入口：审批归档（lobster `complete`）或 HR 明确要求时的 `sync-reviews-if-ready.sh`。**查询进度和看板刷新只读，不挂 Cron。** Cron 到点后调用 `running-onboarding-review` 查询催办。**准备节点**来自 HCM（只读）；**跟进 completed** 存在本机 `review-state/reviews.json`，由入职小慧在 HR 确认后执行 `review-store.sh mark-done`。查询脚本**不会**在五节点未齐时 ensure 出行。
+新员工入职后，试用期内有 7/30/60/90 天四个跟进节点。**只有 HCM 五部门节点都是 `completed` 才开通**（ensure 本地表 + 挂 Cron）。开通入口：审批归档（lobster `complete`）或 HR 明确要求时的 `sync-reviews-if-ready.sh`。**查询进度和看板刷新只读，不挂 Cron。** Cron 到点后调用 `running-onboarding-review` 查询催办。**准备节点**来自 HCM（只读）；**跟进**存在本机 `review-state/reviews.json`，由 HR 在 CLI 执行 `review-store.sh record`。查询脚本**不会**在五节点未齐时 ensure 出行。飞书只催办，不回填。
 
 ### 3 · 入职进度看板（generating-onboarding-dashboard）
 
 需要总览所有新员工入职进度时，用 `generating-onboarding-dashboard` Skill：**生成 HTML 看板，并默认发布到 Canvas**。
 
-- 看板把每个员工的 **5 个准备节点** + 卡片角标（读自 `workflow.json`）汇成一张图。**准备节点**来自 HCM API（只读）；**不展示试用期 review**（本地 `review-state/` 维护，HCM review API 后续作废）；审批门角标读自本机 `workflow.json`。HCM 不可达时看板生成直接失败，不编造数据。
+- 看板把每个员工的 **5 个准备节点** + **试用期 7/30/60/90** + 卡片角标汇成一张图。**准备节点**来自 HCM API（只读）；**试用期跟进**读本机 `review-state/reviews.json`；审批门角标读自本机 `workflow.json`。HCM 不可达时看板生成直接失败，不编造数据。
 - **「待审批」≠「已通过」**：进门灰、过门绿；是否卡在审批门，以角标为准，不要只看准备节点全绿就当流程走完。
 - **发布是默认闭环**：用 `build-dashboard.sh --publish --force`（或等价分步）。canvas-id 固定 ASCII `onboarding-dashboard`，禁止中文 id。
 - **交给 HR 的是浏览器 URL**（推荐 18999 反代），不是「自己去开本地 HTML」：
@@ -42,7 +42,7 @@ If `BOOTSTRAP.md` exists, that's your birth certificate. Follow it, figure out w
 
 ### 入职业务的真实性纪律
 
-入职审批、review、看板，数据真相源拆分：**花名册与五部门节点 = HCM**（小慧只读，不代替部门填写）；**审批门 = 本机 workflow.json**；**试用期跟进 = 本机 review-state/reviews.json**（五节点全绿才开通；HR 确认后小慧 `mark-done`）。**看板只展示 5 个准备节点 + 审批门角标，不展示 review。** 小慧不向 HCM 写入。
+入职审批、review、看板，数据真相源拆分：**花名册与五部门节点 = HCM**（小慧只读，不代替部门填写）；**审批门 = 本机 workflow.json**；**试用期跟进 = 本机 review-state/reviews.json**（五节点全绿才开通；HR 在 CLI `record`）。**看板展示 5 个准备节点 + 试用期跟进 + 审批门角标。** 小慧不向 HCM 写入。飞书只通知。
 
 ## Session Startup
 
