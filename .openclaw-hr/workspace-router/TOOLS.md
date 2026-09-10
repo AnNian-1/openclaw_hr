@@ -1,50 +1,33 @@
-# TOOLS.md - Local Notes
+# TOOLS.md · 总控 Router 本机笔记
 
-Skills define _how_ tools work. This file is for _your_ specifics — the stuff that's unique to your setup.
+Router **没有业务 Skill**。调度只用 OpenClaw 会话工具。
 
-## What Goes Here
+## 分发
 
-Things like:
+- 新请求：`sessions_spawn`，`agentId` 为 `recruitment` / `onboarding` / `training` / `performance` / `er-admin`。
+- spawn 后 `sessions_yield`。不要先 `sessions_send`，不要 `sessions_list` / `sessions_history` 空转。
+- 并发：`agents.defaults.subagents.maxChildrenPerAgent` = **8**（只认 defaults，不能写在单个 Agent 的 `subagents` 里）。满了就告诉用户等，不要连打。
+- 子 Agent 超时：`runTimeoutSeconds` = **1800**。超时/失败原样转述，不编造成功。
 
-- Camera names and locations
-- SSH hosts and aliases
-- Preferred voices for TTS
-- Speaker/room names
-- Device nicknames
-- Anything environment-specific
+## 行政 task 后缀
 
-## Examples
+出月报 / 员工1工资 / 查花名册薪资 / 政策问答 → spawn `er-admin`。
 
-```markdown
-### Cameras
+WebChat / CLI（无飞书 `ou_`）时，`task` 末尾加：
 
-- living-room → Main area, 180° wide angle
-- front-door → Entrance, motion-triggered
+`通道=webchat，无飞书 ou_，按演示 HR 数据权限处理。`
 
-### SSH
+## 培训 task 后缀
 
-- home-server → 192.168.1.100, user: admin
+用户只要部分物料时，附加：`只生成用户点名的材料，不要扩展成全套 8 份培训包。`
 
-### TTS
+## 乐奇眼镜
 
-- Preferred voice: "Nova" (warm, slightly British)
-- Default speaker: Kitchen HomePod
-```
+- image：`image` 读本地绝对路径，禁止 `web_fetch` / OSS。不 spawn。
+- audio / video：只确认已收到，不转写、不 spawn。
 
-## Why Separate?
+## 不做
 
-Skills are shared. Your setup is yours. Keeping them apart means you can update skills without losing your notes, and share skills without leaking your infrastructure.
-
----
-
-## Router 调度（本机）
-
-- spawn：`sessions_spawn`，`agentId` 为 `recruitment` / `onboarding` / `training` / `performance` / `er-admin`。
-- 并发：`agents.defaults.subagents.maxChildrenPerAgent` = **8**（本机 OpenClaw 2026.5.12 只认 defaults，不能写在单个 Agent 的 `subagents` 里）。满了就告诉用户等，不要连打。
-- 子 Agent 超时：`runTimeoutSeconds` = **1800**。超时把原因转述，不编造成功。
-- 培训 `task`：用户只要手册+试题时，附加「不要扩展成全套 8 份」。
-- 不在 exec 里跑业务脚本。政策/评分数字只来自子 Agent 回流。
-
-## Related
-
-- [Agent workspace](/concepts/agent-workspace)
+- 不在 `exec` 里跑业务脚本。
+- 政策/评分/薪资/月报数字只来自子 Agent 回流。
+- 不改 `openclaw.yaml` 的 bindings / toolsBySender。

@@ -99,7 +99,7 @@ steps:
   # 不在此处无条件挂 Cron。试用期跟进仅当 HCM 五节点均为 completed。
   - id: complete
     run: |
-      set -euo pipefail
+      set -eu
       echo "=== ${name} 入职审批工作流完成（两道门已批）==="
       echo "部门执行进度仍以 HCM 五节点为准；未全绿不挂试用期跟进。"
       echo "[归档] 审批走通 ≠ 五部门已完成"

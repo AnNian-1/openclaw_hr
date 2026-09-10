@@ -3,8 +3,7 @@
 > **定位**：招聘子 Agent 的**数据契约成文形式**。解析照它产出、画像照它渲染、评分维度来自 §8、合规黑名单来自 §9。  
 > **原则**：契约先定义、后开发——五个能力靠稳定字段结构接力。  
 > **落盘路径**：
-> - 运行态：`~/.openclaw-hr/workspace-recruitment/candidate-profile-schema.md`
-> - 本课文档：`hr_claw_hub/playground/2.step_B_recruitment/docs/candidate-profile-schema.md`
+> - 运行态：`$OPENCLAW_STATE_DIR/workspace-recruitment/candidate-profile-schema.md`（本仓 profile 在 `/opt/openclaw-hr/.openclaw-hr/`，不要写成 `~/.openclaw-hr`）
 
 ---
 
@@ -260,7 +259,7 @@ inbox 简历
 
 | 字段 | 说明 |
 |------|------|
-| `_resume_file` | 来源简历文件名（如 `resume-tech-01-员工1-后端开发.md`） |
+| `_resume_file` | 来源简历文件名（如 `resume-tech-员工1-后端开发.md`） |
 | `resume_json` | ranking 明细中指向结构化文件的路径/名 |
 | `audited_at` / `audited/*.audit.json` | 抽取核对产物时间与报告 |
 
@@ -270,7 +269,7 @@ inbox 简历
 
 ## 附录 A · 最小合法 JSON 示例
 
-对齐 `parsed/resume-tech-01-员工1-后端开发.json` 的形状（节选）：
+对齐 `parsed/员工1-后端开发.json` 的形状（节选）：
 
 ```json
 {
@@ -300,7 +299,7 @@ inbox 简历
   "job_count": 1,
   "skills": ["Java", "Go", "微服务架构"],
   "self_evaluation": "……",
-  "_resume_file": "resume-tech-01-员工1-后端开发.md"
+  "_resume_file": "resume-tech-员工1-后端开发.md"
 }
 ```
 

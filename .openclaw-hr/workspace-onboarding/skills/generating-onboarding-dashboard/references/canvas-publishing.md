@@ -40,7 +40,7 @@ python3 skills/generating-onboarding-dashboard/scripts/publish_to_canvas.py \
 
 1. **id** 匹配 `/^[A-Za-z0-9._-]+$/`，长度 ≤ 80，不以 `.` 开头，不含 `..`
 2. 落盘文件名必须是 **`index.html`**（脚本强制）
-3. 路径：`$OPENCLAW_STATE_DIR/canvas/documents/<id>/index.html`；未设时优先 `~/.openclaw-hr/canvas/...`（HR profile），勿误发到 `~/.openclaw/canvas`
+3. 路径：`$OPENCLAW_STATE_DIR/canvas/documents/<id>/index.html`（本仓 `/opt/openclaw-hr/.openclaw-hr/canvas/...`）。未设 `OPENCLAW_STATE_DIR` 时脚本才回退家目录，不要把 `~/.openclaw-hr` 当现行路径；勿误发到 `~/.openclaw/canvas`
 4. HTML：UTF-8 无 BOM + `<!DOCTYPE html>` + `</html>`
 5. 落盘：tempfile + `os.replace` 原子写入；默认不覆盖，需 `--force`
 6. 浏览器看图用 **18999** 反代（无需 Bearer）；直连 18790 会被拦

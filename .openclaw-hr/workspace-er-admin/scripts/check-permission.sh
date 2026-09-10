@@ -40,12 +40,14 @@ case "$ACTION" in
         # 所有角色都可以查询政策
         echo '{"allowed": true, "role": "'$ROLE'", "action": "query_policy"}'
         ;;
-    "generate_monthly_report")
-        # 只有HR专员和管理员可以生成月报
-        if [ "$ROLE" = "admin" ] || [ "$ROLE" = "hr_staff" ]; then
-            echo '{"allowed": true, "role": "'$ROLE'", "action": "generate_monthly_report"}'
+    "generate_monthly_report"|"query_payroll")
+        # 空 sender 视为演示（WebChat/CLI）；飞书以 hr-data-access.sh 为准
+        if [ -z "$SENDER_ID" ] || [ "$SENDER_ID" = "*" ]; then
+            echo '{"allowed": true, "role": "demo", "action": "'$ACTION'"}'
+        elif [ "$ROLE" = "admin" ] || [ "$ROLE" = "hr_staff" ]; then
+            echo '{"allowed": true, "role": "'$ROLE'", "action": "'$ACTION'"}'
         else
-            echo '{"allowed": false, "role": "'$ROLE'", "action": "generate_monthly_report", "reason": "权限不足：需要HR专员或管理员权限"}'
+            echo '{"allowed": false, "role": "'$ROLE'", "action": "'$ACTION'", "reason": "飞书非 HR 不能查他人工资或出月报"}'
         fi
         ;;
     "view_audit_log")

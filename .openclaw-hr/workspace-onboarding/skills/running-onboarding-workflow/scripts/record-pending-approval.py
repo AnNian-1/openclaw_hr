@@ -99,6 +99,7 @@ def main():
         "halted_at": dt.datetime.now(SHANGHAI).isoformat(timespec="seconds"),
         "stub_prepared_at": prepared_at,
         "stub_updated_at_pre_halt": updated_at,
+        "resume_token": None,  # lobster halt 后由 update-workflow.py attach 回填
         "pre_halt_snapshot": pre_halt_snapshot,
     }
     with open(out_path, "w", encoding="utf-8") as f:

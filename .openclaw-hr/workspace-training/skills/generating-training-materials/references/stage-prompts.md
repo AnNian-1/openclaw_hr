@@ -4,7 +4,9 @@
 > SKILL.md 步骤 1–7 逐一引用下面的模板；**步骤 8（自我校验）不在本文件**，见 `evals/eval-cases.md` 与 `scripts/self_check.py`。
 > 这些模板从 L2-2 §5 真实跑通的 ADDIE Pipeline 沉淀而来，是这条流水线可复用的核心。
 >
-> 用法：每一步把对应模板的内容作为给 training 子 Agent 的任务指令。换主题时，**只改【模板 1】对素材和受众的描述**，模板 2-7 不用动——它们吃前阶段的产出文件，主题会顺着流水线自动往下传。生成全部落盘后必须跑 SKILL.md 步骤 8。
+> 用法：每一步把对应模板的内容作为给 training 子 Agent 的任务指令。换主题时，**只改【模板 1】对素材和受众的描述**，模板 2-7 不用动——它们吃前阶段的产出文件，主题会顺着流水线自动往下传。点名生成只跑对应模板；落盘后必须跑 SKILL.md 步骤 8（点名用 `self_check --partial`）。
+>
+> 落盘路径一律是 `training-materials/<主题>/01-needs-analysis.md` 这类，不要写根目录 `training-materials/01-…`，不要编造 `training/courses/`。
 
 ## 目录
 
@@ -26,8 +28,8 @@
 
 口径（必须遵守）：本公司只称「某某公司」；产品只称「协同云」「数据洞察」；禁止出现「星桥」或任何看起来像真实企业/产品的名称。素材里怎么写，物料里就怎么写，不要另起公司名。
 
-- `training-materials/01-needs-analysis.md`（需求分析）：培训背景、目标受众画像、≥5 条受众痛点（要具体场景不要空话）、≥4 项可衡量培训目标（用布鲁姆认知层次写、编号 T1-T5）、约束条件、成功标准。
-- `training-materials/02-course-design.md`（课程设计）：课程总体结构、模块详细设计（每模块时长/目标/内容点/教学方式）、完整课程时间表、教学方式分布。**最后一节必须是"模块与培训目标对应矩阵"**——把每个模块和 `01` 里的培训目标 T1-T5 显式对应。
+- `training-materials/<主题>/01-needs-analysis.md`（需求分析）：培训背景、目标受众画像、≥5 条受众痛点（要具体场景不要空话）、≥4 项可衡量培训目标（用布鲁姆认知层次写、编号 T1-T5）、约束条件、成功标准。
+- `training-materials/<主题>/02-course-design.md`（课程设计）：课程总体结构、模块详细设计（每模块时长/目标/内容点/教学方式）、完整课程时间表、教学方式分布。**最后一节必须是"模块与培训目标对应矩阵"**——把每个模块和 `01` 里的培训目标 T1-T5 显式对应。
 
 > 换主题改这里：把"读 source-docs/ 全部素材"和受众描述换成新主题的素材与受众。
 
@@ -35,7 +37,7 @@
 
 **D 阶段物料 1：PPT 大纲**
 
-继续 ADDIE 的 D 阶段。读 `01-needs-analysis.md` 和 `02-course-design.md`，产出 `training-materials/03-ppt-outline.md`：
+继续 ADDIE 的 D 阶段。读 `01-needs-analysis.md` 和 `02-course-design.md`，产出 `training-materials/<主题>/03-ppt-outline.md`：
 
 - 每页含：页码、标题、类型、要点（3-6 条具体 bullet，不是占位符）、所属模块、建议时长。
 - 与课程设计的模块一一对应——每个模块都有过渡页加内容页。
@@ -45,7 +47,7 @@
 
 **D 阶段物料 2：讲师手册**
 
-读 `03-ppt-outline.md`，产出 `training-materials/04-instructor-manual.md`：
+读 `03-ppt-outline.md`，产出 `training-materials/<主题>/04-instructor-manual.md`：
 
 - 对 PPT 逐页对应，每页结构统一：页码标题 → 讲解时长 → **讲解要点** → 互动引导 → 讲师提示。
 - **讲解要点**即可——3～6 条可上台发挥的 bullet（讲什么、强调什么、易错点），**禁止写逐字稿 / 长篇可照念话术**（费时且难审）。
@@ -58,7 +60,7 @@
 
 **D 阶段物料 3：学员手册**
 
-读 `03-ppt-outline.md`，产出 `training-materials/05-participant-handbook.md`：
+读 `03-ppt-outline.md`，产出 `training-materials/<主题>/05-participant-handbook.md`：
 
 - 按课程模块组织，用"你"的视角写。
 - 每个模块末尾加【本模块速查】框（高频 Q&A）。
@@ -70,7 +72,7 @@
 
 **D+E 阶段物料 4：课后测试题**
 
-读 `01-needs-analysis.md`（取培训目标 T1-T5）和 `05-participant-handbook.md`（取考点），产出 `training-materials/06-assessment.md`：
+读 `01-needs-analysis.md`（取培训目标 T1-T5）和 `05-participant-handbook.md`（取考点），产出 `training-materials/<主题>/06-assessment.md`：
 
 - 题型与数量：6 单选 + 2 多选 + 2 简答，共 10 题。
 - 难度分梯度：基础 / 中等 / 应用三档。
@@ -83,7 +85,7 @@
 
 **I 阶段：交付指南**
 
-产出 `training-materials/07-delivery-guide.md`：物料清单（8 份，含讲师手册）、培训前中后实施流程、新讲师上手路径、培训当天 checklist、常见问题处理预案（人数超员、进度落后、设备故障、学员不参与等真实现场问题）。
+产出 `training-materials/<主题>/07-delivery-guide.md`：物料清单（列出本次实际已有 / 点名文件；ADDIE 上限 8 类，不要暗示每次都必须出齐 8 份）、培训前中后实施流程、新讲师上手路径、培训当天 checklist、常见问题处理预案（人数超员、进度落后、设备故障、学员不参与等真实现场问题）。
 
 交付指南解决的是——一套物料交到没参与设计的讲师手里，他怎么把它"组装成一个能用的培训包"。
 
@@ -91,6 +93,6 @@
 
 **E 阶段：评估反馈表**
 
-产出 `training-materials/08-evaluation-form.md`：培训结束后让学员匿名填的反馈表，含 ≥8 个李克特 5 级量表评分项（内容实用性、讲师表现、节奏等）+ 开放问答题，并附"柯氏四级评估模型"说明。
+产出 `training-materials/<主题>/08-evaluation-form.md`：培训结束后让学员匿名填的反馈表，含 ≥8 个李克特 5 级量表评分项（内容实用性、讲师表现、节奏等）+ 开放问答题，并附"柯氏四级评估模型"说明。口径：某某公司 / 协同云 / 数据洞察，禁止星桥。
 
 评估分两层：测试题（`06`）考的是"学员学到没有"（学习层），反馈表收的是"培训本身好不好"（反应层）——评估的是不同对象。

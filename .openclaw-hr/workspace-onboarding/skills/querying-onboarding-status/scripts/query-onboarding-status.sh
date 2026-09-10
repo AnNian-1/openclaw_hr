@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# query-onboarding-status.sh —— running-onboarding-workflow Skill 的查询启动器
+# query-onboarding-status.sh —— querying-onboarding-status Skill 的查询启动器
 #
 # 用法：
 #   query-onboarding-status.sh <候选人全名> [pinyin]
+#   query-onboarding-status.sh --all
 #
 # 例：
 #   query-onboarding-status.sh 员工1 yuangong1   # 工整路径

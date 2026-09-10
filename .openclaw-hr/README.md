@@ -6,7 +6,7 @@
 - Gateway 主模型 **`xiaomi/mimo-v2.5-pro`**（部分招聘脚本仍调 DeepSeek API，那不是默认对话模型）
 - Profile 在**本仓库** `.openclaw-hr/`，不是课程里的 `~/.openclaw-hr`
 - 飞书绑定 **`er-admin`**；WebChat 绑定 **`router`**
-- 月报只走 **`er-admin-cron` / 运维脚本**，不要对 router 或飞书说「出月报」
+- 月末自动月报走宿主机脚本；飞书 **HR**、WebChat、CLI 可以对话补跑。飞书非 HR 不能出月报、不能查他人工资。
 
 ---
 
@@ -21,7 +21,7 @@
 | `onboarding` | 入职编排、review、看板 |
 | `training` | 按点名生成培训物料 |
 | `performance` | 360 聚合与看板 |
-| `er-admin` | 飞书政策问答（IMA） |
+| `er-admin` | 政策问答；HR/WebChat/CLI 查花名册薪资、补跑月报 |
 | `er-admin-cron` | 仅月报；与 er-admin 共用工作区 |
 | `main` | 不作业务入口 |
 
@@ -67,12 +67,14 @@ source env.sh
 openclaw agent --agent router -m "帮我把 inbox 里的简历批量筛一遍、排个序"
 openclaw agent --agent router -m "从人才库里找几个和员工1背景相似的候选人"
 openclaw agent --agent router -m "员工问年假到年底没休完怎么办？"
+openclaw agent --agent router -m "员工1工资多少？"
+openclaw agent --agent router -m "出一份 2026-07 的 HR 月报"
 
-# 月报：不要走飞书 / 不要让 router 当入口
-bash scripts/../workspace-er-admin/scripts/er-admin-run.sh monthly-report --force 2026-07
+bash workspace-er-admin/scripts/er-admin-run.sh payroll-query --name 员工1
+bash workspace-er-admin/scripts/er-admin-run.sh monthly-report --force 2026-07
 ```
 
-也可 `openclaw agent --agent recruitment -m "..."` 直连子 Agent。飞书员工只应问政策。
+也可 `openclaw agent --agent recruitment -m "..."` 直连子 Agent。飞书员工只应问政策；飞书 HR 可查他人工资、可出月报。
 
 ---
 
@@ -82,7 +84,7 @@ bash scripts/../workspace-er-admin/scripts/er-admin-run.sh monthly-report --forc
 - **onboarding**：`running-onboarding-workflow`、`running-onboarding-review`、`generating-onboarding-dashboard`
 - **training**：`generating-training-materials`（点名 `--only`；不要默认全套 8 份）
 - **performance**：`aggregating-360-feedback`、`generating-360-dashboard`
-- **er-admin**：`answering-hr-policy-questions`、`generating-monthly-report`（飞书不触发）、`ima-skill`
+- **er-admin**：`answering-hr-policy-questions`、`querying-employee-payroll`、`generating-monthly-report`、`ima-skill`
 - **router**：无业务 Skill
 
 面试转写是 **FunASR**（conda `funasr_me`），不是 faster-whisper。本机 ASR 尚未补测，不要用假转写冒充通过。

@@ -97,12 +97,21 @@ def classify(status):
 
 
 def node_display_and_cls(n):
-    """部门 data.status（中文）优先于顶层 node.status（如 in_progress vs 已审批）。"""
+    """HCM 节点归类。
+
+    - 顶层 `status=completed` 是状态机真相，不被 data 里陈旧「待审批」刷回灰色。
+    - 顶层仍是 in_progress 时，部门中文 `data.status`（如「已审批」）可以先标绿（历史 P0-2）。
+    """
     data = n.get("data") or {}
     raw = n.get("status", "未就绪")
-    display = data.get("status") or raw
-    cls = classify(display)
-    return display, cls
+    data_status = data.get("status")
+    if classify(raw) == "done":
+        display = data_status if classify(data_status or "") == "done" else raw
+        return display, "done"
+    if classify(data_status or "") == "done":
+        return data_status, "done"
+    display = data_status or raw
+    return display, classify(display)
 
 
 def halt_days(halted_at):

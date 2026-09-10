@@ -18,7 +18,7 @@
       "position": "后端技术专家（P7→P8）",
       "start_date": "2018-04",
       "end_date": "至今",
-      "industry": "电商",
+      "industry": "互联网/电商",
       "industry_inferred": true
     },
     {
@@ -26,7 +26,7 @@
       "position": "高级后端工程师 / 后端 Team Leader",
       "start_date": "2014-07",
       "end_date": "2018-03",
-      "industry": "O2O 生活服务",
+      "industry": "互联网/电商",
       "industry_inferred": true
     },
     {
@@ -34,27 +34,27 @@
       "position": "后端开发工程师",
       "start_date": "2011-07",
       "end_date": "2014-06",
-      "industry": "互联网金融",
+      "industry": "金融科技",
       "industry_inferred": true
     }
   ],
   "total_experience_years": 15,
   "job_count": 3,
   "skills": [
-    "Java（精通）",
+    "Java（精通，13 年）",
     "Go（熟练）",
-    "Python",
+    "Python（脚本能力）",
     "Shell",
     "Spring Boot / Spring Cloud",
     "Dubbo",
     "MyBatis",
     "Netty",
-    "MySQL（精通）",
+    "MySQL（精通，含分库分表、索引优化、慢查询治理）",
     "Redis（精通）",
     "Elasticsearch",
     "HBase",
     "Kafka",
-    "RocketMQ（精通）",
+    "RocketMQ（精通，含顺序消息、事务消息、堆积治理）",
     "微服务架构",
     "领域驱动设计",
     "高并发系统设计",

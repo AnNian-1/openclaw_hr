@@ -5,9 +5,7 @@
       JSON 目录（通常由 ingest_archive.py 从 zip/rar 解压 DOCX 后生成，
       如 source_feedback/yuangong1/）下的反馈表逐份校验——结构合法、
       5 个维度齐全、评分在 1-5 区间。
-      聚合脚本默认每份反馈结构都对，所以这一关必须先过：脏数据进了聚合，
-      算出来的平均分和极差就不可信。把"数据合不合法"这件确定性的事
-      从 LLM 的眼睛收回到脚本里。
+      聚合脚本会再调用同一套校验：缺自评 / 脏数据不得写出 aggregated-data.json。
 
 校验项：
   1. 每个 JSON 文件可解析
@@ -50,37 +48,30 @@ def fail(problems):
     sys.exit(1)
 
 
-def main():
-    if len(sys.argv) < 2:
-        print("用法: python3 check_feedback.py <json_dir>", file=sys.stderr)
-        sys.exit(2)
+def inspect_feedback_dir(raw_dir, *, anonymize=True):
+    """校验 json_dir，不退出。返回 (problems, rows, relation_count, rewritten)。
 
-    raw_dir = sys.argv[1]
-    if not os.path.isdir(raw_dir):
-        print(f"目录不存在: {raw_dir}", file=sys.stderr)
-        sys.exit(2)
-
+    rows: [(fname, rel, [5 scores])]，仅结构完整的反馈。
+    rewritten: anonymize_feedback_dir 的改写记录。
+    """
+    rewritten = anonymize_feedback_dir(raw_dir) if anonymize else []
     problems = []
     rows = []
     relation_count = {}
 
-    rewritten = anonymize_feedback_dir(raw_dir)
-    if rewritten:
-        print("评估人代号已按文件名改写（禁止真人名进入聚合）：")
-        for fname, old, new in rewritten:
-            print(f"  {fname}: {old or '（空）'} → {new}")
-        print()
-
     files = sorted(glob.glob(os.path.join(raw_dir, "*.json")))
     if not files:
-        fail([f"{raw_dir} 下没有任何 .json 反馈文件"])
+        return (
+            [f"{raw_dir} 下没有任何 .json 反馈文件"],
+            rows,
+            relation_count,
+            rewritten,
+        )
 
     for path in files:
         fname = os.path.basename(path)
-        # _ 开头的是 schema 等说明文件，跳过
         if fname.startswith("_"):
             continue
-        # 同目录下的聚合产物，不是单份反馈表
         if fname in SKIP_JSON_NAMES or fname.startswith("aggregated-"):
             continue
         try:
@@ -90,7 +81,6 @@ def main():
             problems.append(f"{fname} JSON 无法解析：{e}")
             continue
 
-        # 必需字段
         for key in ("reviewer_relation", "scores", "comments"):
             if key not in fb:
                 problems.append(f"{fname} 缺少必需字段 {key}")
@@ -135,16 +125,34 @@ def main():
         if all(d in s for d in DIMENSIONS):
             rows.append((fname, rel, [s[d] for d in DIMENSIONS]))
 
-    # 视角完整性下限：360 反馈至少要有上级和自评
     if relation_count.get("manager", 0) < 1:
         problems.append("缺少上级（manager）反馈——360 反馈必须含直接主管视角")
     if relation_count.get("self", 0) < 1:
         problems.append("缺少自评（self）反馈——360 反馈必须含本人自我认知视角")
 
+    return problems, rows, relation_count, rewritten
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("用法: python3 check_feedback.py <json_dir>", file=sys.stderr)
+        sys.exit(2)
+
+    raw_dir = sys.argv[1]
+    if not os.path.isdir(raw_dir):
+        print(f"目录不存在: {raw_dir}", file=sys.stderr)
+        sys.exit(2)
+
+    problems, rows, relation_count, rewritten = inspect_feedback_dir(raw_dir)
+    if rewritten:
+        print("评估人代号已按文件名改写（禁止真人名进入聚合）：")
+        for fname, old, new in rewritten:
+            print(f"  {fname}: {old or '（空）'} → {new}")
+        print()
+
     if problems:
         fail(problems)
 
-    # 通过——打印评分总览
     print(f"{'文件':<16}{'关系':<9}{'目标':>6}{'专业':>6}{'协作':>6}{'责任':>6}{'成长':>6}")
     print("-" * 61)
     for fname, rel, scores in rows:

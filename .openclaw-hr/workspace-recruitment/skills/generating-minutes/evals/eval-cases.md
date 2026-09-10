@@ -7,7 +7,8 @@
 
 ### 场景 1 · 标准转写稿（一场完整技术二面）
 
-- 输入：`interview/transcript-skilltest.json`（transcribing-interviews 产出的员工1技术二面转写稿，**105 片段**，speaker_A / speaker_B 两类，FunASR + CAM++ 输出）+ `inbox/resume-tech-01-员工1-后端开发.md`
+- 输入：已有合格转写稿（FunASR + CAM++ schema）+ `inbox/resume-tech-员工1-后端开发.md`
+  - 本机 ASR 未补测通过：不要把「105 片段 / 校验通过」当成本机已跑过的前提；没有转写稿就跳过本场景，不要编一份转写再评纪要
 - query：把这份转写稿整理成结构化面试纪要
 - expected_behavior：
   - 产出纪要 JSON 含 candidate / position / qa / strengths / concerns / highlights / recommendation / mentioned_numbers / number_audit_summary

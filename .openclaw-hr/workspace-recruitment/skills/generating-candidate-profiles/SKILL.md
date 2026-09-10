@@ -56,7 +56,7 @@ bash scripts/recruitment-run.sh python3 skills/generating-candidate-profiles/scr
 生成的画像 HTML 必须用校验脚本过一遍，跑通才算合格：
 
 ```bash
-node skills/generating-candidate-profiles/scripts/validate_profile_html.js \
+bash scripts/recruitment-run.sh node skills/generating-candidate-profiles/scripts/validate_profile_html.js \
   <profile.html> <ranking.json> <候选人姓名>
 ```
 
@@ -71,7 +71,8 @@ node skills/generating-candidate-profiles/scripts/validate_profile_html.js \
 （不用下载、不用打开本地 HTML）：
 
 ```bash
-python3 scripts/publish_to_canvas.py <profile.html> profile-<pinyin-no-tones>
+bash scripts/recruitment-run.sh python3 skills/generating-candidate-profiles/scripts/publish_to_canvas.py \
+  <profile.html> profile-<pinyin-no-tones>
 ```
 
 脚本是 9 步 fail-fast 校验链，**不传合法 ASCII 别名就会报错并退出**（不会

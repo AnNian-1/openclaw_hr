@@ -1,5 +1,127 @@
 {
-  "version": 1,
-  "records": [],
-  "armed": {}
+  "version": 2,
+  "records": [
+    {
+      "name": "员工1",
+      "pinyin": "yuangong1",
+      "day": 7,
+      "status": "due",
+      "focus": "完成公司级 Onboarding;导师启动带教;融入团队",
+      "content": null,
+      "summary": null,
+      "outcome": null,
+      "checklist": [
+        {
+          "item": "完成公司级 Onboarding",
+          "state": "not_done",
+          "note": ""
+        },
+        {
+          "item": "导师启动带教",
+          "state": "not_done",
+          "note": ""
+        },
+        {
+          "item": "融入团队",
+          "state": "not_done",
+          "note": ""
+        }
+      ],
+      "next_action": null,
+      "next_action_due": null,
+      "reviewer": null,
+      "triggered_at": "2026-09-03T13:03:56+00:00",
+      "completed_at": null,
+      "display_status": "pending"
+    },
+    {
+      "name": "员工1",
+      "pinyin": "yuangong1",
+      "day": 30,
+      "status": "pending",
+      "focus": "部门岗位培训;HR 第一次新人关怀沟通",
+      "content": null,
+      "summary": null,
+      "outcome": null,
+      "checklist": [
+        {
+          "item": "部门岗位培训",
+          "state": "not_done",
+          "note": ""
+        },
+        {
+          "item": "HR 第一次新人关怀沟通",
+          "state": "not_done",
+          "note": ""
+        }
+      ],
+      "next_action": null,
+      "next_action_due": null,
+      "reviewer": null,
+      "triggered_at": null,
+      "completed_at": null,
+      "display_status": "pending"
+    },
+    {
+      "name": "员工1",
+      "pinyin": "yuangong1",
+      "day": 60,
+      "status": "pending",
+      "focus": "带教进展检查;岗位胜任度初评",
+      "content": null,
+      "summary": null,
+      "outcome": null,
+      "checklist": [
+        {
+          "item": "带教进展检查",
+          "state": "not_done",
+          "note": ""
+        },
+        {
+          "item": "岗位胜任度初评",
+          "state": "not_done",
+          "note": ""
+        }
+      ],
+      "next_action": null,
+      "next_action_due": null,
+      "reviewer": null,
+      "triggered_at": null,
+      "completed_at": null,
+      "display_status": "pending"
+    },
+    {
+      "name": "员工1",
+      "pinyin": "yuangong1",
+      "day": 90,
+      "status": "pending",
+      "focus": "导师带教结束;6 个月试用期者中期反馈",
+      "content": null,
+      "summary": null,
+      "outcome": null,
+      "checklist": [
+        {
+          "item": "导师带教结束",
+          "state": "not_done",
+          "note": ""
+        },
+        {
+          "item": "6 个月试用期者中期反馈",
+          "state": "not_done",
+          "note": ""
+        }
+      ],
+      "next_action": null,
+      "next_action_due": null,
+      "reviewer": null,
+      "triggered_at": null,
+      "completed_at": null,
+      "display_status": "pending"
+    }
+  ],
+  "armed": {
+    "yuangong1": {
+      "scheduled_at": "2026-09-03T12:54:18+00:00"
+    }
+  }
 }

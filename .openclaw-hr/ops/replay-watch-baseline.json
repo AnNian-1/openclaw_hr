@@ -1,0 +1,203 @@
+{
+  "checked_at": "2026-09-03 19:48:21 +0800",
+  "baseline_stamp": "20260903T114546Z",
+  "diaries": [
+    {
+      "path": "workspace-er-admin/memory/2026-09-01-0207.md",
+      "bytes": 196,
+      "mtime": "2026-09-01 10:07:25 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-onboarding/memory/2026-09-01.md",
+      "bytes": 254,
+      "mtime": "2026-09-01 09:32:50 +0800",
+      "hits": []
+    }
+  ],
+  "memory_md": [],
+  "dream_reports": [],
+  "sqlite": [
+    {
+      "name": "er-admin-cron.sqlite",
+      "bytes": 69632,
+      "mtime": "2026-09-03 19:25:47 +0800",
+      "files": 0,
+      "chunks": 0
+    },
+    {
+      "name": "er-admin.sqlite",
+      "bytes": 69632,
+      "mtime": "2026-09-03 19:25:47 +0800",
+      "files": 0,
+      "chunks": 0
+    },
+    {
+      "name": "main.sqlite",
+      "bytes": 69632,
+      "mtime": "2026-09-03 19:25:47 +0800",
+      "files": 0,
+      "chunks": 0
+    },
+    {
+      "name": "onboarding.sqlite",
+      "bytes": 4349952,
+      "mtime": "2026-09-01 09:32:53 +0800",
+      "files": 1,
+      "chunks": 1
+    },
+    {
+      "name": "performance.sqlite",
+      "bytes": 69632,
+      "mtime": "2026-09-03 19:25:47 +0800",
+      "files": 0,
+      "chunks": 0
+    },
+    {
+      "name": "recruitment.sqlite",
+      "bytes": 69632,
+      "mtime": "2026-09-03 19:25:47 +0800",
+      "files": 0,
+      "chunks": 0
+    },
+    {
+      "name": "router.sqlite",
+      "bytes": 69632,
+      "mtime": "2026-09-03 19:25:47 +0800",
+      "files": 0,
+      "chunks": 0
+    },
+    {
+      "name": "training.sqlite",
+      "bytes": 69632,
+      "mtime": "2026-09-03 19:25:47 +0800",
+      "files": 0,
+      "chunks": 0
+    }
+  ],
+  "session_keys": [
+    {
+      "agent": "er-admin",
+      "key": "agent:er-admin:feishu:direct:ou_2f67ed66e57e214e72c318a57c60d1c4",
+      "chatType": "direct",
+      "updatedAt": 1788229013280
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:main",
+      "chatType": "direct",
+      "updatedAt": 1788435132011
+    },
+    {
+      "agent": "onboarding",
+      "key": "agent:onboarding:explicit:tmp-mem-verify-1",
+      "chatType": null,
+      "updatedAt": 1788226122685
+    },
+    {
+      "agent": "onboarding",
+      "key": "agent:onboarding:explicit:tmp-mem-verify-2",
+      "chatType": null,
+      "updatedAt": 1788226159489
+    },
+    {
+      "agent": "onboarding",
+      "key": "agent:onboarding:explicit:tmp-mem-verify-3",
+      "chatType": null,
+      "updatedAt": 1788226198372
+    },
+    {
+      "agent": "onboarding",
+      "key": "agent:onboarding:explicit:tmp-mem-verify-4",
+      "chatType": null,
+      "updatedAt": 1788226373448
+    },
+    {
+      "agent": "onboarding",
+      "key": "agent:onboarding:explicit:dashboard-agent-smoke-060919",
+      "chatType": null,
+      "updatedAt": 1788415780093
+    },
+    {
+      "agent": "router",
+      "key": "agent:router:explicit:rokid-app-smoke-dev",
+      "chatType": null,
+      "updatedAt": 1788413367758
+    }
+  ],
+  "jsonl": [
+    {
+      "path": "agents/er-admin/sessions/119b622d-58ee-481a-86a3-e5b32e1446dd.jsonl",
+      "bytes": 74552,
+      "mtime": "2026-09-01 10:16:52 +0800"
+    },
+    {
+      "path": "agents/main/sessions/0e504bd1-8553-43c8-a924-444f818e5925.jsonl",
+      "bytes": 53502,
+      "mtime": "2026-09-03 19:32:11 +0800"
+    },
+    {
+      "path": "agents/onboarding/sessions/dashboard-agent-smoke-060919.jsonl",
+      "bytes": 9809,
+      "mtime": "2026-09-03 14:09:39 +0800"
+    },
+    {
+      "path": "agents/onboarding/sessions/tmp-mem-verify-1.jsonl",
+      "bytes": 16483,
+      "mtime": "2026-09-01 09:28:41 +0800"
+    },
+    {
+      "path": "agents/onboarding/sessions/tmp-mem-verify-2.jsonl",
+      "bytes": 10246,
+      "mtime": "2026-09-01 09:29:19 +0800"
+    },
+    {
+      "path": "agents/onboarding/sessions/tmp-mem-verify-3.jsonl",
+      "bytes": 14242,
+      "mtime": "2026-09-01 09:29:58 +0800"
+    },
+    {
+      "path": "agents/onboarding/sessions/tmp-mem-verify-4.jsonl",
+      "bytes": 5145,
+      "mtime": "2026-09-01 09:32:53 +0800"
+    },
+    {
+      "path": "agents/router/sessions/rokid-app-smoke-dev.jsonl",
+      "bytes": 19027,
+      "mtime": "2026-09-03 13:29:27 +0800"
+    }
+  ],
+  "ssh": {
+    "notty": 4,
+    "pts": 0,
+    "startups_unauth": 5,
+    "who": []
+  },
+  "services": {
+    "hcm-backend": 200,
+    "hcm-frontend": 200,
+    "gateway": 200,
+    "canvas": 200
+  },
+  "cron": {
+    "present": true,
+    "name": "Memory Dreaming Promotion",
+    "enabled": true,
+    "expr": "0 23 * * *",
+    "tz": "Asia/Shanghai"
+  },
+  "promote_procs": [],
+  "counts": {
+    "diaries": 2,
+    "memory_md": 0,
+    "dream_reports": 0,
+    "sqlite_files_indexed": 1,
+    "sqlite_chunks": 1,
+    "session_keys": 8,
+    "jsonl": 8,
+    "diary_hits": 0,
+    "memory_hits": 0,
+    "dream_hits": 0
+  },
+  "alerts": []
+}

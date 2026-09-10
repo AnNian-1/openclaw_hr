@@ -51,13 +51,24 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
   - 本地 `memory/hr-policies/` 仅备份对照；答疑以 IMA 检索结果为准。
   - 三步答疑协议（IMA 检索 → 引用原文 → 红线升级）与 5 类 HiTL 红线见 SKILL.md / `references/escalation-redlines.md`。
   - 核心硬规则：检索得到相关政策 ≠ 该回答；政策数字一字不改；红线问题不答、明确转人工。
+  - 飞书 HR / WebChat / CLI 查**别人**的合同薪资：不要用本 Skill，改用 `querying-employee-payroll`。
+
+### querying-employee-payroll（花名册合同薪资）
+
+- **做什么**：按 HCM 花名册（HCM 不可用则入职 stub）查出别人的合同薪资。不编姓名、不编金额。
+- **什么时候用**：WebChat / CLI，或飞书 HR，问「员工1工资多少」「花名册薪资」。
+- **调用要点**：
+  - 只 `bash scripts/er-admin-run.sh payroll-query [--sender <ou_>] --name 员工1` 或 `--all`。
+  - 飞书必须传会话 `ou_`；WebChat / CLI 省略 `--sender`。
+  - 主管/员工 ou_ 会被脚本拒绝（退出码 3）。
+  - 只念 JSON 的 `people[]`；没有此人就说没有，不要补数。
 
 ### generating-monthly-report（HR 月报自动生成）
 
 - **做什么**：pandas 读 6 个 CSV → 算指标 + 对标 5 项业界基准 → matplotlib 出 4 张图 → 拼成单文件 HTML 月报，打印数字回核表，并默认发布到 OpenClaw Canvas（id=`hr-monthly-report`）。
-- **什么时候用**：**仅 Cron 月末唤醒 / 非飞书运维触发**。飞书群聊与私聊**禁止**用此 Skill（用户要月报时拒绝）。
+- **什么时候用**：飞书 **HR**、WebChat、CLI 说「出月报」。飞书非 HR 拒绝。月末自动任务仍走宿主机日检。
 - **调用要点**：
-  - **只** `bash scripts/er-admin-run.sh monthly-report`（可带 `YYYY-MM` / `--force` / `--no-publish`）。不要直接 `bash skills/.../run_monthly_report.sh`。壳脚本会选用 conda 环境（含 pandas/matplotlib），避免 OpenClaw exec 落到 `/usr/bin/python3`。非法月（2099-12）同样走此入口。
+  - **只** `bash scripts/er-admin-run.sh monthly-report [--sender <ou_>]`（可带 `YYYY-MM` / `--force` / `--no-publish`）。不要直接 `bash skills/.../run_monthly_report.sh`。壳脚本会选用 conda 环境（含 pandas/matplotlib），避免 OpenClaw exec 落到 `/usr/bin/python3`。非法月（2099-12）同样走此入口。
   - **禁止**因缺包去 `pip install`；**禁止**瞎 `source env.sh`（本 workspace 无此文件）；路径不是 workspace 根下的 `scripts/...`。
   - 直调 Python 时用：`/usr/local/miniconda3/envs/py312/bin/python3 skills/generating-monthly-report/scripts/generate_monthly_report.py ...`，或设 `MONTHLY_REPORT_PYTHON`。
   - 6 个 CSV 在 `report-system/data/`；本地 HTML 与 `*-audit.md` 在 `report-output/`；Canvas id=`hr-monthly-report`（浏览器推荐 18999）。

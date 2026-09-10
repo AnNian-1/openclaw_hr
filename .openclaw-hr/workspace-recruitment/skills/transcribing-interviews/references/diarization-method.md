@@ -45,7 +45,7 @@ ASR 用 **Paraformer-zh**（ModelScope `iic/speech_seaco_paraformer_large_asr_na
 - `medium` / `large-v3` 中文好一点，但前者在 CPU 上慢 ~3 倍，后者在国内下载不稳定、显存吃紧。
 - 即使换 `large-v3`，仍需面对说话人分离这道独立的难关（见 §3）。
 
-**实测对比**（同一条 wav `interview-yuangong1-tech2.wav`，282.84 s）：FunASR + Paraformer-zh 在 CPU 上 RTF = 0.131（7.6× 实时），GPU (V100S) RTF = 0.031（32.6× 实时），三跑 v1/v2/v3 输出严格确定（105 段、说话人 A=31 / B=74、文本逐字 0 字符差）。详见 `playground/1.step_6_arc/reports/cpu-vs-gpu.md`。
+**课程 playground 曾测**（同一条 wav `interview-yuangong1-tech2.wav`，282.84 s）：CPU RTF 0.131、GPU V100S RTF 0.031、105 段 / A=31 B=74。那是教学环境记录，**不是本机换机后的验收**。本机 FunASR 环境在，尚未补测通过——不要把上述数字写成本机已通过。
 
 ## 3. 为什么说话人分离用 CAM++，不用 pyannote-audio / 基频聚类
 
@@ -134,7 +134,8 @@ pip install funasr modelscope
 模型首次运行会自动从 ModelScope 下到 `MODELSCOPE_CACHE`。本 Skill 默认走：
 
 ```
-~/.openclaw-hr/workspace-recruitment/models/
+$OPENCLAW_STATE_DIR/workspace-recruitment/models/
+（本仓 `/opt/openclaw-hr/.openclaw-hr/workspace-recruitment/models/`，不要写成 `~/.openclaw-hr`）
 ├── iic--punc_ct-transformer_zh-cn-common-vocab272727-pytorch/        283 MB
 ├── iic--speech_campplus_sv_zh-cn_16k-common/                          28 MB
 ├── iic--speech_fsmn_vad_zh-cn-16k-common-pytorch/                    3.9 MB
@@ -157,4 +158,4 @@ pip install funasr modelscope
 | `ffmpeg is not installed` warning              | FunASR 优先用 ffmpeg 读音频，没装就退到 torchaudio     | **无害**——16 kHz WAV torchaudio 直接读                     |
 | `--venv` 重递归                                  | `--venv` 参数没被剥                                | 已在 `reexec_in_venv` 里 `--venv <value>` 这两 token 一并剥掉        |
 
-环境装好后的 smoke test 详见 `playground/1.step_6_arc/README-funasr-setup.md`。
+环境装好后仍须在本机补测；未补测通过前不要把课程 playground smoke 当成本仓结论。

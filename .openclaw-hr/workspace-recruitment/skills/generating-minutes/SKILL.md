@@ -13,7 +13,7 @@ metadata:
 
 ## 何时用这个 Skill
 
-收到一份按发言人组织的面试转写稿（`transcribing-interviews` 的产物），需要把它变成 HR 能直接用的结构化纪要时用。
+收到一份按发言人组织的面试转写稿（`transcribing-interviews` 的产物），需要把它变成 HR 能直接用的结构化纪要时用。本机 ASR 未补测通过：没有合格转写稿就不要编一份再跑纪要。
 
 它和纪要链路里另一个 Skill 边界清楚：本 Skill 的输入是**转写稿**，不是音频——录音转文字、分说话人是 `transcribing-interviews` 的事。本 Skill 只做"转写稿 → 结构化纪要"，不做转写、不做合规过滤。
 
@@ -28,7 +28,7 @@ metadata:
 ### 第 1 步 · 生成纪要 + 数字回核
 
 ```bash
-python3 skills/generating-minutes/scripts/gen_minutes.py \
+bash scripts/recruitment-run.sh python3 skills/generating-minutes/scripts/gen_minutes.py \
   interview/<转写名>.json inbox/<候选人简历>.md \
   interview/<纪要名>.json interview/<纪要名>.md \
   --candidate <姓名> --position <岗位> --round <轮次> \
@@ -50,7 +50,7 @@ python3 skills/generating-minutes/scripts/gen_minutes.py \
 纪要产物必须用校验脚本过一遍，跑通才算纪要合格：
 
 ```bash
-node skills/generating-minutes/scripts/validate_minutes.js interview/<纪要名>.json
+bash scripts/recruitment-run.sh node skills/generating-minutes/scripts/validate_minutes.js interview/<纪要名>.json
 ```
 
 脚本校验：JSON 可解析、必需字段齐全、**关键问答每组都是"面试官问题—候选人回答"两行结构**、评分建议含 verdict（通过/待定/不通过）+ reason、**数字回核统计自洽**（回核确实逐项跑过，不是大模型编一个摘要）。退出码 0 = 通过，1 = 不通过（列出全部问题），2 = 用法错误。

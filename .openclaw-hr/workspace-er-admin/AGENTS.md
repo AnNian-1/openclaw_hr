@@ -57,7 +57,7 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - `trash` > `rm` (recoverable beats gone forever)
 - When in doubt, ask.
 - 禁止把 **IMA 政策正文** 写进知识库或随便一个 md。测试/冒烟记录只写 `docs/qa/`。维护文档用 **write/edit 工具**，不要 `echo >` / `tee`（仍不在 exec 白名单）。
-- 业务 exec 仍走 `scripts/er-admin-run.sh ima-search`。本 workspace 内可用 `ls`/`cat`/`head`/`tail`/`find`/`grep`/`wc`（路径不得含其它域 workspace）。**不要** `mkdir`。`monthly-report` 不在本 Agent allowlist（只在 `er-admin-cron`）。
+- 业务 exec 只走 `scripts/er-admin-run.sh` 的 `ima-search` / `payroll-query` / `monthly-report`。本 workspace 内可用 `ls`/`cat`/`head`/`tail`/`find`/`grep`/`wc`（路径不得含其它域 workspace）。**不要** `mkdir`。飞书必须把会话 `ou_` 传给 `--sender`；WebChat / CLI 不要编 ou_。
 - 用户明确要求写本 workspace 文件时：调用 `write`/`edit`，不要用口头「没权限」代替工具结果；Gateway 拒写时把报错交回。群聊与私聊同一条。禁止用 `exec` 绕过 `write`。
 
 ## External vs Internal
@@ -135,17 +135,27 @@ Reactions are lightweight social signals. Humans use them constantly — they sa
 
 一条硬规则：**检索得到相关政策 ≠ 这个问题该由我回答**——判断「该不该答」要先于「能不能检索到」。完整规程和 5 类红线细则见该 Skill 的 SKILL.md 与 `references/escalation-redlines.md`。
 
-### HR 月报自动生成（非飞书）
+飞书 HR、WebChat、CLI 点名查**别人**的合同薪资时，不要按第 1 类红线整句拒答，改走下面的薪资 Skill。
 
-**飞书私聊 / 群聊禁止触发月报。** 用户在飞书要月报时直接拒绝，并说明月报由宿主机日检脚本生成。
+### 花名册合同薪资（HR / WebChat / CLI）
 
-生产月报 **不经过 Gateway / Agent**。Pipeline：pandas 读 6 个 CSV → 算指标 → 出图 → HTML 月报 → Canvas（id=`hr-monthly-report`）。
+用 `querying-employee-payroll`。只 `exec`：
 
-运维 CLI 补跑只 `exec`：
+`bash scripts/er-admin-run.sh payroll-query [--sender <ou_>] --name 员工1`
 
-`bash scripts/er-admin-run.sh monthly-report`（可带 `<YYYY-MM>` / `--force` / `--no-publish`）。这条只在 **`er-admin-cron`** 的 exec allowlist 上（供 CLI）；飞书绑定的 `er-admin` 只有 `ima-search`。不要直接 `bash skills/.../run_monthly_report.sh`。
+或 `--all`。飞书 HR 必须带 `--sender`。WebChat / CLI 省略。主管/员工的 ou_ 会被脚本拒绝。只念 JSON 里的人，花名册没有的人不要编。
 
-该壳脚本会选用 conda `py312`（带 pandas/matplotlib）。OpenClaw exec 里的裸 `python3` 常是 `/usr/bin/python3`，**不要**因此去 `pip install`，也**不要** `source env.sh`（本 workspace 无此文件）。
+### HR 月报
+
+飞书 **HR**、WebChat、CLI 可以补跑月报。飞书非 HR 要月报时拒绝（或跑脚本把拒绝原文交回）。
+
+月末自动出报仍走宿主机 `/opt/hr-ops/maybe-monthly-report.sh`（不经过 Gateway）。
+
+对话/`exec` 只跑：
+
+`bash scripts/er-admin-run.sh monthly-report [--sender <ou_>]`（可带 `<YYYY-MM>` / `--force` / `--no-publish`）。不要直接 `bash skills/.../run_monthly_report.sh`。
+
+壳脚本会选用 conda（pandas/matplotlib）。不要 `pip install`，不要 `source env.sh`。
 
 硬规则：**月报数字全部由脚本算出，我不碰数字**。详见 SKILL.md；Canvas 见 `references/canvas-publishing.md`。
 

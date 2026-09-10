@@ -1,6 +1,6 @@
 ---
 name: generating-training-materials
-description: Generate a complete, internally consistent set of training materials from source documents via the ADDIE five-stage pipeline (eight Markdown deliverables), then run a mandatory self-check against evals/eval-cases.md and scripts/self_check.py before claiming delivery. Use whenever a business unit needs a full internal training package — needs analysis, course design, PPT outline, instructor manual (talking points, not verbatim scripts), participant handbook, assessment, delivery guide, and evaluation form — with stage hand-off and post-run validation.
+description: Generate named ADDIE training-material Markdown files from source-docs (not a default full set of eight). Use when a business unit names specific deliverables (e.g. evaluation form only via --only 08) or explicitly asks for a full package. Always exec training-run.sh generate --theme <theme> [--only …]; run evals/eval-cases.md + self_check.py before claiming delivery. Instructor manuals are talking points, not verbatim scripts. Company name is 某某公司; products 协同云 / 数据洞察; never 星桥.
 metadata:
   openclaw:
     requires:
@@ -9,15 +9,17 @@ metadata:
 
 # generating-training-materials
 
-把一摞培训素材文档，经 ADDIE 五阶段流水线，生成一套内在自洽的培训物料——8 份文件；**交付前必须按评测场景做自我校验**。
+把一摞培训素材文档，经 ADDIE 五阶段流水线，生成内在自洽的培训物料。**8 类是 ADDIE 上限，不是每次默认产物**——用户点名哪几份就生成哪几份；**交付前必须按评测场景做自我校验**。
 
 ## 何时用这个 Skill
 
-业务部门要办一场内训，需要一整套培训物料时用。一套真正能用的培训物料不止一份 PPT，包含 8 类文件：需求分析、课程设计、PPT 大纲、讲师手册、学员手册、课后测试题、交付指南、评估反馈表。
+业务部门要办一场内训、点名了具体物料（或明确要全套）时用。一套真正能用的培训物料不止一份 PPT，ADDIE 上限包含 8 类：需求分析、课程设计、PPT 大纲、讲师手册、学员手册、课后测试题、交付指南、评估反馈表。未点名不要默认出齐 8 份。
 
 讲师手册保留，但**只写讲解要点 + 互动 + 控场提示，禁止逐字稿**（长篇可照念话术费时难审）。
 
-不用这个 Skill 的情况：只改某一份已有物料（直接改文件即可，不必重跑整条流水线）。用户只要学员手册+测试题时：`bash scripts/training-run.sh generate --theme <主题> --only 05,06`（缺 PPT 大纲等上游则停，不擅自生成另外 6 份）。
+配图 Skill `generating-training-figures` **已裁撤**。磁盘若还有考古目录，不要主动触发，不要复活它。
+
+不用这个 Skill 的情况：只改某一份已有物料（直接改文件即可，不必重跑整条流水线）。用户只要学员手册+测试题时：`bash scripts/training-run.sh generate --theme <主题> --only 05,06`（缺 PPT 大纲等上游则停，不擅自生成另外 6 份）。只要评估反馈表：`--only 08`。
 
 ## 评测说明书在哪
 
@@ -27,6 +29,7 @@ metadata:
 generating-training-materials/
 ├── SKILL.md                 ← 工作流（本文）
 ├── references/stage-prompts.md
+├── scripts/generate_pack.py ← 脚本编排（training-run.sh generate）
 ├── scripts/self_check.py    ← 交付前结构自检（机器可跑）
 └── evals/eval-cases.md      ← 评测 / 自我校验说明书（必读）
 ```
@@ -36,7 +39,7 @@ generating-training-materials/
 1. **作者评测**：改 Skill 前后，用里面的 `query` + `expected_behavior` 验收 Agent。
 2. **Agent 自我校验（强制）**：流水线跑完后进入下方「步骤 8」，对照该文件的 `expected_behavior` 逐条核；结构项先跑 `self_check.py`。
 
-不读 `eval-cases.md`、不做步骤 8，不得声称「全套物料已交付」。细则 → `evals/eval-cases.md` 文首「这份文件是干什么的」。
+不读 `eval-cases.md`、不做步骤 8，不得声称「物料已交付」。细则 → `evals/eval-cases.md` 文首「这份文件是干什么的」。
 
 ## 这条流水线的本质：ADDIE 五阶段，前阶段产出严格定义后阶段输入
 
@@ -48,29 +51,32 @@ ADDIE 是培训设计领域沿用数十年的标准方法论，五个字母是�
 | **D** Design | 课程设计——课程结构、模块、时长、教学方式 | `02-course-design.md` |
 | **D** Development | 物料开发——逐份生成可用物料 | `03`~`06` 四份 |
 | **I** Implementation | 实施——交付指南，讲师怎么落地这套物料 | `07-delivery-guide.md` |
-| **E** Evaluation | 评估——评估反馈表 | `08-evaluation-form.md` |
+| **E** Evaluation | 评估——课后测试题 + 评估反馈表 | `06` 测试题 / `08-evaluation-form.md` |
 
 **编排在脚本里，不在一次 Agent 会话里。** 8 次长文若交给 OpenClaw 连续 `write`，会撞 CLI 默认 630s 超时且没有结束句（X-PROC-05 / T-D-002）。
 
 对话层只许：
 
 ```bash
+# 点名（默认）
+bash scripts/training-run.sh generate --theme <主题> --only 08
+# 用户明确要全套才省略 --only
 bash scripts/training-run.sh generate --theme <主题>
 ```
 
-脚本按 ADDIE 对每个阶段做 **一次 HTTP LLM 调用** 并落盘；已有足够长的 `01`…`0k` 默认跳过（断点续跑）；结束时 **一定** 打印 `RESULT: success|failure` 以及 `FILES` / `MISSING`。声称交付时只认这一行 + `self_check.py`。禁止自己用 `write` 编 `training/courses/` 假路径。
+脚本按 ADDIE 对点名阶段做 **一次 HTTP LLM 调用** 并落盘；已有足够长的目标文件默认跳过（断点续跑）；结束时 **一定** 打印 `RESULT: success|failure` 以及 `FILES` / `MISSING`（点名时这两行只覆盖点名文件，不因未点名的 01–08 缺失而判失败）。声称交付时只认这一行 + `self_check.py`。禁止自己用 `write` 编 `training/courses/` 假路径。
 
 流水线仍靠三条铁规则（由脚本执行，不是靠模型自觉）：
 
 1. **每个阶段的产出落盘成文件**——`training-materials/<主题>/` 下指定文件名。
 2. **后一阶段开工前读前一阶段产出**——脚本把文件打进下一阶段 prompt。
-3. **全部落盘后自我校验**——脚本末尾跑 `self_check.py`。
+3. **点名文件（或明确要求的全套）落盘后自我校验**——脚本末尾跑 `self_check.py`（点名加 `--partial`）。
 
 ## 工作流程
 
-**Agent：只跑 `training-run.sh generate`，把脚本的 `RESULT` 原样交回。** 下面步骤 1–8 是脚本内部顺序（对照 `stage-prompts.md`），不要在对话里逐步 `write` 八份长文。
+**Agent：只跑 `training-run.sh generate`，把脚本的 `RESULT` 原样交回。** 用户点名则加 `--only`；未点名不要省略 `--only` 去跑全套。下面步骤 1–8 是脚本内部顺序（对照 `stage-prompts.md`），不要在对话里逐步 `write` 八份长文。
 
-全量重写加 `--force`。缺素材则脚本非 0 退出，按 `RESULT: failure` 汇报。
+用户明确要全套且需重写时加 `--force`。缺素材则脚本非 0 退出，按 `RESULT: failure` 汇报。点名下游、缺上游时脚本 halt，不要擅自补生成未点名文件。
 
 ### 步骤 0 · 准备
 
@@ -117,16 +123,20 @@ bash scripts/training-run.sh generate --theme <主题>
 
 ### 步骤 8 · 交付前自我校验（不可省）
 
-**生成 ≠ 交付。** 8 份文件落盘后必须做本步，对照 → `evals/eval-cases.md`。
+**生成 ≠ 交付。** 点名文件（或用户明确要求的全套）落盘后必须做本步，对照 → `evals/eval-cases.md`。
 
 **8a · 结构自检（机器）**——原样跑：
 
 ```bash
+# 全套
 python3 skills/generating-training-materials/scripts/self_check.py \
-  --outdir <本次 8 份物料所在目录>
+  --outdir <本次物料所在目录>
+# 点名（只核已有文件）
+python3 skills/generating-training-materials/scripts/self_check.py \
+  --outdir <本次物料所在目录> --partial
 ```
 
-退出码 0 = 结构项通过；非 0 = 按 stderr 所列问题修补后重跑，**不得跳过**。
+脚本入口等价：`bash scripts/training-run.sh self-check <主题>`。退出码 0 = 结构项通过；非 0 = 按 stderr 所列问题修补后重跑，**不得跳过**。
 
 **8b · 场景判断项（对照 eval-cases）**——至少核场景 1、2：
 
@@ -142,7 +152,8 @@ python3 skills/generating-training-materials/scripts/self_check.py \
 - 7 个生成步骤严格按顺序，每步产出落盘后再进下一步；**第 8 步自检不可省**。
 - 后一步开工前必须先读前一步指定的产出文件——这是 Pipeline 阶段承接的硬约束。
 - 讲师手册**禁止逐字稿**，只要讲解要点 + 互动 + 控场提示。
-- 所有物料内容基于 `source-docs/` 真实素材，不编造制度、数字、名称。本公司称「某某公司」，产品称「协同云」「数据洞察」。
+- 所有物料内容基于 `source-docs/` 真实素材，不编造制度、数字、名称。本公司称「某某公司」，产品称「协同云」「数据洞察」，禁止「星桥」。
+- **点名制**：未点名不要默认出齐 8 份；`--only` 缺上游则停，不擅自扩成全套。
 - 换主题复用：只改步骤 1【模板 1】里对素材和受众的描述，后面生成步骤不用动；换目录后步骤 8 仍要对新目录跑一遍。
 - 物料是 AI 辅助生成的草稿，对外交付前必须经讲师审核，每份应带"AI 辅助生成、讲师审核后交付"标注。
 - **验收标准写在 `evals/eval-cases.md`**——改行为或加场景时先改评测文件，再改本 SKILL / 模板（评测驱动）。

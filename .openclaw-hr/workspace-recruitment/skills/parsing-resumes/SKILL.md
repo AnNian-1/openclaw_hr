@@ -41,7 +41,7 @@ metadata:
 抽取产出的 JSON 必须用校验脚本过一遍，跑通才算合格：
 
 ```bash
-node skills/parsing-resumes/scripts/validate_profile.js parsed/<简历名>.json
+bash scripts/recruitment-run.sh node skills/parsing-resumes/scripts/validate_profile.js parsed/<简历名>.json
 ```
 
 脚本校验：JSON 可解析、必需字段组齐全、**合规红线字段零出现**、派生字段与工作经历自洽、每段经历字段完整。退出码 0 = 通过，1 = 不通过（会列出全部问题）。

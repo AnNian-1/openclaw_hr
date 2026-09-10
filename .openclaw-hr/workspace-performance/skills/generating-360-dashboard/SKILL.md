@@ -33,10 +33,15 @@ feedback-360/source_feedback/<slug>/
 
 ```bash
 bash skills/generating-360-dashboard/scripts/build_dashboard.sh \
-  feedback-360/source_feedback/<slug> --publish --force
+  feedback-360/source_feedback/<slug> [--publish] [--force]
+# 或
+python3 skills/generating-360-dashboard/scripts/build_dashboard.py \
+  <person_dir|aggregated_json> [out_html]
 ```
 
-canvas-id：`feedback-360-<slug>`；浏览器用 18999。
+第三参 `verdict_json` 若传入会被忽略——判定只读同目录 `aggregated-report.md`。  
+canvas-id：`feedback-360-<slug>`（ASCII）；浏览器用 18999。  
+禁止调用 `feedback-360/build_dashboard.py`（课程裸脚本，写死 7 份判定）。
 
 ## 报告格式规范（aggregated-report.md）
 

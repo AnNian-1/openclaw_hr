@@ -136,6 +136,32 @@ require_contract_gate_ready() {
   return 0
 }
 
+# resume 前预览：两门当下 prompt 打给 HR（与 lobster run 同一份 build-approval-prompt.py）。
+# token 解开后只有 {kind, stateKey}，不含门名，所以两门都打。缺文件只跳过、不挡 resume。
+print_gate_preview() {
+  local pinyin="${1:-}"
+  echo "────────────────────────────────────────────────────" >&2
+  echo "审批门 prompt 预览（基于 HCM/当前快照，非陈旧快照）：" >&2
+  echo >&2
+  if [ -z "$pinyin" ] || [ -z "${STATE:-}" ]; then
+    echo "（无法定位候选人目录，跳过预览）" >&2
+    echo "────────────────────────────────────────────────────" >&2
+    return 0
+  fi
+  export STATE
+  export STUB_STATE_DIR="${STUB_STATE_DIR:-$STATE/$pinyin}"
+  for gate in contract account; do
+    printf "[%s] " "$gate" >&2
+    if prompt_out="$(python3 "$SCRIPT_DIR/build-approval-prompt.py" "$gate" "$pinyin" 2>/dev/null)"; then
+      printf '%s\n' "$(printf '%s' "$prompt_out" | python3 -c 'import json,sys; print(json.loads(sys.stdin.read())["prompt"])')" >&2
+    else
+      echo "（缺快照或 HCM 不可读，跳过预览）" >&2
+    fi
+    echo >&2
+  done
+  echo "────────────────────────────────────────────────────" >&2
+}
+
 # 捕获 lobster 输出 → attach approval_id/resume_token → 原样把 lobster JSON 打到 stdout
 # 注意：不用 exec，否则无法做回写。
 run_lobster_and_attach() {
@@ -230,6 +256,7 @@ PY
         else
           export STUB_STATE_DIR="$STATE/$PINYIN"
         fi
+        print_gate_preview "$PINYIN"
         run_lobster_and_attach "$PINYIN" resume --token "$TOKEN" --approve "$DECISION"
         ;;
       *) fail "resume 的决定必须是 yes 或 no，收到：'$DECISION'" ;;

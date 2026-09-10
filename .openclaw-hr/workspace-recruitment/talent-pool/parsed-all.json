@@ -287,5 +287,39 @@
       "基础容量评估"
     ],
     "self_evaluation": "约 6 年出行领域后端，能独立交付订单/调度模块，习惯用数据和告警说话。"
+  },
+  "resume-tech-面试者1-小程序开发.md": {
+    "name": "面试者1",
+    "phone": "199999933333",
+    "email": "",
+    "target_position": "小程序开发工程师、前端开发工程师",
+    "expected_salary": "",
+    "expected_city": "",
+    "available_date": "",
+    "education": {
+      "school": "云南大学",
+      "major": "计算机相关专业",
+      "degree": "本科",
+      "graduation_year": ""
+    },
+    "work_experience": [
+      {
+        "company": "XX科技有限公司",
+        "position": "小程序开发工程师",
+        "start_date": "2023-08",
+        "end_date": "2025-08",
+        "industry": "科技/软件",
+        "industry_inferred": true
+      }
+    ],
+    "total_experience_years": 2,
+    "job_count": 1,
+    "skills": [
+      "小程序开发：精通微信/支付宝原生小程序开发，熟练使用Uni-app、Taro跨端框架",
+      "前端基础：熟练掌握HTML5、CSS3、JavaScript、ES6+等前端核心技术，熟悉Vue基础语法",
+      "工具与适配：熟练使用微信开发者工具、HBuilderX、VS Code等开发工具",
+      "其他能力：了解MySQL基础数据库操作，熟悉接口联调、前后端交互逻辑"
+    ],
+    "self_evaluation": ""
   }
 }

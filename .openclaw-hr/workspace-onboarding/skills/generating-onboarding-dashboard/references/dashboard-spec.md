@@ -25,7 +25,7 @@
 
 **审批门标记（单独一枚，读 `workflow.json`）**：halted 显示门名称 + 停留天数；满 3 天加「请催办」。cancelled 显示「审批已取消」。workflow `completed` **不再**把主角标打成「已完成」——那只表示审批走完，不代表人已到岗。
 
-**入职准备 · 5 节点**（HCM `GET /api/candidates` 的 `nodes[]`，分类优先 `data.status`）：
+**入职准备 · 5 节点**（HCM `GET /api/candidates` 的 `nodes[]`）：顶层 `status=completed` 以状态机为准；仅当顶层尚未 completed 时，才用部门中文 `data.status`（如「已审批」）提前标绿。
 
 | 节点 | 含义 | 真相源 |
 |---|---|---|

@@ -73,18 +73,13 @@ bash scripts/recruitment-run.sh node skills/transcribing-interviews/scripts/vali
 - **NumPy 版本锁**< 2：torch 2.2.2 是 NumPy 1.x ABI 编译的，环境装 numpy 2.x 会导致 `RuntimeError: Numpy is not available`。装环境时 `pip install "numpy<2"`。
 - 转写产物是面试纪要链路的地基，校验不通过的转写稿不算转写完成，不要直接交给 `generating-minutes`。
 
-## 实测数字（同一条 wav `interview-yuangong1-tech2.wav`, 282.84 s）
+## 本机状态（必须诚实）
 
-| | CPU (torch 2.2.2 / device=cpu) | GPU V100S 32GB (device=cuda:0) |
-|---|---:|---:|
-| 段数 | 105 | 105 |
-| 纯推理 wall | 37.05s | **8.68s** |
-| RTF | 0.131 | **0.031** |
-| 实时倍率 | 7.6× | **32.6×** |
-| 加速比 | 1.0× | **4.27×** |
-| 三跑一致性 | 段数 / 文本 / 说话人比例 100% 一致 | (同左) |
+conda `funasr_me` 与本 workspace `models/` **环境存在，换机后尚未补测通过**。禁止把下面课程 playground / 他机数字说成本机已验收，禁止假装转写已通过。未补测时如实告知，不要编转写稿，也不要为交差跑长音频。
 
-完整报告：`playground/1.step_6_arc/reports/cpu-vs-gpu.md`。
+## 课程 playground 记录（不是本机验收）
+
+课程同一条 wav `interview-yuangong1-tech2.wav`（282.84 s）在教学环境曾测过：CPU 约 105 段 / RTF 0.131；GPU V100S 约 8.68s / RTF 0.031；三跑段数与文本一致。报告路径属于课程 playground，本 workspace 没有把该结果复测为现行真源。
 
 ## 迁移历史
 

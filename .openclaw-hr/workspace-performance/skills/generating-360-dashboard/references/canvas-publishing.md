@@ -7,7 +7,7 @@
 
 ```
 [1] render  · build_dashboard.py / .sh
-            → 只读 aggregated-data.json
+            → 评分读 aggregated-data.json；语义必读 aggregated-report.md
             → feedback-360/source_feedback/<slug>/report.html
 [2] publish · publish_to_canvas.py
             → $OPENCLAW_STATE_DIR/canvas/documents/<id>/index.html

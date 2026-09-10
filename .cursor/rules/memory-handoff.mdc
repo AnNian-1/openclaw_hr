@@ -17,7 +17,7 @@ alwaysApply: true
 
 - 说话人是**总控**。OpenClaw 钉 **2026.5.12**。`maxChildrenPerAgent` / `runTimeoutSeconds` 只写 `agents.defaults.subagents`。
 - **禁止编造**花名册、绩效 S/A/B/C、人才库真人。夹具不是生产数据。默认人才库非夹具主要是员工1。
-- **ASR 跳过**直到换机补测。做梦已开（每天 23:00 `Asia/Shanghai`，`storage.mode: separate`）；改时间只改 `dreaming.frequency` 后重启 Gateway。不要 `memory promote --apply`。
+- **ASR 跳过**直到换机补测。做梦已开（每天 22:00 `Asia/Shanghai`，`storage.mode: separate`）；改时间只改 `dreaming.frequency` 后重启 Gateway。不要 `memory promote --apply`。
 - 飞书绑 **er-admin**（不是 router）。Router 用 `sessions_spawn`。飞书 **禁止出月报**（月报只 `er-admin-cron`）。
 - HR 测试号 `ou_2f67ed66…` 可 write；主管/员工/`*` deny write。
 - 密钥只在 `env.sh`。Canvas 反代配置不要写 Gateway token。

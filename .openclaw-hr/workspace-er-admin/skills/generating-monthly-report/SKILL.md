@@ -1,6 +1,6 @@
 ---
 name: generating-monthly-report
-description: Generate the company HR monthly report as a single-file HTML with charts, then publish it to OpenClaw Canvas host for browser viewing. Use this skill when an HR monthly report is needed from ops CLI (not Feishu). Production trigger is the host daily check /opt/hr-ops/maybe-monthly-report.sh (run only when tomorrow is the 1st). Prefer bash scripts/run_monthly_report.sh (it selects conda with pandas/matplotlib). Do not pip install dependencies. It runs a deterministic pandas pipeline that reads 6 HR CSV files, computes metrics, benchmarks them against 5 industry baselines, draws 4 matplotlib charts, assembles a single-file HTML report, and copies it to canvas/documents/hr-monthly-report/index.html (ASCII id required; view via nginx 18999). It also prints a number-audit table tracing every figure in the report back to its CSV source. All numeric values are computed deterministically by the script - the LLM never touches the numbers.
+description: Generate the company HR monthly report as a single-file HTML with charts, then publish it to OpenClaw Canvas. Use when Feishu HR, WebChat, or CLI asks for 出月报 / HR 月报. Feishu manager/employee must be refused. Production also has a host daily check /opt/hr-ops/maybe-monthly-report.sh. Always run bash scripts/er-admin-run.sh monthly-report (it checks sender and selects conda with pandas/matplotlib). Do not pip install. The pandas pipeline reads 6 HR CSV files, computes metrics, draws 4 charts, writes HTML plus an 18-row audit table. The LLM never touches the numbers.
 metadata:
   openclaw:
     requires:
@@ -15,14 +15,14 @@ metadata:
 
 ## 何时用这个 Skill
 
-需要生成 HR 月报时用，两种触发场景：
+需要生成 HR 月报时用：
 
-- **宿主机日检** —— `/opt/hr-ops/maybe-monthly-report.sh` 每天 23:59（Asia/Shanghai）检查「明天是否为 01」，是才调用本脚本。不经过 Gateway。
-- **手动要某个月的月报** —— 运维 CLI 补某月或重出某月。飞书禁止。
+- **对话补跑** —— 飞书 HR、WebChat、CLI 说「出月报」。飞书必须带 `--sender <ou_>`。非 HR 飞书会被脚本拒绝。
+- **宿主机日检** —— `/opt/hr-ops/maybe-monthly-report.sh` 每天 23:59（Asia/Shanghai）检查「明天是否为 01」，是才调用本脚本。不经过 Gateway，也不走身份闸门。
 
 ## 推荐入口（务必用这个）
 
-对话/`exec` **只跑** `bash scripts/er-admin-run.sh monthly-report [YYYY-MM] [--force] [--no-publish]`（内部再调 `run_monthly_report.sh`）。不要直接 `bash skills/.../run_monthly_report.sh`（不在 allowlist）、不要系统 `python3` / 不要 `pip install` / 不要用 `tee` 写 md。非法月（如 2099-12）也走同一入口，把脚本失败原文交回。
+对话/`exec` **只跑** `bash scripts/er-admin-run.sh monthly-report [--sender <ou_>] [YYYY-MM] [--force] [--no-publish]`（内部再调 `run_monthly_report.sh`）。不要直接 `bash skills/.../run_monthly_report.sh`、不要系统 `python3` / 不要 `pip install` / 不要用 `tee` 写 md。非法月（如 2099-12）也走同一入口，把脚本失败原文交回。
 
 OpenClaw `exec` 的 PATH 常把 `python3` 解析成 `/usr/bin/python3`（无 pandas）；依赖已装在 conda `openclaw-hr`。壳脚本会自动选用：
 

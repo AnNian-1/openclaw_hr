@@ -13,7 +13,7 @@
   },
   "meta": {
     "lastTouchedVersion": "2026.5.12",
-    "lastTouchedAt": "2026-08-25T03:08:00.763Z"
+    "lastTouchedAt": "2026-09-05T19:40:04.560Z"
   },
   "skills": {
     "entries": {
@@ -189,13 +189,25 @@
           "dreaming": {
             "enabled": true,
             "timezone": "Asia/Shanghai",
-            "frequency": "0 23 * * *",
+            "frequency": "0 22 * * *",
             "storage": {
               "mode": "separate"
             }
           }
         }
+      },
+      "rokid-openclaw-bridge": {
+        "enabled": true,
+        "config": {
+          "linkCode": "5906",
+          "linkSecret": ""
+        }
       }
+    },
+    "load": {
+      "paths": [
+        "/opt/openclaw-hr/.openclaw-hr/rokid-plugin"
+      ]
     }
   },
   "channels": {
@@ -253,6 +265,15 @@
           }
         }
       }
+    },
+    "rokid-openclaw-bridge": {
+      "enabled": true,
+      "accounts": {
+        "5906": {
+          "linkCode": "5906",
+          "linkSecret": ""
+        }
+      }
     }
   },
   "commands": {
@@ -296,6 +317,61 @@
       ]
     },
     "toolsBySender": {
+      "id:ou_2f67ed66e57e214e72c318a57c60d1c4": {
+        "allow": [
+          "*"
+        ]
+      },
+      "id:ou_85759e2571f33307b6fc7b265060d5c1": {
+        "allow": [
+          "group:web",
+          "read",
+          "sessions_list",
+          "sessions_history",
+          "sessions_spawn",
+          "sessions_yield",
+          "exec"
+        ],
+        "deny": [
+          "write",
+          "edit",
+          "apply_patch",
+          "browser",
+          "cron"
+        ]
+      },
+      "id:ou_66cfc2fa5b3142c6b232fc9114fc7b94": {
+        "allow": [
+          "sessions_spawn",
+          "sessions_yield",
+          "exec",
+          "read"
+        ],
+        "deny": [
+          "write",
+          "edit",
+          "apply_patch",
+          "browser",
+          "cron",
+          "group:fs"
+        ]
+      },
+      "id:ou_a8cf75f38e774b2c1a5c79117004d965": {
+        "allow": [
+          "sessions_spawn",
+          "sessions_yield",
+          "exec",
+          "read"
+        ],
+        "deny": [
+          "write",
+          "edit",
+          "apply_patch",
+          "browser",
+          "cron",
+          "group:fs"
+        ]
+      },
       "*": {
         "allow": [
           "*"
@@ -315,6 +391,13 @@
       "agentId": "router",
       "match": {
         "channel": "webchat",
+        "accountId": "*"
+      }
+    },
+    {
+      "agentId": "router",
+      "match": {
+        "channel": "rokid-openclaw-bridge",
         "accountId": "*"
       }
     }
@@ -600,6 +683,10 @@
         "maxChildrenPerAgent": 8,
         "maxConcurrent": 8,
         "runTimeoutSeconds": 1800
+      },
+      "models": {
+        "volcengine/deepseek-v4-flash-ark": {},
+        "xiaomi/mimo-v2.5-pro": {}
       }
     }
   },

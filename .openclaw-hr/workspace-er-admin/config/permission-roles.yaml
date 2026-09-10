@@ -1,23 +1,20 @@
-# 权限分级配置
-# 基于 sender_id (open_id) 的角色映射
-# 飞书通道的真实工具权限以 config/openclaw.yaml 的 toolsBySender 为准。
-# 飞书不出月报：monthly-report 只在 Agent er-admin-cron。HR 档可 write，主管/员工/`*` deny write。
+# 权限分级说明（注释，不参与运行）
+# 工具面以 config/openclaw.yaml 的 toolsBySender 为准。
+# 花名册薪资 / 对话出月报以 scripts/hr-data-access.sh 为准：
+#   允许：飞书 HR、无 sender（WebChat / CLI）
+#   拒绝：下面主管 / 员工 / owner
 
-# 管理员 / HR 测试号（yaml：write + exec + read）
+# 高 · HR
 admin:
-  - "ou_2f67ed66e57e214e72c318a57c60d1c4"   # HR（测试用户1）
+  - "ou_2f67ed66e57e214e72c318a57c60d1c4"
 
 hr_staff:
-  - "ou_2f67ed66e57e214e72c318a57c60d1c4"   # 同 HR 测试号
+  - "ou_2f67ed66e57e214e72c318a57c60d1c4"
 
-# 部门主管（yaml：exec + read，deny write）
+# 中 · 部门主管
 manager:
-  - "ou_85759e2571f33307b6fc7b265060d5c1"   # 部门主管（测试用户2）
+  - "ou_85759e2571f33307b6fc7b265060d5c1"
 
-# 普通员工（默认）：exec + read，deny write。其它 ou_* 归入此类。
-
-# 与 yaml 对齐的说明：
-# - 全员可 ima-search 问政策（exec 业务入口）。
-# - 禁止：飞书生成月报、用常识填政策、政策原文另存知识库。
-# - HR 测试号可对本 workspace write/edit（冒烟/文档）；主管与员工不能写盘。
-# - 月报、Gateway 配置、跨域操作不在飞书会话里做。
+# 低 · 普通员工 / owner
+# ou_66cfc2fa5b3142c6b232fc9114fc7b94
+# ou_a8cf75f38e774b2c1a5c79117004d965

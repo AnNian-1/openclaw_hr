@@ -412,11 +412,13 @@ def main():
     divergence = data.get("divergence", {})
 
     if verdict_arg:
-        if not os.path.isfile(verdict_arg):
-            die(f"verdict_json 不存在: {verdict_arg}", 2)
-        with open(verdict_arg, "r", encoding="utf-8") as f:
-            REPORT_VERDICT.update(json.load(f))
-        verdict_source = f"verdict_json:{os.path.basename(verdict_arg)}"
+        # 本仓语义只认 aggregated-report.md。第三个参数保留签名以免旧调用崩掉，
+        # 但不得用课程 REPORT_VERDICT / 夹具 JSON 覆盖报告判定。
+        print(
+            "⚠️ 忽略 verdict_json："
+            f"{verdict_arg}。共识/分歧只读同目录 aggregated-report.md。",
+            file=sys.stderr,
+        )
 
     dim_rows = []
     for d in DIM_KEYS:
@@ -492,6 +494,19 @@ def main():
     subject_role = data.get("subject_role", "")
     period = data.get("period", "")
     total = data.get("total_feedback_count", 0)
+    persp_counts = {
+        p: int(data["perspectives"][p].get("count", 0)) for p in PERSP_ORDER
+    }
+    source_breakdown = (
+        f"上级 {persp_counts['manager']} + 平级 {persp_counts['peer']} + "
+        f"下属 {persp_counts['report']} + 自评 {persp_counts['self']}"
+    )
+    peer_n = persp_counts["peer"]
+    peer_detail_note = (
+        "多名平级时，平均分可能掩盖组内/跨组差异，明细把各评估人分数摊开。"
+        if peer_n > 1
+        else "本目录平级仅 1 份，明细与平均分相同；不要把夹具结构当成校准会结论。"
+    )
 
     page_html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -552,7 +567,7 @@ def main():
 
   <div class="meta">
     <span><b>评估对象</b>　{subject}</span>
-    <span><b>反馈来源</b>　{total} 份（上级 1 + 平级 3 + 下属 2 + 自评 1）</span>
+    <span><b>反馈来源</b>　{total} 份（{source_breakdown}）</span>
     <span><b>考核周期</b>　{period}</span>
     <span><b>数据性质</b>　模拟数据</span>
   </div>
@@ -574,14 +589,14 @@ def main():
     <p class="note">「极差」直取聚合 JSON。对照表「判定」与下方共识/分歧卡片语义来自同目录综合分析报告，不照搬机械极差信号。</p>
 
     <div class="peer-detail">
-      <h3>平级内部明细 · 协作沟通维度（平均分掩盖了内部结构）</h3>
+      <h3>平级内部明细 · 协作沟通维度</h3>
       <table>
         <thead><tr><th>平级评估人</th><th>协作沟通评分</th></tr></thead>
         <tbody>
         {peer_rows}
         </tbody>
       </table>
-      <p class="note">同组与跨组评分分化——协作分歧的本质是「对内 vs 对外」，单看平级平均分发现不了。</p>
+      <p class="note">{peer_detail_note}</p>
     </div>
   </section>
 

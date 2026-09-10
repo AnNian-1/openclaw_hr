@@ -1,0 +1,820 @@
+{
+  "checked_at": "2026-09-03 22:04:58 +0800",
+  "baseline_stamp": "20260903T114546Z",
+  "diaries": [
+    {
+      "path": "workspace-er-admin/memory/2026-09-01-0207.md",
+      "bytes": 196,
+      "mtime": "2026-09-01 10:07:25 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-er-admin/memory/2026-09-03-1241.md",
+      "bytes": 1951,
+      "mtime": "2026-09-03 20:41:02 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-er-admin/memory/2026-09-03-1253.md",
+      "bytes": 662,
+      "mtime": "2026-09-03 20:53:21 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-er-admin/memory/2026-09-03-1222.md",
+      "bytes": 1047,
+      "mtime": "2026-09-03 20:22:22 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-er-admin/memory/2026-09-03-1221.md",
+      "bytes": 914,
+      "mtime": "2026-09-03 20:21:19 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-er-admin/memory/2026-09-03-1243.md",
+      "bytes": 894,
+      "mtime": "2026-09-03 20:43:33 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-er-admin/memory/2026-09-03-1244.md",
+      "bytes": 1148,
+      "mtime": "2026-09-03 20:44:40 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-er-admin/memory/2026-09-03-1220.md",
+      "bytes": 1158,
+      "mtime": "2026-09-03 20:20:44 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-onboarding/memory/2026-09-01.md",
+      "bytes": 254,
+      "mtime": "2026-09-01 09:32:50 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-onboarding/memory/2026-09-03-1208.md",
+      "bytes": 716,
+      "mtime": "2026-09-03 20:08:27 +0800",
+      "hits": []
+    }
+  ],
+  "memory_md": [],
+  "dream_reports": [
+    {
+      "path": "workspace-er-admin/memory/dreaming/deep/2026-09-03.md",
+      "bytes": 103,
+      "mtime": "2026-09-03 22:00:10 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-er-admin/memory/dreaming/light/2026-09-03.md",
+      "bytes": 19270,
+      "mtime": "2026-09-03 22:00:10 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-er-admin/memory/dreaming/rem/2026-09-03.md",
+      "bytes": 128,
+      "mtime": "2026-09-03 22:00:10 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-onboarding/memory/dreaming/deep/2026-09-03.md",
+      "bytes": 103,
+      "mtime": "2026-09-03 22:00:10 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-onboarding/memory/dreaming/light/2026-09-03.md",
+      "bytes": 11521,
+      "mtime": "2026-09-03 22:00:09 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-onboarding/memory/dreaming/rem/2026-09-03.md",
+      "bytes": 331,
+      "mtime": "2026-09-03 22:00:10 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-performance/memory/dreaming/deep/2026-09-03.md",
+      "bytes": 103,
+      "mtime": "2026-09-03 22:00:10 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-performance/memory/dreaming/light/2026-09-03.md",
+      "bytes": 3219,
+      "mtime": "2026-09-03 22:00:10 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-performance/memory/dreaming/rem/2026-09-03.md",
+      "bytes": 128,
+      "mtime": "2026-09-03 22:00:10 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-recruitment/memory/dreaming/deep/2026-09-03.md",
+      "bytes": 103,
+      "mtime": "2026-09-03 22:00:09 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-recruitment/memory/dreaming/light/2026-09-03.md",
+      "bytes": 15853,
+      "mtime": "2026-09-03 22:03:17 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-recruitment/memory/dreaming/rem/2026-09-03.md",
+      "bytes": 128,
+      "mtime": "2026-09-03 22:00:09 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-router/memory/dreaming/deep/2026-09-03.md",
+      "bytes": 103,
+      "mtime": "2026-09-03 22:00:10 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-router/memory/dreaming/light/2026-09-03.md",
+      "bytes": 6817,
+      "mtime": "2026-09-03 22:00:10 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-router/memory/dreaming/rem/2026-09-03.md",
+      "bytes": 128,
+      "mtime": "2026-09-03 22:00:10 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-training/memory/dreaming/deep/2026-09-03.md",
+      "bytes": 103,
+      "mtime": "2026-09-03 22:00:10 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-training/memory/dreaming/light/2026-09-03.md",
+      "bytes": 2001,
+      "mtime": "2026-09-03 22:00:10 +0800",
+      "hits": []
+    },
+    {
+      "path": "workspace-training/memory/dreaming/rem/2026-09-03.md",
+      "bytes": 868,
+      "mtime": "2026-09-03 22:00:10 +0800",
+      "hits": []
+    }
+  ],
+  "sqlite": [
+    {
+      "name": "er-admin-cron.sqlite",
+      "bytes": 69632,
+      "mtime": "2026-09-03 19:25:47 +0800",
+      "files": 0,
+      "chunks": 0
+    },
+    {
+      "name": "er-admin.sqlite",
+      "bytes": 69632,
+      "mtime": "2026-09-03 19:25:47 +0800",
+      "files": 0,
+      "chunks": 0
+    },
+    {
+      "name": "main.sqlite",
+      "bytes": 69632,
+      "mtime": "2026-09-03 20:06:57 +0800",
+      "files": 0,
+      "chunks": 0
+    },
+    {
+      "name": "onboarding.sqlite",
+      "bytes": 4349952,
+      "mtime": "2026-09-01 09:32:53 +0800",
+      "files": 1,
+      "chunks": 1
+    },
+    {
+      "name": "performance.sqlite",
+      "bytes": 69632,
+      "mtime": "2026-09-03 19:25:47 +0800",
+      "files": 0,
+      "chunks": 0
+    },
+    {
+      "name": "recruitment.sqlite",
+      "bytes": 69632,
+      "mtime": "2026-09-03 19:25:47 +0800",
+      "files": 0,
+      "chunks": 0
+    },
+    {
+      "name": "router.sqlite",
+      "bytes": 69632,
+      "mtime": "2026-09-03 19:25:47 +0800",
+      "files": 0,
+      "chunks": 0
+    },
+    {
+      "name": "training.sqlite",
+      "bytes": 69632,
+      "mtime": "2026-09-03 19:25:47 +0800",
+      "files": 0,
+      "chunks": 0
+    }
+  ],
+  "session_keys": [
+    {
+      "agent": "er-admin",
+      "key": "agent:er-admin:feishu:direct:ou_2f67ed66e57e214e72c318a57c60d1c4",
+      "chatType": "direct",
+      "updatedAt": 1788441940751
+    },
+    {
+      "agent": "er-admin",
+      "key": "agent:er-admin:main",
+      "chatType": "direct",
+      "updatedAt": 1788438010330
+    },
+    {
+      "agent": "er-admin",
+      "key": "agent:er-admin:dashboard:e279da98-d702-4b4c-84ed-489a64f20475",
+      "chatType": "direct",
+      "updatedAt": 1788438069142
+    },
+    {
+      "agent": "er-admin",
+      "key": "agent:er-admin:dashboard:2be620ee-974b-4c90-9208-5570188488c6",
+      "chatType": "direct",
+      "updatedAt": 1788438111887
+    },
+    {
+      "agent": "er-admin",
+      "key": "agent:er-admin:dashboard:1a7113ae-ba12-4058-884e-cbe929f54b23",
+      "chatType": "direct",
+      "updatedAt": 1788438196740
+    },
+    {
+      "agent": "er-admin",
+      "key": "agent:er-admin:dashboard:d4d2b37e-e016-45f2-aa68-3edef10df69a",
+      "chatType": "direct",
+      "updatedAt": 1788439341313
+    },
+    {
+      "agent": "er-admin",
+      "key": "agent:er-admin:dashboard:056d31ff-6afc-42e4-a5ea-1347343e0166",
+      "chatType": "direct",
+      "updatedAt": 1788439450788
+    },
+    {
+      "agent": "er-admin",
+      "key": "agent:er-admin:dashboard:24a5031d-8195-4fc9-b1b6-066bd89c6dad",
+      "chatType": "direct",
+      "updatedAt": 1788439503426
+    },
+    {
+      "agent": "er-admin",
+      "key": "agent:er-admin:dashboard:0f515b64-4e63-42e6-88a7-1090b0491692",
+      "chatType": "direct",
+      "updatedAt": 1788440095337
+    },
+    {
+      "agent": "er-admin",
+      "key": "agent:er-admin:feishu:direct:ou_66cfc2fa5b3142c6b232fc9114fc7b94",
+      "chatType": "direct",
+      "updatedAt": 1788441709287
+    },
+    {
+      "agent": "er-admin",
+      "key": "agent:er-admin:feishu:direct:ou_85759e2571f33307b6fc7b265060d5c1",
+      "chatType": "direct",
+      "updatedAt": 1788442722065
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:main",
+      "chatType": "direct",
+      "updatedAt": 1788444133683
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:cron:ed38625e-5e30-46a9-a700-40af5c73d8b2",
+      "chatType": null,
+      "updatedAt": 1788444005862
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-light-349271010533-1788443700211",
+      "chatType": null,
+      "updatedAt": 1788443715720
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-light-121a1f59ffbb-1788443700822",
+      "chatType": null,
+      "updatedAt": 1788443720085
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-rem-121a1f59ffbb-1788443700822",
+      "chatType": null,
+      "updatedAt": 1788443730779
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-light-9f22f5cc6acf-1788443704260",
+      "chatType": null,
+      "updatedAt": 1788443734004
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-rem-9f22f5cc6acf-1788443704260",
+      "chatType": null,
+      "updatedAt": 1788443739851
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-light-cacfa25ebe67-1788443704856",
+      "chatType": null,
+      "updatedAt": 1788443744673
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-rem-cacfa25ebe67-1788443704856",
+      "chatType": null,
+      "updatedAt": 1788443752223
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-light-d8e1609c7589-1788443704914",
+      "chatType": null,
+      "updatedAt": 1788443757056
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-rem-349271010533-1788444005968",
+      "chatType": null,
+      "updatedAt": 1788444029776
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-light-121a1f59ffbb-1788444006634",
+      "chatType": null,
+      "updatedAt": 1788444031323
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-rem-121a1f59ffbb-1788444006634",
+      "chatType": null,
+      "updatedAt": 1788444040392
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-light-9f22f5cc6acf-1788444009411",
+      "chatType": null,
+      "updatedAt": 1788444046822
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-rem-9f22f5cc6acf-1788444009411",
+      "chatType": null,
+      "updatedAt": 1788444048559
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-light-cacfa25ebe67-1788444010075",
+      "chatType": null,
+      "updatedAt": 1788444055629
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-rem-cacfa25ebe67-1788444010075",
+      "chatType": null,
+      "updatedAt": 1788444060558
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-light-d8e1609c7589-1788444010110",
+      "chatType": null,
+      "updatedAt": 1788444062642
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-rem-d8e1609c7589-1788444010110",
+      "chatType": null,
+      "updatedAt": 1788444071319
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-light-471e81bfa9f6-1788444010127",
+      "chatType": null,
+      "updatedAt": 1788444076295
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-rem-471e81bfa9f6-1788444010127",
+      "chatType": null,
+      "updatedAt": 1788444079968
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-light-bb66ead06bd2-1788444010168",
+      "chatType": null,
+      "updatedAt": 1788444086278
+    },
+    {
+      "agent": "main",
+      "key": "agent:main:dreaming-narrative-rem-bb66ead06bd2-1788444010168",
+      "chatType": null,
+      "updatedAt": 1788444092300
+    },
+    {
+      "agent": "onboarding",
+      "key": "agent:onboarding:explicit:tmp-mem-verify-1",
+      "chatType": null,
+      "updatedAt": 1788226122685
+    },
+    {
+      "agent": "onboarding",
+      "key": "agent:onboarding:explicit:tmp-mem-verify-2",
+      "chatType": null,
+      "updatedAt": 1788226159489
+    },
+    {
+      "agent": "onboarding",
+      "key": "agent:onboarding:explicit:tmp-mem-verify-3",
+      "chatType": null,
+      "updatedAt": 1788226198372
+    },
+    {
+      "agent": "onboarding",
+      "key": "agent:onboarding:explicit:tmp-mem-verify-4",
+      "chatType": null,
+      "updatedAt": 1788226373448
+    },
+    {
+      "agent": "onboarding",
+      "key": "agent:onboarding:explicit:dashboard-agent-smoke-060919",
+      "chatType": null,
+      "updatedAt": 1788415780093
+    },
+    {
+      "agent": "onboarding",
+      "key": "agent:onboarding:main",
+      "chatType": "direct",
+      "updatedAt": 1788436582209
+    },
+    {
+      "agent": "onboarding",
+      "key": "agent:onboarding:dashboard:3e15c9d8-5124-46f1-8119-99b07eddb484",
+      "chatType": "direct",
+      "updatedAt": 1788440636842
+    },
+    {
+      "agent": "performance",
+      "key": "agent:performance:main",
+      "chatType": "direct",
+      "updatedAt": 1788442281824
+    },
+    {
+      "agent": "recruitment",
+      "key": "agent:recruitment:main",
+      "chatType": "direct",
+      "updatedAt": 1788440245654
+    },
+    {
+      "agent": "router",
+      "key": "agent:router:explicit:rokid-app-smoke-dev",
+      "chatType": null,
+      "updatedAt": 1788413367758
+    },
+    {
+      "agent": "router",
+      "key": "agent:router:rokid-openclaw-bridge:direct:9756",
+      "chatType": "direct",
+      "updatedAt": 1788439783136
+    },
+    {
+      "agent": "router",
+      "key": "agent:router:main",
+      "chatType": "direct",
+      "updatedAt": 1788440136614
+    },
+    {
+      "agent": "training",
+      "key": "agent:training:main",
+      "chatType": "direct",
+      "updatedAt": 1788442341288
+    }
+  ],
+  "jsonl": [
+    {
+      "path": "agents/er-admin/sessions/2315aa37-db2a-45c7-851f-c797acad3008.jsonl",
+      "bytes": 15220,
+      "mtime": "2026-09-03 20:54:54 +0800"
+    },
+    {
+      "path": "agents/er-admin/sessions/40cceaa7-b124-46a9-a3c0-1c8a7771d53a.jsonl",
+      "bytes": 41388,
+      "mtime": "2026-09-03 20:21:08 +0800"
+    },
+    {
+      "path": "agents/er-admin/sessions/5f6a9844-421b-4eb8-85a4-36f496a604d6.jsonl",
+      "bytes": 38210,
+      "mtime": "2026-09-03 20:42:20 +0800"
+    },
+    {
+      "path": "agents/er-admin/sessions/7a3c7a42-faf4-40f3-b669-5e63943e3e2d.jsonl",
+      "bytes": 3459,
+      "mtime": "2026-09-03 20:44:10 +0800"
+    },
+    {
+      "path": "agents/er-admin/sessions/8575dc88-cf49-4c66-96a6-f263fc07c074.jsonl",
+      "bytes": 47922,
+      "mtime": "2026-09-03 21:25:40 +0800"
+    },
+    {
+      "path": "agents/er-admin/sessions/88ce2a28-7a6d-4a91-9ab9-e193bf5c51da.jsonl",
+      "bytes": 2354,
+      "mtime": "2026-09-03 20:45:02 +0800"
+    },
+    {
+      "path": "agents/er-admin/sessions/abcae8c1-25b2-4249-82cd-bbdfac152e4f.jsonl",
+      "bytes": 48316,
+      "mtime": "2026-09-03 21:38:41 +0800"
+    },
+    {
+      "path": "agents/er-admin/sessions/badc5524-efc5-4357-ae4e-61cc6e8a3d8a.jsonl",
+      "bytes": 40999,
+      "mtime": "2026-09-03 20:20:09 +0800"
+    },
+    {
+      "path": "agents/er-admin/sessions/e136a48c-487f-4a7e-a704-4e139bd22b5e.jsonl",
+      "bytes": 47051,
+      "mtime": "2026-09-03 20:23:15 +0800"
+    },
+    {
+      "path": "agents/er-admin/sessions/e5445678-38f6-4d77-8fc7-8e897c9968b0.jsonl",
+      "bytes": 3137,
+      "mtime": "2026-09-03 20:21:51 +0800"
+    },
+    {
+      "path": "agents/er-admin/sessions/f8493cde-dfb9-4afa-80d2-4ba01cb1ac63.jsonl",
+      "bytes": 46450,
+      "mtime": "2026-09-03 21:21:48 +0800"
+    },
+    {
+      "path": "agents/main/sessions/19e6bd3a-cfb1-419c-8740-51bbd9255cf2.jsonl",
+      "bytes": 4071,
+      "mtime": "2026-09-03 22:01:32 +0800"
+    },
+    {
+      "path": "agents/main/sessions/1e19061a-049f-4b2c-b334-4e015922259f.jsonl",
+      "bytes": 6190,
+      "mtime": "2026-09-03 21:55:39 +0800"
+    },
+    {
+      "path": "agents/main/sessions/222299a3-eccd-4444-b25c-500a439f9f41.jsonl",
+      "bytes": 4157,
+      "mtime": "2026-09-03 21:55:30 +0800"
+    },
+    {
+      "path": "agents/main/sessions/2728f4dc-a63b-48c3-a169-238b54c672bb.jsonl",
+      "bytes": 6127,
+      "mtime": "2026-09-03 22:01:26 +0800"
+    },
+    {
+      "path": "agents/main/sessions/2f6ee444-aa9d-483e-81db-2879693c4815.jsonl",
+      "bytes": 5310,
+      "mtime": "2026-09-03 22:00:31 +0800"
+    },
+    {
+      "path": "agents/main/sessions/382939db-9f64-447b-a846-c72220da9a28.jsonl",
+      "bytes": 5642,
+      "mtime": "2026-09-03 21:55:20 +0800"
+    },
+    {
+      "path": "agents/main/sessions/3eefd35b-61ee-4ea4-9e35-54a59635cc46.jsonl",
+      "bytes": 4227,
+      "mtime": "2026-09-03 21:55:44 +0800"
+    },
+    {
+      "path": "agents/main/sessions/3eff42fe-1945-4808-b2e4-b7561f7ce230.jsonl",
+      "bytes": 3099,
+      "mtime": "2026-09-03 21:55:15 +0800"
+    },
+    {
+      "path": "agents/main/sessions/4cad6aec-f02a-44aa-b368-3c071e1fc0cc.jsonl",
+      "bytes": 4224,
+      "mtime": "2026-09-03 21:55:57 +0800"
+    },
+    {
+      "path": "agents/main/sessions/60e53c27-0d88-4334-915b-dfbc76917944.jsonl",
+      "bytes": 6016,
+      "mtime": "2026-09-03 22:00:48 +0800"
+    },
+    {
+      "path": "agents/main/sessions/689bd5b9-eade-48ae-a659-27334c523b8e.jsonl",
+      "bytes": 6709,
+      "mtime": "2026-09-03 21:55:33 +0800"
+    },
+    {
+      "path": "agents/main/sessions/72bde315-ff0b-44c3-8365-def1b9ba9cc8.jsonl",
+      "bytes": 4135,
+      "mtime": "2026-09-03 22:01:00 +0800"
+    },
+    {
+      "path": "agents/main/sessions/907acf88-7aab-4cb4-8c01-cd82479629e0.jsonl",
+      "bytes": 4743,
+      "mtime": "2026-09-03 22:01:02 +0800"
+    },
+    {
+      "path": "agents/main/sessions/909c995f-8d07-4627-bc34-681d210f505f.jsonl",
+      "bytes": 3845,
+      "mtime": "2026-09-03 22:00:40 +0800"
+    },
+    {
+      "path": "agents/main/sessions/9ccc0656-ca47-4848-b9a7-6e29d0325653.jsonl",
+      "bytes": 4253,
+      "mtime": "2026-09-03 21:55:52 +0800"
+    },
+    {
+      "path": "agents/main/sessions/ab60e831-e568-4a79-8b8a-7310b524834a.jsonl",
+      "bytes": 11985,
+      "mtime": "2026-09-03 22:02:13 +0800"
+    },
+    {
+      "path": "agents/main/sessions/b3c51589-dd80-445f-a8ad-1fc15b9556ad.jsonl",
+      "bytes": 4707,
+      "mtime": "2026-09-03 22:01:11 +0800"
+    },
+    {
+      "path": "agents/main/sessions/d32119f7-7fd0-40d7-b9bb-f5fe25fd5b9d.jsonl",
+      "bytes": 6721,
+      "mtime": "2026-09-03 22:00:46 +0800"
+    },
+    {
+      "path": "agents/main/sessions/da2b1218-c86b-4e1f-95d1-777e9ebf1f83.jsonl",
+      "bytes": 5430,
+      "mtime": "2026-09-03 22:00:29 +0800"
+    },
+    {
+      "path": "agents/main/sessions/e5b85544-5007-4553-9e84-09ba9ae718ab.jsonl",
+      "bytes": 5212,
+      "mtime": "2026-09-03 22:01:19 +0800"
+    },
+    {
+      "path": "agents/main/sessions/e75d6228-925e-4fcd-8580-400331e505da.jsonl",
+      "bytes": 3883,
+      "mtime": "2026-09-03 22:00:55 +0800"
+    },
+    {
+      "path": "agents/main/sessions/f6063ef5-8f3a-4a5b-8d35-2017f0e73622.jsonl",
+      "bytes": 4959,
+      "mtime": "2026-09-03 21:55:56 +0800"
+    },
+    {
+      "path": "agents/main/sessions/f8145e13-5f78-498b-aa12-aea6385db392.jsonl",
+      "bytes": 6291,
+      "mtime": "2026-09-03 22:01:16 +0800"
+    },
+    {
+      "path": "agents/onboarding/sessions/c942cae5-83ad-4bb1-aad9-ecd3ef61d53a.jsonl",
+      "bytes": 162551,
+      "mtime": "2026-09-03 21:03:56 +0800"
+    },
+    {
+      "path": "agents/onboarding/sessions/dashboard-agent-smoke-060919.jsonl",
+      "bytes": 9809,
+      "mtime": "2026-09-03 14:09:39 +0800"
+    },
+    {
+      "path": "agents/onboarding/sessions/fbf28d94-0167-4942-b95a-3a006bc0cb4f.jsonl",
+      "bytes": 9783,
+      "mtime": "2026-09-03 19:56:20 +0800"
+    },
+    {
+      "path": "agents/onboarding/sessions/tmp-mem-verify-1.jsonl",
+      "bytes": 16483,
+      "mtime": "2026-09-01 09:28:41 +0800"
+    },
+    {
+      "path": "agents/onboarding/sessions/tmp-mem-verify-2.jsonl",
+      "bytes": 10246,
+      "mtime": "2026-09-01 09:29:19 +0800"
+    },
+    {
+      "path": "agents/onboarding/sessions/tmp-mem-verify-3.jsonl",
+      "bytes": 14242,
+      "mtime": "2026-09-01 09:29:58 +0800"
+    },
+    {
+      "path": "agents/onboarding/sessions/tmp-mem-verify-4.jsonl",
+      "bytes": 5145,
+      "mtime": "2026-09-01 09:32:53 +0800"
+    },
+    {
+      "path": "agents/performance/sessions/a98ac737-59b5-4ed4-b6cf-9dcf063bb316.jsonl",
+      "bytes": 250384,
+      "mtime": "2026-09-03 21:31:21 +0800"
+    },
+    {
+      "path": "agents/recruitment/sessions/e731d82d-c927-4dbc-880c-d43d09cd1da6.jsonl",
+      "bytes": 382840,
+      "mtime": "2026-09-03 20:57:25 +0800"
+    },
+    {
+      "path": "agents/router/sessions/3606afc4-cb89-47f7-9004-597e46ab7dcd.jsonl",
+      "bytes": 245851,
+      "mtime": "2026-09-03 20:49:40 +0800"
+    },
+    {
+      "path": "agents/router/sessions/fff50d59-fc06-4a61-bfb5-99c7b927a10d.jsonl",
+      "bytes": 4642,
+      "mtime": "2026-09-03 20:55:35 +0800"
+    },
+    {
+      "path": "agents/router/sessions/rokid-app-smoke-dev.jsonl",
+      "bytes": 19027,
+      "mtime": "2026-09-03 13:29:27 +0800"
+    },
+    {
+      "path": "agents/training/sessions/7d8d4950-bd54-4b9b-ae50-ce4063d54cf0.jsonl",
+      "bytes": 70771,
+      "mtime": "2026-09-03 21:32:20 +0800"
+    }
+  ],
+  "ssh": {
+    "notty": 2,
+    "pts": 0,
+    "startups_unauth": 0,
+    "who": []
+  },
+  "services": {
+    "hcm-backend": 200,
+    "hcm-frontend": 200,
+    "gateway": 200,
+    "canvas": 200
+  },
+  "cron": {
+    "present": true,
+    "name": "Memory Dreaming Promotion",
+    "enabled": true,
+    "expr": "0 22 * * *",
+    "tz": "Asia/Shanghai"
+  },
+  "promote_procs": [],
+  "counts": {
+    "diaries": 10,
+    "memory_md": 0,
+    "dream_reports": 18,
+    "sqlite_files_indexed": 1,
+    "sqlite_chunks": 1,
+    "session_keys": 47,
+    "jsonl": 47,
+    "diary_hits": 0,
+    "memory_hits": 0,
+    "dream_hits": 0
+  },
+  "alerts": [
+    {
+      "sev": "info",
+      "code": "cron_changed",
+      "msg": "做梦 cron 不是预期：enabled=True expr=0 22 * * *"
+    },
+    {
+      "sev": "info",
+      "code": "new_diary",
+      "msg": "新日记 8 份（session-memory 在写，预期）"
+    },
+    {
+      "sev": "info",
+      "code": "new_dream",
+      "msg": "新做梦报告 18 份"
+    },
+    {
+      "sev": "info",
+      "code": "new_session",
+      "msg": "新会话 key 39 个"
+    },
+    {
+      "sev": "info",
+      "code": "feishu_session",
+      "msg": "新飞书会话 agent:er-admin:feishu:direct:ou_66cfc2fa5b3142c6b232fc9114fc7b94"
+    },
+    {
+      "sev": "info",
+      "code": "feishu_session",
+      "msg": "新飞书会话 agent:er-admin:feishu:direct:ou_85759e2571f33307b6fc7b265060d5c1"
+    }
+  ]
+}

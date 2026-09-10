@@ -49,6 +49,13 @@ ONLY_ALIASES = {
     "讲师手册": "04-instructor-manual.md",
     "ppt": "03-ppt-outline.md",
     "PPT大纲": "03-ppt-outline.md",
+    "PPT 大纲": "03-ppt-outline.md",
+    "需求分析": "01-needs-analysis.md",
+    "课程设计": "02-course-design.md",
+    "交付指南": "07-delivery-guide.md",
+    "评估反馈表": "08-evaluation-form.md",
+    "评估表": "08-evaluation-form.md",
+    "反馈表": "08-evaluation-form.md",
 }
 
 
@@ -252,9 +259,13 @@ def load_template_block(md: str, heading: str) -> str:
     return rest[: nxt.start() if nxt else None].strip()
 
 
-def emit_result(outdir: Path, ok: bool, extra: str = "") -> int:
-    have = [n for n in REQUIRED if present(outdir / n)]
-    miss = [n for n in REQUIRED if n not in have]
+def emit_result(
+    outdir: Path, ok: bool, extra: str = "", wanted: set[str] | None = None
+) -> int:
+    """点名时只按点名文件判 success，不因未点名的 01–08 缺失而失败。"""
+    scope = [n for n in REQUIRED if (wanted is None or n in wanted)]
+    have = [n for n in scope if present(outdir / n)]
+    miss = [n for n in scope if n not in have]
     status = "success" if ok and not miss else "failure"
     print("")
     print(f"RESULT: {status}")
@@ -273,7 +284,7 @@ def main() -> int:
     ap.add_argument(
         "--only",
         default="",
-        help="只生成点名文件，逗号分隔：05,06 或 学员手册,测试题。缺上游文件则停，不擅自扩成全套 8 份",
+        help="只生成点名文件，逗号分隔：08 / 评估反馈表 / 05,06。缺上游则停，不擅自扩成全套 8 份",
     )
     args = ap.parse_args()
 
@@ -325,23 +336,26 @@ def main() -> int:
             "template": "模板 7",
             "outputs": ["08-evaluation-form.md"],
             "inputs": ["01-needs-analysis.md", "06-assessment.md"],
+            "inputs_optional": True,
         },
     ]
 
     wanted = parse_only(args.only) if args.only else None
     stages = stages_for_outputs(wanted, stages)
 
-    model, url, key = resolve_llm()
+    model = url = key = None
     source_blob = ""
-    if any(st.get("use_source") for st in stages):
-        source_blob = load_source_docs(src)
 
     try:
         for st in stages:
             outs = st["outputs"]
             if not args.force and all(present(outdir / n) for n in outs):
-                print(f"[skip] {st['id']} 已有 {', '.join(outs)}")
+                print(f"[skip] {st['id']} 已有 {', '.join(outs)}", flush=True)
                 continue
+            if model is None:
+                model, url, key = resolve_llm()
+            if st.get("use_source") and not source_blob:
+                source_blob = load_source_docs(src)
             tpl = load_template_block(prompts_md, st["template"])
             chunks = [
                 f"主题：{args.theme}",
@@ -360,8 +374,12 @@ def main() -> int:
             for name in st["inputs"]:
                 body = read_if(outdir / name)
                 if not body:
+                    if st.get("inputs_optional"):
+                        continue
                     print(f"[ERROR] 缺输入 {name}，无法跑 {st['id']}", file=sys.stderr)
-                    return emit_result(outdir, False, extra=f"halted_at={st['id']}")
+                    return emit_result(
+                        outdir, False, extra=f"halted_at={st['id']}", wanted=wanted
+                    )
                 chunks += ["", f"【已有文件 {name}】", body[:24000]]
             print(f"[run] {st['id']} → {', '.join(outs)}", flush=True)
             raw = chat(model, url, key, "\n".join(chunks))
@@ -374,7 +392,7 @@ def main() -> int:
                 print(f"  wrote {outdir / name} ({(outdir / name).stat().st_size} bytes)")
     except Exception as e:
         print(f"[ERROR] {e}", file=sys.stderr)
-        return emit_result(outdir, False, extra=f"error={e}")
+        return emit_result(outdir, False, extra=f"error={e}", wanted=wanted)
 
     # self_check
     check = SKILL_DIR / "scripts" / "self_check.py"
@@ -385,7 +403,7 @@ def main() -> int:
         cmd.append("--partial")
     r = subprocess.run(cmd, cwd=str(WORKSPACE))
     extra = f"self_check_exit={r.returncode}"
-    return emit_result(outdir, r.returncode == 0, extra=extra)
+    return emit_result(outdir, r.returncode == 0, extra=extra, wanted=wanted)
 
 
 if __name__ == "__main__":

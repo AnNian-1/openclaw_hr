@@ -30,7 +30,7 @@
 | 进入合同审批门 | HCM 合同节点 `in_progress` **或** `completed`（`GATE_READY_STATUSES`） |
 | 开通 7/30/60/90 跟进 | HCM **五**节点均为 `completed`（`DONE_STATUSES`） |
 
-Lobster `complete`（两道门都批过）≠ 各部门已执行完毕。跟进由 `sync-reviews-if-ready.sh` 在查询/归档/看板路径上幂等开通。
+Lobster `complete`（两道门都批过）≠ 各部门已执行完毕。跟进只由 `sync-reviews-if-ready.sh` 开通（归档钩子或 HR 显式执行）。**查询进度和看板刷新只读，不挂 Cron。**
 
 ## 2. 准备节点：只读 HCM，不代替部门执行
 

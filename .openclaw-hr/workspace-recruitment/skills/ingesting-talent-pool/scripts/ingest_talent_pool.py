@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 人才库入库 Pipeline (openclaw-ai-hr C-3b)
-把 28 份候选人简历向量化进本地向量库。
+把 inbox/resume-*.md 向量化进本地向量库（本仓不是课程 28 份）。
 
 两阶段(可分别重跑,断点续跑):
-  阶段 A (parse)  : 28 份简历 -> 结构化数据, 增量落盘 parsed-all.json
-                    tech 7 复用 C-2 parsed, 其余调 DeepSeek
+  阶段 A (parse)  : resume-*.md -> 结构化数据, 增量落盘 parsed-all.json
+                    默认 mimo（XIAOMI_API_KEY），可回退 DeepSeek
   阶段 B (embed)  : 结构化数据 -> 维度化文本 -> SiliconFlow embedding -> talent-pool.json
 
 用法:

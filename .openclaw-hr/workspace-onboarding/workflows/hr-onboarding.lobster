@@ -1,4 +1,7 @@
 name: hr-onboarding
+# DEPRECATED · 不要用本文件启动。
+# 现行真源：skills/running-onboarding-workflow/scripts/hr-onboarding.lobster
+# （HCM 只读快照 + 两道 HiTL 门；本文件是课程早期裸跑副本，含 env 块与 4 路 stub 并行。）
 # 某某公司 · 新员工入职审批工作流
 # 设计依据：hr-wiki《09-入职流程》—— Offer 接受 → 入职准备 → 报到当天 → 入职后跟进
 # 4 路并行：合同 / IT 账号 / 设备 / 培训 四条准备工作并行推进

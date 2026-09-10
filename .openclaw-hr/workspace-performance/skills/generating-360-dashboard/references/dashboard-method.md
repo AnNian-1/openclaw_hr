@@ -16,6 +16,7 @@
 - **极差列**：直取 JSON `divergence.perspective_range`
 - **判定列 / 卡片**：解析报告总览表与分节（含「边界共识」→ 共识、「真实分歧」→ 分歧）
 - **不**照搬 JSON `suspected_split`
+- 第三参 `verdict_json` 若传入则**忽略**（兼容旧签名，判定仍只读报告）
 
 ## 3. 卡片文案
 

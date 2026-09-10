@@ -1,58 +1,59 @@
 # aggregating-360-feedback 评测场景
 
-> 评测驱动开发（方法基线 §五）：先建评测场景，测"没有 Skill 时的基线表现"，再写最小 SKILL.md，按观察迭代。
-> 评测对象：从压缩包摄入 DOCX → JSON，再机械聚合成按视角分组的 aggregated-data.json。
+> 评测对象：现行路径 `feedback-360/source_feedback/<slug>/`。
+> 不要用课程 `raw/` + 根目录 `aggregated-data.json`，不要用张磊数字当现行夹具预期。
 
 ## 评测场景
 
 ### 场景 0 · 压缩包摄入（DOCX → JSON）
 
-- 输入：`feedback-360/source_feedback/` 顶层任意文件名的 `.zip`/`.rar`（内含已填 DOCX）
+- 输入：`feedback-360/source_feedback/` 顶层任意名 `.zip`/`.rar`（内含已填 DOCX）
 - query：把这包 360 反馈表解压并解析成 JSON
 - expected_behavior：
-  - 跑 `ingest_archive.py`（可无参自动发现，或显式传任意包名）
-  - 落盘到 `source_feedback/<被评估人目录>/`（由 DOCX「被评估人」决定，与压缩包名无关）
-  - 产出 manager / peer-* / report-* / self JSON
-  - 各份 `reviewer_alias` 为 领导1 / 同事N / 下属N / 自评（即使 DOCX 里写了人名也会被改写）
+  - 跑 `ingest_archive.py`（可无参自动发现，或显式传路径）
+  - 落盘到 `source_feedback/<slug>/`（由 DOCX「被评估人」决定）
+  - `reviewer_alias` 为 领导1 / 同事N / 下属N / 自评
   - 退出码 0
 
-### 场景 1 · 正常 7 份反馈（happy path）
+### 场景 1 · 现行夹具 happy path（员工1 / yuangong1）
 
-- 输入：场景 0 产出的 `source_feedback/yuangong1/`（或等价合法 JSON 目录）
-- query：把这组 360 反馈聚合一下，给绩效面谈用
+- 输入：`feedback-360/source_feedback/yuangong1/`（现行 **4** 份：manager / peer-01 / report-01 / self）
+- query：把员工1的 360 反馈校验一下，不要定级
 - expected_behavior：
-  - 先跑 `check_feedback.py` 校验，7 份全部合法
-  - 跑 `aggregate.py` 产出 `source_feedback/<slug>/aggregated-data.json`
-  - `perspectives` 段含 manager/peer/report/self 四组，逐维度有 average/min/max
-  - `divergence` 段把协作沟通（极差 1.50）、责任心（极差 1.00）、学习成长（极差 2.00）三个维度标 `suspected_split: true`
-  - 终端对照表读数与同目录 `aggregated-data.json` 一致
-  - 综合分析报告约定路径：`source_feedback/<slug>/aggregated-report.md`
+  - `check_feedback.py feedback-360/source_feedback/yuangong1` 退出码 0
+  - 若跑 `aggregate.py`：写出同目录 `aggregated-data.json`（已有夹具时先备份）
+  - `perspectives` 含 manager/peer/report/self；评估人代号为 领导1/同事1/下属1/自评
+  - 机械极差（以脚本打印 / JSON `divergence` 为准，不要背课程 7 份数字）：
+    - 目标达成 1.00、专业能力 1.00、协作沟通 1.00、责任心 1.00 → `suspected_split: true`
+    - 学习成长 0.00 → `suspected_split: false`
+  - **禁止**输出 S/A/B/C/D
+  - 历史 7 份样例在 `yuangong1.bak/` 与 `feedback-360/models/`，不是现行入口
 
 ### 场景 2 · 脏数据：评分越界 + 缺维度
 
-- 输入：一份反馈的 `collaboration` 评分被改成 7（越界）、`growth` 维度被删
+- 输入：临时目录；`collaboration` 改成 7、删掉 `growth`
 - query：把这组反馈聚合
 - expected_behavior：
-  - `check_feedback.py` 在聚合前抓出两个问题——评分非法、缺维度，退出码 1
-  - 不进入聚合步骤，不产出基于脏数据的 `aggregated-data.json`
-  - Agent 据报错说明数据有问题，而不是硬聚合
+  - `check_feedback.py` 退出码 1（评分非法、缺维度）
+  - `aggregate.py` 同样退出码 1，**不写出** `aggregated-data.json`
+  - 不要改用 `feedback-360/check_feedback.py`（无参、绑 raw/）
 
 ### 场景 3 · 视角不完整：缺自评
 
-- 输入：只有 manager + peer 两份反馈，没有 self
+- 输入：临时目录，只有 manager + peer，没有 self.json
 - query：把这组反馈聚合
 - expected_behavior：
-  - `check_feedback.py` 抓出「缺少自评视角」，退出码 1
-  - 说明 360 反馈必须含上级和自评视角，数据不完整不能聚合
+  - `check_feedback.py` 抓出「缺少自评（self）反馈」，退出码 1
+  - `aggregate.py` 同样拒绝，退出码 1，不写聚合
+  - 说明 360 必须含上级和自评
 
-### 场景 4（边界）· 空目录 / 目录不存在 / 坏压缩包
+### 场景 4（边界）· 空目录 / 目录不存在
 
-- 输入：空目录、不存在的路径，或损坏的 zip
-- query：摄入或聚合
+- 输入：空目录、不存在的路径
 - expected_behavior：
-  - 脚本报错退出（空目录退出 1、目录/文件不存在退出 2、坏包退出 1）
-  - 不产出虚假的聚合结果
+  - 空目录退出 1；目录不存在退出 2
+  - 不产出虚假聚合结果
 
-## 基线测试（没有 Skill 时）
+## 基线说明
 
-见实验记录 `exp-stage-f1-skillified.md` CP1 · 步骤 2。
+课程评测里「7 份 / 协作 1.50 / 责任心 1.00 / 成长 2.00」对应历史样例，不是现行 `yuangong1`。

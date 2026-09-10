@@ -1,6 +1,6 @@
 ---
 name: generating-onboarding-dashboard
-description: Generate a visual HTML onboarding-progress dashboard for all new hires. Reads 5 preparation nodes from HCM GET /api/candidates, workflow.json for the gate badge, and local review-state/reviews.json for 7/30/60/90 follow-ups. Optionally publish to OpenClaw Canvas. Does not write to HCM.
+description: Generate a visual HTML onboarding-progress dashboard for all new hires. Reads 5 preparation nodes from HCM GET /api/candidates, workflow.json for the gate badge, and local review-state/reviews.json for 7/30/60/90 follow-ups. Optionally publish to OpenClaw Canvas. The dashboard never invents any status. Does not write to HCM. Does not register Cron.
 metadata:
   openclaw:
     requires:

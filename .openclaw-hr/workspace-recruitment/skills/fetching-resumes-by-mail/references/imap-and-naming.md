@@ -57,7 +57,7 @@ QQ 网页端/客户端常把简历标成 **`Content-Disposition: inline`**，有
 | `XIAOMI_API_KEY` / `LLM_API_KEY` | 收信改名用对话模型 |
 | `FETCH_LLM_MODEL` / `FETCH_LLM_BASE_URL` | 可选覆盖（默认 mimo-v2.5-pro） |
 
-推荐：`source ~/.openclaw-hr/env.sh`。
+凭证由 `recruitment-run.sh` / Gateway 注入。本机 profile：`/opt/openclaw-hr/.openclaw-hr/env.sh`（`$OPENCLAW_STATE_DIR`）。不要写成 `~/.openclaw-hr`。exec 里不要再 `source`。
 
 ## 6. Mock 自测
 

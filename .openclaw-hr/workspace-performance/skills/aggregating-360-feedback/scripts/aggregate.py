@@ -31,6 +31,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+from check_feedback import inspect_feedback_dir
 from reviewer_alias import alias_from_json_name, anonymize_feedback_dir
 
 # 非反馈表 JSON（与原料同目录，加载时需跳过）
@@ -83,6 +84,13 @@ def main():
     report_path = default_report_out(raw_dir)
 
     anonymize_feedback_dir(raw_dir)
+    problems, _, _, _ = inspect_feedback_dir(raw_dir, anonymize=False)
+    if problems:
+        print("❌ 校验未通过，拒绝聚合（缺自评 / 脏数据不得写出 aggregated-data.json）：",
+              file=sys.stderr)
+        for i, p in enumerate(problems, 1):
+            print(f"  {i}. {p}", file=sys.stderr)
+        sys.exit(1)
 
     # ---- 1. 加载所有反馈（_ 开头 / 聚合产物 跳过）----
     feedbacks = []

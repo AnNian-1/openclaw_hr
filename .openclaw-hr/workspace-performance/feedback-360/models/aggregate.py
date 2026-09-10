@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
-"""360 反馈聚合脚本：按视角分组计算各维度平均分，输出 aggregated-data.json"""
+"""历史裸脚本（课程 raw/ 路径）。现行 Pipeline 禁止调用。"""
+import sys
+print(
+    "❌ 这是课程早期裸脚本（绑死 raw/，缺自评仍会写出 JSON），已停用。\n"
+    "   现行：python3 skills/aggregating-360-feedback/scripts/aggregate.py "
+    "<json_dir> [out_json_path]",
+    file=sys.stderr,
+)
+sys.exit(2)
 
-import json
-import os
-from collections import defaultdict
+import json  # noqa: E402
+import os  # noqa: E402
+from collections import defaultdict  # noqa: E402
 
 RAW_DIR = os.path.join(os.path.dirname(__file__), "raw")
 OUT_PATH = os.path.join(os.path.dirname(__file__), "aggregated-data.json")

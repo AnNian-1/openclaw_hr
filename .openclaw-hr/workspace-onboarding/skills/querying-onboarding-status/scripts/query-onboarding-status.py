@@ -382,8 +382,8 @@ def _summarize_workflow(name, pinyin, wf, token_source=None):
     lines.append("")
     lines.append("→ 现状决策指引：")
     if status == "halted":
-        lines.append("  流程卡在审批门·先查 stub_changed_after_halt，再决定 resume yes/no。")
-        lines.append("  若 prompt 写明 HCM 节点仍为 pending，不要建议批准，先催对应部门。")
+        lines.append("  流程卡在审批门。先看 stub_changed_after_halt 与 PROMPT，由人决定 resume。")
+        lines.append("  本 Skill 不批准。halt≥3 天只催办。HCM 仍 pending 时不要建议批准。")
     elif status == "completed":
         lines.append("  审批工作流已结束。试用期跟进是否开通看本地表 armed / 五节点是否全绿。")
     elif status == "cancelled":
@@ -585,10 +585,9 @@ def main():
     lines.append("")
     lines.append("→ 现状决策指引：")
     if all(not h["stub_changed_after_halt"] for h in halts.values()):
-        lines.append("  所有 stub 都未变，resumeToken 有效·可放心 resume <token> yes。")
+        lines.append("  快照未变。若要推进，由人走 run-onboarding.sh resume <token> yes|no。本 Skill 不批准。")
     else:
-        lines.append("  有 stub 被改·如要走'最新 stub'重新审，请拒绝后让候选人 recruiter 重跑 start；")
-        lines.append("  如认为旧 stub 足够·直接 resume <token> yes 也合理。")
+        lines.append("  有快照被改。本 Skill 不批准；由人决定 resume no 后重跑 start，或 resume yes。")
     summary = hcm_block + "\n\n" + "\n".join(lines)
     sys.stderr.write(summary + "\n")
 

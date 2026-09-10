@@ -28,7 +28,7 @@ metadata:
 对一份待核对的候选人 JSON，跑核对脚本——它需要 parsed JSON 和对应的简历原文 Markdown 两个输入：
 
 ```bash
-node skills/auditing-extraction/scripts/audit_extraction.js parsed/<简历名>.json inbox/<简历名>.md
+bash scripts/recruitment-run.sh node skills/auditing-extraction/scripts/audit_extraction.js parsed/<简历名>.json inbox/<简历名>.md
 ```
 
 脚本按字段类型分三套标准核对（细则见 → `references/audit-method.md`）：

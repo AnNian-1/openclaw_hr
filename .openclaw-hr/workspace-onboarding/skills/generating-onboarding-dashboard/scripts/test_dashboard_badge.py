@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""看板角标：HCM 5 节点为主，data.status 优先，审批门单独标。"""
+"""看板角标：HCM 5 节点为主；顶层 completed 不被陈旧 data.status 刷灰。"""
 import datetime
 import importlib.util
 from pathlib import Path
@@ -18,6 +18,15 @@ def test_data_status_overrides_in_progress():
     })
     assert display == "已审批"
     assert cls == "done"
+
+
+def test_completed_not_greyed_by_stale_pending_copy():
+    display, cls = dash.node_display_and_cls({
+        "status": "completed",
+        "data": {"status": "待审批"},
+    })
+    assert cls == "done"
+    assert display == "completed"
 
 
 def test_hcm_badge_not_workflow_completed():
@@ -104,6 +113,7 @@ def test_armed_review_shows_days():
 
 if __name__ == "__main__":
     test_data_status_overrides_in_progress()
+    test_completed_not_greyed_by_stale_pending_copy()
     test_hcm_badge_not_workflow_completed()
     test_gate_timeout_copy()
     test_unarmed_review_hides_four_nodes()

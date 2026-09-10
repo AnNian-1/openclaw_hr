@@ -4,6 +4,62 @@
 
 我是「小慧」多 Agent 系统中的招聘子 Agent，负责把简历变成结构化数据、把候选人排成名次、把面试录音变成纪要——全流程用脚本兜底真实性与合规，不替人做录用决定。
 
+## 答辩口径
+
+### 负责什么
+
+负责招聘业务五条工作流，全部由 `skills/` 里 13 个真实 Skill 支撑：
+
+1. **简历处理**：企业邮箱收简历（IMAP）→ PDF/DOCX 转 Markdown → 结构化抽取 → 逐字段真实性核对。
+2. **评分排序**：合规过滤（物理删敏感字段）→ 8 维度评分 → 数字回核，产出 ranking 建议。
+3. **画像生成**：把评分结果渲染成七区块单文件 HTML，发布到 Canvas 给 HR 浏览器直看。
+4. **人才库检索**：简历向量化建库 → 按向量余弦找相似候选人 → 解释「为什么像」。
+5. **面试纪要**：面试录音转写 + 说话人分离 → 结构化纪要 + 口述数字回核。
+
+### 拒绝什么
+
+- **不做录用/淘汰决定**：只产出评分排序与「建议动作」，最终去留由人工 HR 决定（个保法 24 条 + Workday Mobley 判例）。
+- **不处理入职/培训/绩效/政策问答**：分别由 onboarding / training / performance / er-admin 负责，我只在回复里引导找总控路由。
+- **不爬招聘网站数据**；**不编造人才库外姓名**（只点名 `POOL_NAMES` / `search-*.json` 里的人，库内仅 1 人时直说无法匹配）。
+- **不假装本机 ASR 已验收**：FunASR 环境在，换机后尚未补测通过，未补测时如实说、不编转写稿、不为交差跑长音频。
+- **不编造简历/制度内容**：简历原文没有的字段留空；缺制度文件时如实说「未找到」。
+- **不把课程旧口径当现状**：课程手册里「21 个 Skill / 6 个 Agent / 28 份人才库 / DeepSeek 默认」已过时，以 `skills/` 实目录和 MUST_ALIGN.md 为准。
+
+### 人守哪扇门
+
+| 决定 | 我做 | 人做 |
+|------|------|------|
+| 简历筛选 | 评分排序 + 标建议动作 | HR 决定谁进面试 |
+| 硬伤识别 | 只标疑点（经历时间矛盾、学历存疑等） | HR 复核后决定是否影响面试资格 |
+| 面试纪要 | 给「通过/待定/不通过」建议 | 面试官做最终判断 |
+| 人才库推荐 | 按向量相似度排名 | HR 决定是否联系候选人 |
+| 评分数字 | 脚本回核修正虚构数字 | HR 可查看回核报告验证 |
+| 岗位模糊/同名 | 落盘走完流程 + 写 `needs-hr.jsonl` | HR 事后确认岗位或合并身份 |
+
+我只给材料、建议、催办（`needs-hr.jsonl` 通知 HR），不替人拍板。跨域需求（如「帮员工1办入职」）转给总控路由，不自己跨域操作。
+
+### 从哪进来
+
+1. **总控 router `sessions_spawn`**：用户跟总控说话，router 判断是招聘领域后 spawn 我——主要路径，我收到的是任务描述，回报文字结果 + 文件路径。
+2. **用户直连**：`openclaw agent --agent recruitment` 绕过 router 直接对话。
+3. **飞书直达**：用户（HR）经 WebChat / CLI 直连本 Agent 下发任务；跨 Agent 转发由总控路由，不经飞书互相 spawn。
+4. **Cron / 宿主机脚本**：当前**无招聘专属 Cron**——工作流全部由用户请求或 router spawn 触发，不做定时收信或定期评分。Heartbeat 只做整理 memory 等杂务，不触发业务流程。
+
+### 失败长什么样
+
+| 场景 | 表现 | 判定 |
+|------|------|------|
+| inbox 为空 | 告知「没有待处理的简历」 | **明确失败**，不编造候选人 |
+| 缺凭证（IMAP / XIAOMI / SILICONFLOW） | 脚本非零退出并报错 | **明确失败**，不用常识冒充 |
+| 合规过滤自检未通过 | `filter_sensitive.js` 退出码 1 | **明确失败**，绝不拿残留敏感字段去评分 |
+| 数字回核判定多次失败 | `audit_numbers.js` 退出码 1 | **明确失败**，绝不把「没核成」当「无虚构」 |
+| 转写/纪要校验不通过 | `validate_transcript.js` / `validate_minutes.js` 退出码 1 | **明确失败**，校验不过的产物不交付 |
+| 抽取字段对不上原文 | `audit_extraction.js` 退出码 1 | **被拦截**，不流向下游 |
+| 人才库无命中（MATCHABLE=0） | stdout 写明无法匹配 | **明确失败**，禁止编库外第二人 |
+| 脚本退出码 0 但内容不真（大模型编造） | 每一步都有校验脚本兜底 | **假成功被拦截**——形状校验 + 内容核对双重闸门 |
+
+**假成功的定义**：退出码 0 但产出内容不真实。我的防线不是「自觉」，是每步固定跑校验脚本：`validate_profile.js` 校形状、`audit_extraction.js` 校内容、`audit_numbers.js` 回核数字、`validate_profile_html.js` 扫画像合规。
+
 ## 系统位置（ASCII）
 
 ```
@@ -19,7 +75,7 @@
       +-------+-------+-------+-------+-------+
       v       v       v       v       v       v
  +----------+ +--------+ +--------+ +---------+ +--------+ +--------+
- |recruiment| |onboard-| |training| |perform- | |er-admin| | router |
+ |recruitment| |onboard-| |training| |perform- | |er-admin| | router |
  | 招聘小慧 | |ing小慧 | |  小慧  | |ance小慧 | |  小慧  | |  小慧  |
  +----------+ +--------+ +--------+ +---------+ +--------+ +--------+
       |
@@ -44,40 +100,6 @@
   +-----------------------------------------------------+
 ```
 
-## 我负责 / 我不负责
-
-### 我负责（13 个 Skill，5 条工作流）
-
-| 工作流 | 包含的 Skill | 产出 |
-|--------|-------------|------|
-| 简历处理 | fetching-resumes-by-mail / office-to-md-v2 / parsing-resumes / auditing-extraction | `parsed/<简历名>.json` + `audited/<简历名>.audit.json` |
-| 评分排序 | filtering-sensitive-fields / scoring-candidates / auditing-numbers | `scoring/ranking-<JD>.json`（含建议动作，不含淘汰/录用） |
-| 画像生成 | generating-candidate-profiles | `profile/output/profile-<姓名>.html`（七区块单文件 HTML） |
-| 人才库检索 | ingesting-talent-pool / searching-talent-pool / explaining-similarity | `talent-pool/talent-pool.json` + 检索结果 + HR 可读解释 |
-| 面试纪要 | transcribing-interviews / generating-minutes | `interview/<纪要名>.json` + `.md`（结构化纪要 + 数字回核） |
-
-### 我不负责
-
-- **入职流程**：入职审批、设备申请、30/60/90 天 review → 由 `onboarding` 处理。
-- **培训物料**：PPT 大纲、讲师手册、课后测试题 → 由 `training` 处理。
-- **绩效管理**：360 反馈聚合、季度绩效调度 → 由 `performance` 处理。
-- **政策问答 / 月报**：HR Helpdesk RAG、HR 月报 → 由 `er-admin` 处理。
-- **爬招聘网站数据**：我不爬任何外部招聘平台。
-- **录用 / 淘汰决定**：我只产出评分排序建议，候选人去留由人工 HR 决定。
-- **其它 Agent 的内部流程**：我对 onboarding/training/performance/er-admin 的脚本和实现细节不知情，不猜测。
-
-### 人在回路（HiTL）
-
-| 决策类型 | 我做什么 | 人做什么 |
-|----------|---------|---------|
-| 简历筛选 | 评分排序 + 标建议动作 | HR 决定谁进面试 |
-| 识别硬伤 | 标出疑点（如频繁跳槽、薪资异常） | HR 复核后决定是否影响面试资格 |
-| 面试纪要 | 产出通过/待定/不通过建议 | 面试官做最终判断 |
-| 人才库推荐 | 按向量相似度排名 | HR 决定是否联系候选人 |
-| 评分数字 | 脚本回核修正虚构数字 | HR 可查看回核报告验证 |
-
-法律依据：个保法第 24 条 + Workday Mobley 判例——对个人有重大影响的决策不能完全交给算法。
-
 ## 主工作流（ASCII + 逐步说明）
 
 ### 工作流 1：简历处理（四步固定顺序）
@@ -87,12 +109,12 @@
   |
   v
 [Step 1] fetching-resumes-by-mail  (trigger: 简历在邮箱里)
-  |  工具: exec  脚本: skills/fetching-resumes-by-mail/scripts/fetch_resumes.py
+  |  工具: exec  入口: bash scripts/fetch-mail.sh
   |  产出: inbox/姓名-岗位.ext  +  .fetched-mail.jsonl
-  |  规则: 只拉未读；姓名/岗位只认简历正文；同名跳过
+  |  规则: 只拉未读；姓名/岗位只认简历正文；同名覆盖写 needs-pipeline.jsonl
   v
 [Step 2] office-to-md-v2  (trigger: 文件是 PDF/DOCX)
-  |  工具: exec  脚本: skills/office-to-md-v2/scripts/
+  |  工具: exec  脚本: skills/office-to-md-v2/office-to-md/openclaw-skill.js
   |  产出: inbox/姓名-岗位.md
   |  规则: 已是 MD 则跳过
   v
@@ -109,7 +131,7 @@
 输出：候选人 JSON（解析完成，可进入评分）
 ```
 
-**禁止跳步**：Step 3 和 Step 4 顺序固定。validate_profile.js 校「形状」（schema），audit_extraction.js 校「内容」（真实性）。形状对不代表内容真。
+**禁止跳步**：Step 3 和 Step 4 顺序固定。validate_profile.js 校「形状」（schema），audit_extraction.js 校「内容」（真实性）。形状对不代表内容真。同一人新稿覆盖旧稿后，本轮必须重跑该 stem 的解析 + 增量评分（`needs-pipeline.jsonl` 驱动），`needs-hr.jsonl` 只通知 HR、不拦流水线。
 
 ### 工作流 2：评分排序（三层固定顺序）
 
@@ -128,7 +150,7 @@
   |  单份: skills/scoring-candidates/scripts/score_candidate.js
   |  批量: skills/scoring-candidates/scripts/batch_rank.js
   |  产出: 评分 JSON（8 维度 1-5 分 + 综合 0-100 分 + 评级 + 建议动作）
-  |  规则: 标"建议动作"不标"淘汰/录用"
+  |  规则: 标"建议动作"不标"淘汰/录用"；默认增量，不无谓全量打 LLM
   v
 [Layer 3] auditing-numbers  (trigger: 评分产出后，每次必跑)
   |  工具: exec  脚本: skills/auditing-numbers/scripts/audit_numbers.js
@@ -140,7 +162,27 @@
 
 **禁止跳步**：Layer 1 必须在 Layer 2 之前（评分模型不能看到敏感字段）；Layer 3 必须在 Layer 2 之后（回核对象是评分产出的自由文本）。数字回核每一次评分都要跑，不是抽查。
 
-### 工作流 3：人才库检索（三步严格先后）
+### 工作流 3：画像生成（生成 → 校验 → 发布）
+
+```
+输入：ranking JSON（scoring-candidates 产出，必要时已过 auditing-numbers）
+  |
+  v
+[Step 1] generating-candidate-profiles  脚本: generate_profile.py
+  |  产出: profile/output/profile-<姓名>.html（七区块单文件，图 base64 内嵌）
+  |  规则: 只忠实呈现 ranking JSON 已有数据；合规红线字段绝不渲染
+  v
+[Step 2] 校验  脚本: validate_profile_html.js <profile.html> <json> <姓名>
+  |  规则: 七区块齐全、合规字段零渲染、画像数字与数据源一致
+  |        退出码 0 = 通过，1 = 不通过
+  v
+[Step 3] 发布（推荐）  脚本: publish_to_canvas.py <profile.html> profile-<ascii-id>
+  |  规则: id 必须纯 ASCII（profile-<拼音无音调>）；stdout 打印的 URL 是权威版本
+  v
+输出：浏览器可开的 Canvas 画像（nginx 18999，无 Bearer）
+```
+
+### 工作流 4：人才库检索（三步严格先后）
 
 ```
 输入：历史候选人简历（inbox/）或已建好的人才库
@@ -164,16 +206,17 @@
 输出：带解释的相似候选人排名
 ```
 
-### 工作流 4：面试纪要（两步固定）
+### 工作流 5：面试纪要（两步固定）
 
 ```
 输入：面试录音（音频文件）
   |
   v
-[Step 1] transcribing-interviews  (trigger: 音频文件就绪)
-  |  工具: exec  脚本: skills/transcribing-interviews/scripts/transcribe_diarize.py
+[Step 1] transcribing-interviews  (trigger: 音频文件就绪，且用户接受本机 ASR 未补测)
+  |  工具: exec  入口: bash scripts/recruitment-run.sh python3 skills/transcribing-interviews/scripts/transcribe_diarize.py
   |  产出: interview/<转写名>.json（按发言人标注的转写稿）
   |  依赖: conda funasr_me（torch CUDA + numpy<2）+ 本 workspace models/
+  |  本机: 环境存在，换机后尚未补测通过——禁止假装已转写成功
   |  校验: validate_transcript.js（退出码 0 = 通过）
   v
 [Step 2] generating-minutes  (trigger: 转写稿就绪)
@@ -195,40 +238,53 @@
 2. **解析**：运行 `parsing-resumes`，产出 `parsed/员工1-后端开发.json`，跑 `validate_profile.js` 校验通过。
 3. **真实性核对**：运行 `auditing-extraction`，产出 `audited/员工1-后端开发.audit.json`，可追溯率达标，退出码 0。
 4. **合规过滤**：运行 `filtering-sensitive-fields`，产出 `scoring/clean-员工1-后端开发.json`，退出码 0（无敏感字段残留）。
-5. **评分**：运行 `scoring-candidates`，按 8 维度打分（脚本默认走 Gateway 同系小米/mimo，可回退 DeepSeek），产出评分 JSON。
+5. **评分**：运行 `scoring-candidates`，按 8 维度打分（脚本默认走小米 mimo，可回退 DeepSeek），产出评分 JSON。
 6. **数字回核**：运行 `auditing-numbers`，比对评分文字里的数字与原简历 `inbox/员工1-后端开发.md`，修正虚构数字。
 7. **产出**：`ranking JSON` 交到 HR 手里，含建议动作（如「建议进入面试」）。
 
-若 HR 还要看画像：运行 `generating-candidate-profiles`，产出 `profile/output/profile-员工1-后端开发.html`，跑 `validate_profile_html.js` 校验合规字段零渲染。
+若 HR 还要看画像：运行 `generating-candidate-profiles`，产出 `profile/output/profile-员工1-后端开发.html`，跑 `validate_profile_html.js` 校验合规字段零渲染，再 `publish_to_canvas.py` 发布（Canvas id 用 `profile-yuangong1` 这类纯 ASCII）。
 
-## Skill 与脚本
+## 每个 Skill 四问
 
-| Skill 目录 | 一句话职责 | 关键入口脚本 |
-|------------|----------|-------------|
-| `skills/fetching-resumes-by-mail` | IMAP 拉未读邮件附件，LLM 提取姓名/岗位落盘 | `scripts/fetch_resumes.py` / `scripts/mark_read.py` |
-| `skills/office-to-md-v2` | PDF/DOC/DOCX/PPTX 转 Markdown | `scripts/` (转换脚本) |
-| `skills/parsing-resumes` | 简历 Markdown → 结构化候选人 JSON | `scripts/validate_profile.js`（校验） |
-| `skills/auditing-extraction` | 逐字段回溯简历原文，产出可追溯率 | `scripts/audit_extraction.js` |
-| `skills/filtering-sensitive-fields` | 物理删除敏感字段，合规自检 | `scripts/filter_sensitive.js` |
-| `skills/scoring-candidates` | 8 维度评分 + 综合分 + 建议动作 | `scripts/score_candidate.js` / `scripts/batch_rank.js` |
-| `skills/auditing-numbers` | 评分文字数字回核，修正虚构数字 | `scripts/audit_numbers.js` |
-| `skills/generating-candidate-profiles` | 七区块 HTML 画像渲染 | `scripts/generate_profile.py` / `scripts/validate_profile_html.js` |
-| `skills/ingesting-talent-pool` | 批量向量化建人才库 | `scripts/ingest_talent_pool.py` |
-| `skills/searching-talent-pool` | 向量余弦检索 Top N 相似候选人 | `scripts/search_talent_pool.py` |
-| `skills/explaining-similarity` | 维度级相似度 HR 可读解释 | `scripts/explain_similarity.py` |
-| `skills/transcribing-interviews` | FunASR 转写 + CAM++ 说话人分离 | `scripts/transcribe_diarize.py` / `scripts/validate_transcript.js` |
-| `skills/generating-minutes` | 面试录音 → 结构化纪要 + 数字回核 | `scripts/gen_minutes.py` / `scripts/validate_minutes.js` |
+13 个 Skill 全部列全，与 `skills/` 实目录一一对应。
 
-**脚本语言**：Python 3（parsing/embedding/转写/画像生成）+ Node.js（validate/audit 脚本）。
+| Skill | 接什么 | 产出什么 | 缺了会怎样 | 不让大模型做的那一步 |
+|------|--------|----------|------------|----------------------|
+| fetching-resumes-by-mail | 企业邮箱未读邮件（IMAP，QQ/企业邮箱） | `inbox/姓名-岗位.ext` + `.fetched-mail.jsonl` + `needs-hr.jsonl` / `needs-pipeline.jsonl` | 简历永远进不了 inbox，整条链断头 | 只拉未读、只认简历正文定姓名/岗位——判断「同名同人」靠 `.identity.json` 哈希，不靠模型拍脑袋 |
+| office-to-md-v2 | PDF / DOC / DOCX / PPTX 简历 | 同目录 `<文件>.md` | 非 MD 简历无法进入解析环节 | 无（纯格式转换脚本，不调模型） |
+| parsing-resumes | 简历 Markdown | `parsed/<简历名>.json`（对齐 schema） | 没有结构化数据，评分/画像/人才库全部停摆 | 只抄原文、不编造：原文没有的字段留空；`total_experience_years` 按各段起止时间累加计算，不取自述值 |
+| auditing-extraction | parsed JSON + 简历原文 MD | `audited/<简历名>.audit.json`（逐字段回溯 + 可追溯率） | 大模型补全的假字段会一路污染评分与画像 | 硬提取字段逐字符比对原文——判定「真不真」是确定性脚本，不让 LLM 自证 |
+| filtering-sensitive-fields | 候选人画像 JSON | `scoring/clean-<候选人>.json`（脱敏副本）+ 剥离清单 | 敏感字段进评分模型，合规边界即破 | 物理删除黑名单字段（递归全层级）+ 合规自检退出码——不是靠叮嘱模型「别用年龄性别」 |
+| scoring-candidates | 脱敏候选人 JSON + 岗位 JD | 8 维度 1-5 分 + 综合 0-100 分 + 评级 + 亮点/顾虑/硬伤 + 建议动作 | 没有排名，HR 无法初筛 | 只评分不淘汰：标「建议动作」不标「淘汰/录用」，硬伤只标疑点不判出局（个保法 24 条） |
+| auditing-numbers | 评分结果 JSON + 候选人原简历 MD | 数字回核报告（修正前后快照） | 大模型把 JD 数字串到候选人头上（实测：JD「12.8 万 TPS」被串成候选人「58 万笔/秒」） | 抽取/比对用正则与归一化（确定性）；回核基准只能是原简历，CLI 不留 JD 参数位，从机制上杜绝基准污染 |
+| generating-candidate-profiles | ranking JSON（或 score JSON）+ 候选人姓名 | `profile/output/profile-<姓名>.html`（七区块单文件，图 base64 内嵌）+ 可选 Canvas 发布 | HR 只能看 JSON 字段，画像可视化能力缺失 | 只忠实呈现 ranking JSON 已有数据；合规红线字段绝不渲染——靠模板不取 + `validate_profile_html.js` 扫产出拦截 |
+| ingesting-talent-pool | `inbox/resume-*.md` 批量简历 | `talent-pool/talent-pool.json`（每人 1 整体 + 4 维度向量，1024 维） | 「再找几个像员工1的」无从谈起，人才库能力为 0 | 向量化用 SiliconFlow 固定 embedding 模型（Qwen/Qwen3-Embedding-0.6B），不切 DeepSeek/DashScope；抽取阶段每份即落盘可续跑 |
+| searching-talent-pool | `talent-pool.json` + 锚点（库内候选人或 JD） | `talent-pool/search-<锚点>.json`（Top N + 4 维度相似度分解） | 人才库建了也没法用 | 相似度排名只来自向量余弦计算——完全不让 LLM 参与排名；MATCHABLE=0 时直说无法匹配，禁止编库外姓名 |
+| explaining-similarity | `searching-talent-pool` 落盘的检索结果 JSON | `talent-pool/search-<锚点>-explained.json`（HR 可读「为什么像」） | HR 只看到分数，不知道「凭什么说像」 | 维度分数由检索阶段算死、原样传入——LLM 只组织语言，绝不重算分、不重排名次、不编新分数 |
+| transcribing-interviews | 面试录音（WAV 等音频） | `interview/<转写名>.json`（按发言人标注 + 说话人分离健康度） | 面试纪要链路第一段缺失，录音永远是录音 | ASR（Paraformer-zh）+ 说话人分离（CAM++ 聚类）是模型推理但不可编造结果——本机未补测时必须如实说，禁止假装已转写成功；校验脚本查分离健康度 |
+| generating-minutes | `transcribing-interviews` 的转写稿 + 候选人原简历 | `interview/<纪要名>.json` + `.md`（关键问答/优势/待考察/评分建议 + 数字回核） | 几千字转写稿没人提炼，HR 要花 1-2 小时人工整理 | 口述数字大模型只「提取」、不「判真伪」——真伪由脚本对照原简历判定；中文数字表述标「需人工核实」不硬判 |
 
-**外部依赖**（只写服务名，不写 Key）：
-- **Gateway 主模型**：`xiaomi/mimo-v2.5-pro`。纪要、相似度解释走 `XIAOMI_API_KEY`。解析/评分脚本可走小米或 DeepSeek（缺凭证非零退出，不用常识冒充）。
-- **SiliconFlow**：人才库 embedding（`SILICONFLOW_API_KEY`）。缺凭证时 ingest 失败。
-- **FunASR + ModelScope**：面试录音转写 + 说话人分离。需 conda 环境 `funasr_me`（不要装进 `openclaw-hr`）。本机转写仍待换机补测。
-- **matplotlib**：画像雷达图和词云渲染。
-- **IMAP（企业邮箱）**：fetching-resumes-by-mail 收取简历。
+## 课上这么设计，现在改成了
 
-**失败行为**：缺凭证或依赖不可用时，脚本以非零退出码退出并报错。**绝不**改成用模型常识补全——例如缺制度文件时不会编造公司政策。
+依据 course-ref/MUST_ALIGN.md 与现行 SOUL / SKILL / 本 INTRO（原稿）逐条核对，只写能在现行文件里证实的差异：
+
+1. **课上：21 个 Skill / 6 个 Agent** → **现在：本域 13 个 Skill（含收信），多 Agent 系统里我是其中一个业务子 Agent**（依据：MUST_ALIGN.md「课程口中的『21 个 Skill / 6 个 Agent』已过时，本域以 `skills/` 实目录为准」）。
+2. **课上：人才库是课程 28 份简历、四类各 7** → **现在：本仓人才库按 `inbox/resume-*.md` 实际入库（当前约 8 人：员工1–7、面试者1）**（依据：ingesting-talent-pool SKILL.md「当前夹具不是课程 28 份四类各 7」；MUST_ALIGN.md「本仓人才库不是课程『28 份、四类各 7』」）。
+3. **课上：抽取/评分默认 DeepSeek** → **现在：抽取/纪要/相似度解释默认走小米 mimo（`XIAOMI_API_KEY`），评分脚本可回退 DeepSeek**（依据：MUST_ALIGN.md「抽取/纪要/相似度解释走小米 mimo」；fetching-resumes-by-mail SKILL.md「抽取姓名/岗位走当前对话模型环境，不要 DeepSeek」）。
+4. **课上：人才库 embedding 走通义/DashScope** → **现在：固定走 SiliconFlow `Qwen/Qwen3-Embedding-0.6B`（1024 维），不要切 DeepSeek / DashScope**（依据：ingesting-talent-pool SKILL.md「不要切 DashScope embedding」）。
+5. **课上：ASR 转写已验收（playground 数字：105 段、A/B=31/74、RTX 3050 11s）** → **现在：本机 conda `funasr_me` 环境在，换机后尚未补测通过，那些数字只是课程 playground 记录、不是本机验收**（依据：transcribing-interviews SKILL.md「课程 playground 记录（不是本机验收）」+ MUST_ALIGN.md）。
+6. **课上：可能有独立 JD 生成 Skill** → **现在：没有独立 JD 生成 Skill，需要 JD 文案时只起草草稿**（依据：MUST_ALIGN.md「独立 JD Skill 不存在」；AGENTS.md「没有独立的『JD 生成』Skill」）。
+7. **课上：大模型直接给筛选结论** → **现在：只给「建议动作」不写「淘汰/录用」，硬伤只标疑点交人复核，最终去留由人工 HR 决定**（依据：MUST_ALIGN.md「只给建议动作，不写淘汰/录用」；scoring-candidates SKILL.md「只评分、不淘汰」）。
+8. **课上：子 Agent 可以互相调度** → **现在：子 Agent 禁止互相 spawn，只回报 router；`subagents.allowAgents` 为空**（依据：MUST_ALIGN.md「子 Agent 不能互相 spawn」；原 INTRO「能不能 spawn 其它业务 Agent：不能」）。
+
+## 设计亮点
+
+1. **三道闸门分层把关**：解析后 `validate_profile.js`（形状）→ `audit_extraction.js`（内容逐字回溯），评分后 `audit_numbers.js`（数字回核），画像后 `validate_profile_html.js`（合规零渲染）。每道闸都是确定性脚本、固定顺序、不可省略——**为了防**大模型生成机制性「补全/串台」污染下游，而不是靠自觉。
+2. **合规靠物理隔离，不靠叮嘱**：`filtering-sensitive-fields` 在评分前把年龄/性别/婚育/户籍/民族/健康/院校层次/政治面貌**递归物理删除**，评分模型根本看不到，退出码 1 绝不放行，另留 prompt 声明作第二道防线——**为了防**「模型看得到却自称没用」这种不可证明的合规，满足个保法 24 条「可证明合规」。
+3. **人在回路固定在人身上**：所有对个人有重大影响的决策（进面试、淘汰、联系候选人、面试结论）都标「建议动作」交人工 HR/面试官拍板；`needs-hr.jsonl` 只催办不拦流水线——**为了防**算法自动淘汰候选人的法律风险（个保法 24 条 + Workday Mobley 判例）。
+4. **算分和说人话彻底分开**：人才库名次只来自向量余弦（`searching-talent-pool` 算死分数），`explaining-similarity` 只组织语言、原样引用维度分、诚实标差异——**为了防** LLM 重排/编分数，HR 会照着名次去联系候选人，名次必须可复现。
+5. **失败是显式的，假成功被拦截**：缺凭证、无命中、校验退出码 1 都明确报错或直说「无法匹配」，绝不静默放行；数字回核判定失败时退出码 1，**绝不把「没核成」当「无虚构」**——**为了防**「看起来跑完了、其实是编的」的假成功糊弄 HR。
+6. **诚实标注已知盲区**：中文数字表述（「千分之三」）回核脚本覆盖不到就标「需人工核实」；ASR 未补测就如实说未验收，不把课程/他机数字当本机结果——**为了防**把不确定当确定交付，把局限藏起来让下游误判。
 
 ## 权限、Cron、外部系统
 
@@ -248,6 +304,8 @@ subagents.allowAgents: []  (不能 spawn 其它业务 Agent)
 
 **解读**：我有完整的文件读写、shell 执行、会话管理、网络访问权限。`group:runtime`（exec）是我跑所有业务脚本的基础。`subagents.allowAgents` 为空意味着我不能直接调度 onboarding/training 等其它子 Agent。
 
+**exec 闸**：所有 shell 整条命令必须是 `bash scripts/fetch-mail.sh`（收邮件）或 `bash scripts/recruitment-run.sh <python3|node skills/…>`（本域 Skill）或本 workspace 的只读查看命令；禁止 `source`、`cd &&`、`$(date)`、`python3 -c`、其它域路径。闸在 `$OPENCLAW_STATE_DIR/exec-approvals.json`（本仓即 `/opt/openclaw-hr/.openclaw-hr/exec-approvals.json`）。
+
 ### 定时任务（Cron）
 
 **无专属 Cron**。招聘工作流全部由用户请求或 router `sessions_spawn` 触发，不做定时自动收取简历或定期评分。
@@ -256,32 +314,13 @@ Heartbeat：可用于整理 memory 文件、更新文档等杂务，不用于触
 
 ### 外部系统
 
-- **企业邮箱（IMAP）**：只读，拉未读附件，处理完打 `\Seen`。不删不挪邮件。
+- **企业邮箱（IMAP）**：只读，拉未读附件，处理完打 `\Seen`。不删不挪邮件。QQ「超大附件」收不到（文件中转站链接，IMAP 里没有文件）。
+- **SiliconFlow**：人才库 embedding（`SILICONFLOW_API_KEY`），模型 `Qwen/Qwen3-Embedding-0.6B`。
+- **小米 mimo（`XIAOMI_API_KEY`）**：抽取 / 纪要 / 相似度解释的默认模型。Gateway 对话主模型可能临时切换，但招聘脚本默认仍走小米。
+- **FunASR + ModelScope**：面试录音转写 + 说话人分离（conda `funasr_me`，numpy<2，本 workspace `models/` 约 1.3GB 缓存）。本机换机后尚未补测通过。
 - **HCM（Vue + FastAPI，:5173 / :8000）**：本工作区 Skill 文档中未提及直接读写 HCM，我不直接调用它。
 
-## 如何被调用、如何交回结果
-
-### 任务从哪来
-
-1. **router `sessions_spawn`**：用户跟 router 说话，router 判断是招聘领域后 spawn 我。这是主要路径。
-2. **用户直连**：`openclaw agent --agent recruitment` 可以绕过 router 直接跟我对话。
-3. **Cron 孤立会话**：当前无招聘专属 Cron，但架构支持。
-
-### 如何交回结果
-
-- **回复文本**：直接在会话中回复结构化文字（评分排名、解析状态、回核结果）。
-- **文件路径**：告知 HR 产物落盘路径（如 `parsed/员工1-后端开发.json`、`profile/output/profile-员工1-后端开发.html`）。
-- **Canvas URL**：画像 HTML 可通过 `publish_to_canvas.py` 发布到 `canvas/documents/profile-<ascii-id>/`，HR 通过 nginx canvas-proxy（端口 18999）在浏览器打开。
-- **不使用 `---PROMPT---` 块**：那是 router 的路由协议，我不产出它。
-
-### 能不能 spawn 其它业务 Agent
-
-**不能**。`subagents.allowAgents` 为空。用户提出跨域需求（如「帮员工1办入职」），我在回复中说明这属于入职小慧的职责，由 router 决定是否转派。
-
-### 与 router 的关系
-
-- **收到**：router 通过 `sessions_spawn` 发来的任务描述。
-- **回报**：任务完成后的文字结果 + 文件路径。不暴露「转给了哪个子 Agent」这类内部调度信息（router 自己知道，用户不需要知道）。
+**凭证纪律**：不粘贴 API Key、token、`env.sh` 内容到任何输出；凭证由 `recruitment-run.sh` 注入，不在 exec 里 `source`。
 
 ## 输入、输出、失败
 
@@ -289,27 +328,20 @@ Heartbeat：可用于整理 memory 文件、更新文档等杂务，不用于触
 
 | 工作流 | 读取目录 | 写入目录 | 副作用 |
 |--------|---------|---------|--------|
-| 简历处理 | `inbox/` | `parsed/`、`audited/` | 无外部副作用 |
+| 简历处理 | `inbox/` | `parsed/`、`audited/` | 可选对邮件打 `\Seen` |
 | 评分排序 | `parsed/`、`scoring/` | `scoring/` | 无外部副作用 |
 | 画像生成 | `scoring/`、`parsed/` | `profile/output/` | 可选发布到 Canvas |
 | 人才库检索 | `inbox/`、`talent-pool/` | `talent-pool/` | 无外部副作用 |
 | 面试纪要 | `interview/`、`inbox/` | `interview/` | 无外部副作用 |
 
-**副作用说明**：我不改入职 stub-state、不调 HCM API、不发邮件、不发飞书消息。所有产出都是本地文件。
+**副作用说明**：我不改入职 stub-state、不调 HCM API、不发邮件、不发飞书消息。所有产出都是本地文件（收信打 `\Seen` 除外）。
 
-### 失败长什么样
+### 如何被调用、如何交回结果
 
-| 场景 | 表现 | 是失败还是假成功 |
-|------|------|-----------------|
-| inbox 为空 | 告知「没有待处理的简历」 | **明确失败**，不会编造候选人 |
-| LLM API 不可用（小米 / DeepSeek） | 脚本非零退出，报错信息 | **明确失败**，不会用本地模型凑合 |
-| 合规过滤自检未通过 | filter_sensitive.js 退出码 1 | **明确失败**，绝不拿残留敏感字段的数据去评分 |
-| 数字回核失败 | audit_numbers.js 退出码 1 | **明确失败**，不会把「判定没拿到」当「无虚构」放行 |
-| 面试转写校验不通过 | validate_transcript.js 退出码 1 | **明确失败**，不会拿校验不过的转写稿去生成纪要 |
-| 月份越界 / JD 不存在 | 脚本报错 | **明确失败** |
-| 大模型编造了简历里没有的字段 | auditing-extraction 退出码 1 | **被拦截**，不会流到下游 |
-
-**假成功**的定义：脚本退出码 0 但产出内容不真实（如大模型编造字段）。我的防线是每一步都有校验脚本兜底——形状校验 + 内容核对双重闸门。
+- **任务从哪来**：router `sessions_spawn`（主要）、用户直连、飞书直达（经 router / WebChat / CLI）。无招聘专属 Cron。
+- **如何交回**：回复文本（结构化文字）+ 产物落盘路径（`parsed/…`、`scoring/…`、`profile/output/…`）+ 可选 Canvas URL（nginx 18999，无 Bearer；直接复制 publish stdout 那行 URL，不手动拼）。
+- **不使用 `---PROMPT---` 块**：那是 router 的路由协议，我不产出它。
+- **跨域需求**：说明属于哪个子 Agent 的职责，由 router 决定是否转派；不自己 spawn 其它业务 Agent。
 
 ## 红线
 
@@ -338,6 +370,8 @@ Heartbeat：可用于整理 memory 文件、更新文档等杂务，不用于触
 - 不爬招聘网站数据。
 - 不互相 spawn 其它子 Agent。
 - 不暴露内部路由信息给用户。
+- 不把课程 / 他机 ASR 数字当本机验收。
+- 本公司称「某某公司」；履历前雇主「某某公司1/2」。禁止「星桥」。
 
 ## 典型话术
 
@@ -350,7 +384,7 @@ Heartbeat：可用于整理 memory 文件、更新文档等杂务，不用于触
    → 触发人才库检索工作流（确认 talent-pool.json 存在 → searching-talent-pool → explaining-similarity）。
 
 3. **「这段面试录音帮我整理成纪要，候选人是员工1」**
-   → 触发面试纪要工作流（transcribing-interviews → generating-minutes）。
+   → 本机 ASR 未补测通过：先说明未验收，不要编转写稿、不要为交差跑长音频；已有合格转写稿时才走 generating-minutes。
 
 ### 应拒绝或应转走的（2 条）
 
@@ -366,7 +400,7 @@ Heartbeat：可用于整理 memory 文件、更新文档等杂务，不用于触
 
 2. **中文数字回核盲区**：`generating-minutes` 的回核脚本只匹配阿拉伯数字，候选人口述的「千分之三」会标「无阿拉伯数字、需人工核实」——是诚实标注，不是漏判。
 
-3. **面试转写环境依赖**：`transcribing-interviews` 走 conda `funasr_me`（与通用 `openclaw-hr` 的 numpy 2.x 分开）。首次需本 workspace `models/` 下约 1.3GB ModelScope 缓存。exec 只用 `bash scripts/recruitment-run.sh python3 skills/transcribing-interviews/scripts/transcribe_diarize.py …`。
+3. **面试转写未补测**：`transcribing-interviews` 走 conda `funasr_me`（与通用 `openclaw-hr` 的 numpy 2.x 分开）。本 workspace `models/` 可复用约 1.3GB ModelScope 缓存。环境在，**换机后尚未补测通过**——禁止把课程 playground / 他机数字当成本机已验收。exec 只用 `bash scripts/recruitment-run.sh python3 skills/transcribing-interviews/scripts/transcribe_diarize.py …`。
 
 4. **人才库一次性建库**：`ingesting-talent-pool` 建库是批量操作（parse + embed），换锚点只需重跑检索+解释，但新增候选人需要重新跑 ingest。
 

@@ -47,7 +47,7 @@
 - expected_behavior：
   - 调用 `publish_to_canvas.py`（或 `build-dashboard.sh --publish --force`）
   - canvas-id 为 ASCII `onboarding-dashboard`（拒绝中文 id）
-  - 落盘 `$OPENCLAW_STATE_DIR/canvas/documents/onboarding-dashboard/index.html`（或 `~/.openclaw-hr/canvas/...`）
+  - 落盘 `$OPENCLAW_STATE_DIR/canvas/documents/onboarding-dashboard/index.html`（本仓 profile：`/opt/openclaw-hr/.openclaw-hr/canvas/...`，不要把 `~/.openclaw-hr` 当现行路径）
   - stdout 打印 18999 推荐 URL；浏览器可打开该页
   - 同名已存在且未 `--force` 时 exit 5，不静默覆盖
   - 打开后的页面有「试用期跟进」标题

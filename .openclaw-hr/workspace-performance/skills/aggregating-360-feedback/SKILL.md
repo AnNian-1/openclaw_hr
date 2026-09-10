@@ -83,7 +83,7 @@ python3 skills/aggregating-360-feedback/scripts/ingest_archive.py \
 
 重跑摄入**不会删除**同目录 `aggregated-data.json` / `aggregated-report.md` / `report.html`。
 
-只有预解析 JSON、没有 DOCX 的 zip（如 `eval-s2-dirty-json.zip`）**不要**走 ingest；那是给 `check_feedback.py` 直接读 JSON 目录用的。
+只有预解析 JSON、没有 DOCX 的包**不要**走 ingest；脏数据 / 缺自评目录直接交给 `check_feedback.py`。不要用课程压缩包名当本机必有夹具。
 
 ### 第 1 步 · 数据校验
 
@@ -101,7 +101,9 @@ python3 skills/aggregating-360-feedback/scripts/aggregate.py \
   feedback-360/source_feedback/yuangong1
 ```
 
-**缺省产出**：`source_feedback/yuangong1/aggregated-data.json`。缺自评（self）或上级（manager）时与 `check_feedback.py` 一样拒绝，不静默聚合。
+**缺省产出**：`source_feedback/<slug>/aggregated-data.json`。`aggregate.py` 会再跑与 `check_feedback.py` 同一套校验：缺自评 / 缺上级 / 脏数据一律拒绝，不写聚合文件。
+
+禁止调用课程裸脚本 `feedback-360/check_feedback.py`、`feedback-360/models/aggregate.py`（绑死 `raw/`，签名不同）。
 
 ### 第 3 步（衔接）· 综合分析报告
 
@@ -111,7 +113,7 @@ python3 skills/aggregating-360-feedback/scripts/aggregate.py \
 
 - **源头走压缩包摄入**；原料与聚合产物都在 `source_feedback/<slug>/`。
 - **评估人代号**：JSON 的 `reviewer_alias` 必须是 `领导N` / `同事N` / `下属N` / `自评`。Agent 自己填表时按这个写；`check_feedback.py` 会按文件名强制改写，禁止真人名进入聚合。
-- **聚合前必须先过校验**。
+- **聚合前必须先过校验**；脚本也会再拦一层。缺自评或 check 不通过 → 不准聚合。
 - **产物路径**：`<slug>/aggregated-data.json` + `<slug>/aggregated-report.md`。
 - **`aggregated-data.json` 是唯一评分基准**；下游看板从该路径取数。
 - **本 Skill 不输出 S/A/B/C/D 绩效评级**（合规红线，见 SOUL.md）。

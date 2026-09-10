@@ -6,6 +6,7 @@
 
 | 你要做的事 | 读 |
 |------------|-----|
+| 对外讲业务（五域做什么、人留什么） | [业务介绍.md](业务介绍.md) |
 | 弄清系统是什么、怎么跑 | [项目说明.md](项目说明.md) |
 | clone 后装依赖、起 Gateway / HCM / Canvas | [项目说明.md](项目说明.md) 第 4 节；**包与密钥对照** [环境配置.md](环境配置.md)；步骤细表 [deployment-guide.md](deployment-guide.md) |
 | 改某一 HR 域 | 该域 `workspace-*/` 下 `*INTRO.md` 与 `SOUL.md` |

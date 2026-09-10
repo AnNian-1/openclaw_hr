@@ -1,9 +1,9 @@
 # ============================================================
 # HR 数字员工 "小慧" — 多 Agent 常驻骨架 Manifest
 # ============================================================
-# 单一事实来源：登记 6 个常驻子 Agent 的 id / 显示名 / emoji / HR 领域 /
-# workspace / agentDir。借鉴 shenhao-stu/openclaw-agents 的 manifest 驱动思路，
-# 裁剪为 HR 6 Agent；每个 agent 显式独立 agentDir（铁律：绝不 reuse）。
+# 拓扑说明（不是运行配置）。现行 profile 是仓库 `.openclaw-hr/`（`$OPENCLAW_STATE_DIR`），
+# 不是 `~/.openclaw-hr`。飞书绑 er-admin，WebChat/CLI/乐奇桥绑 router。
+# 登记 6 个常驻子 Agent 的 id / 显示名 / emoji / HR 领域 / workspace / agentDir。
 # ============================================================
 
 project:
@@ -24,7 +24,7 @@ agents:
     name: "招聘小慧"
     emoji: "📋"
     domain: "招聘"
-    duty: "简历批量解析评分、人才库语义检索、面试纪要、JD 文案生成"
+    duty: "邮箱收信、简历解析评分、人才库检索、面试纪要；JD 只起草草稿不封 Skill"
     workspace: "~/.openclaw-hr/workspace-recruitment"
     agent_dir: "~/.openclaw-hr/agent-dirs/recruitment"
 
@@ -32,7 +32,7 @@ agents:
     name: "入职小慧"
     emoji: "🎒"
     domain: "入职"
-    duty: "Lobster 入职审批工作流、设备账号申请跟进、30/60/90 天 review"
+    duty: "Lobster 入职审批、HCM 只读查进度、7/30/60/90 review、看板"
     workspace: "~/.openclaw-hr/workspace-onboarding"
     agent_dir: "~/.openclaw-hr/agent-dirs/onboarding"
 
@@ -40,7 +40,7 @@ agents:
     name: "培训小慧"
     emoji: "📚"
     domain: "培训"
-    duty: "一键生成培训物料：PPT 大纲、讲师手册、学员手册、课后测试题"
+    duty: "按用户点名生成 ADDIE 培训物料（未点名不出全套 8 份）"
     workspace: "~/.openclaw-hr/workspace-training"
     agent_dir: "~/.openclaw-hr/agent-dirs/training"
 
@@ -48,7 +48,7 @@ agents:
     name: "绩效小慧"
     emoji: "📈"
     domain: "绩效"
-    duty: "360 反馈聚合、季度绩效 Cron 调度、绩效数据可视化"
+    duty: "360 反馈聚合与看板（只聚合不定级；季度 Cron 未做）"
     workspace: "~/.openclaw-hr/workspace-performance"
     agent_dir: "~/.openclaw-hr/agent-dirs/performance"
 
@@ -56,7 +56,7 @@ agents:
     name: "行政小慧"
     emoji: "🗂️"
     domain: "行政员工关系"
-    duty: "HR Helpdesk 政策问答 RAG、会议纪要、HR 月报"
+    duty: "飞书政策问答（IMA）；HR/WebChat/CLI 查花名册薪资、补跑月报"
     workspace: "~/.openclaw-hr/workspace-er-admin"
     agent_dir: "~/.openclaw-hr/agent-dirs/er-admin"
 
@@ -64,7 +64,7 @@ agents:
     name: "总控小慧"
     emoji: "🧭"
     domain: "总控"
-    duty: "接收用户请求、判断业务领域、路由到对应子 Agent、按身份分级"
+    duty: "WebChat/CLI 统一入口：判域、sessions_spawn、转述；飞书不经过我"
     workspace: "~/.openclaw-hr/workspace-router"
     agent_dir: "~/.openclaw-hr/agent-dirs/router"
 

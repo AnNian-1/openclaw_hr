@@ -35,7 +35,7 @@ HCM 不可达时脚本退出 **5**，花名册无此人退出 **4**。
 bash skills/running-onboarding-review/scripts/onboarding-review.sh <姓名> <入职天数> [pinyin]
 ```
 
-`<入职天数>` 取 7 / 30 / 60 / 90。例：`onboarding-review.sh 郭超 7`。
+`<入职天数>` 取 7 / 30 / 60 / 90。例：`onboarding-review.sh 员工1 7 yuangong1`。
 
 JSON 中 `action` 字段：
 - `"not_armed"` —— 试用期跟进尚未开通（HCM 五节点未全部 `completed`）。只催部门，**不要** `ensure` / 挂 Cron。

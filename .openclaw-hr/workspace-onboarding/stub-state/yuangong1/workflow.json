@@ -3,38 +3,62 @@
   "pinyin": "yuangong1",
   "role": "后端工程师",
   "salary": "32K",
-  "status": "cancelled",
-  "current_step": "contract_gate",
-  "started_at": "2026-08-03T10:50:53+08:00",
-  "updated_at": "2026-08-03T10:54:25+08:00",
+  "status": "completed",
+  "current_step": "complete",
+  "started_at": "2026-09-06T17:15:30+08:00",
+  "updated_at": "2026-09-06T17:21:46+08:00",
   "halted_at": null,
-  "completed_at": null,
+  "completed_at": "2026-09-06T17:21:46+08:00",
   "approval_id": null,
   "resume_token": null,
   "events": [
     {
-      "at": "2026-08-03T10:50:53+08:00",
+      "at": "2026-09-06T17:15:30+08:00",
       "step": "prep",
       "action": "started",
       "note": "入职流程启动：员工1（后端工程师, 32K）"
     },
     {
-      "at": "2026-08-03T10:50:54+08:00",
+      "at": "2026-09-06T17:15:30+08:00",
       "step": "prep",
       "action": "completed",
-      "note": "4 路并行准备全部完成"
+      "note": "已快照 HCM 四部门节点（未代替部门执行）"
     },
     {
-      "at": "2026-08-03T10:50:54+08:00",
+      "at": "2026-09-06T17:15:30+08:00",
       "step": "contract_gate",
       "action": "halted",
       "note": "等待 HR 主管审批合同"
     },
     {
-      "at": "2026-08-03T10:54:25+08:00",
+      "at": "2026-09-06T17:19:37+08:00",
       "step": "contract_gate",
-      "action": "rejected",
-      "note": "HR 主管拒绝合同，入职流程终止"
+      "action": "approved",
+      "note": "合同审批已通过"
+    },
+    {
+      "at": "2026-09-06T17:19:37+08:00",
+      "step": "account_gate",
+      "action": "halted",
+      "note": "等待 IT 安全审批账号"
+    },
+    {
+      "at": "2026-09-06T17:21:46+08:00",
+      "step": "account_gate",
+      "action": "approved",
+      "note": "账号权限审批已通过"
+    },
+    {
+      "at": "2026-09-06T17:21:46+08:00",
+      "step": "buddy",
+      "action": "completed",
+      "note": "已快照 HCM Buddy 节点"
+    },
+    {
+      "at": "2026-09-06T17:21:46+08:00",
+      "step": "complete",
+      "action": "completed",
+      "note": "入职审批工作流完成"
     }
   ]
 }

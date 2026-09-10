@@ -129,6 +129,8 @@
 5. `scores` 含 5 个维度，每个维度评分为 1-5 的整数。
 6. 至少 1 份 `manager` + 1 份 `self`——360 反馈缺了上级或自评视角就不成立。
 
+`aggregate.py` 会再调用同一套 `inspect_feedback_dir`：校验失败或缺自评时 **exit 1 且不写** `aggregated-data.json`。不要跑 `feedback-360/check_feedback.py` / `models/aggregate.py`。
+
 ## 7. 合规边界
 
 本 Skill 聚合的是绩效数据，受合规红线约束：

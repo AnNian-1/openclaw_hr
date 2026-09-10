@@ -77,7 +77,7 @@ bash skills/running-onboarding-workflow/scripts/run-onboarding.sh start <姓名>
 示例结构（PROMPT 处必须是脚本原文）：
 
 ```markdown
-## 小豆豆入职进度
+## 员工1入职进度
 
 - 流程状态：待审批（已暂停）
 - 当前节点：账号权限审批门（account_gate）
@@ -128,5 +128,7 @@ bash skills/running-onboarding-workflow/scripts/run-onboarding.sh dry <姓名> <
 - **resumeToken 必须原样留存。** 每个门一个新 token。
 - **不要替部门执行。** 禁止编造合同/工号/设备/培训/Buddy。未完成就催办。
 - **不要替 HCM 建档或改部门节点。** 只读校验拼音是否存在。
-- **启动前不要手动跑 stub 脚本。** `start` 会清旧状态再快照 HCM。`waiting_departments` 允许再次 start；`halted`/`completed` 须 `--force`。
+- **启动前不要手动跑快照脚本。** `start` 会清旧状态再快照 HCM。`waiting_departments` 允许再次 start；`halted`/`completed` 须 `--force`。
+- **halt ≥ 3 天只催办，不自动 resume。**
+- resume 前启动器会打印两门当下 prompt 预览（非陈旧快照）；halt 返回的 token 回填 `pending-approvals/`。
 - 设计依据见 → `references/workflow-design.md`。

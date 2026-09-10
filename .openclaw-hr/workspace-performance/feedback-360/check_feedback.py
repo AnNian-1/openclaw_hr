@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
-"""360 反馈数据校验脚本：读 raw/ 下 7 份反馈 JSON，校验结构合法，打印评分总览"""
+"""历史裸脚本（课程 raw/ 路径）。现行 Pipeline 禁止调用。"""
+import sys
+print(
+    "❌ 这是课程早期裸脚本（无参数、绑死 raw/、不查自评），已停用。\n"
+    "   现行：python3 skills/aggregating-360-feedback/scripts/check_feedback.py "
+    "<json_dir>",
+    file=sys.stderr,
+)
+sys.exit(2)
 
-import json
-import glob
-import os
+import json  # noqa: E402
+import glob  # noqa: E402
+import os  # noqa: E402
 
 RAW_DIR = os.path.join(os.path.dirname(__file__), "raw")
 DIMENSIONS = ["goal_achievement", "professional_skill", "collaboration", "responsibility", "growth"]

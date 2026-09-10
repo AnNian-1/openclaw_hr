@@ -194,6 +194,34 @@ def _workspace_root():
     return os.path.abspath(os.path.join(here, "..", "..", ".."))
 
 
+def _gate_from_step(step):
+    return {"contract_gate": "contract", "account_gate": "account"}.get(step or "")
+
+
+def _backfill_pending_token(pinyin, resume_token, current_step=None):
+    """把 lobster halt 返回的 resumeToken 写回 pending-approvals/<pinyin>-<gate>.json。"""
+    if not resume_token:
+        return
+    gate = _gate_from_step(current_step)
+    if not gate:
+        return
+    path = os.path.join(_workspace_root(), "pending-approvals", f"{pinyin}-{gate}.json")
+    if not os.path.exists(path):
+        return
+    try:
+        with open(path, encoding="utf-8") as f:
+            rec = json.load(f)
+        if not isinstance(rec, dict):
+            return
+        rec["resume_token"] = resume_token
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(rec, f, ensure_ascii=False, indent=2)
+        print(f"[update-workflow] 已回填 pending-approvals/{pinyin}-{gate}.json 的 resume_token",
+              file=sys.stderr)
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"[update-workflow] 回填 pending-approvals 失败：{e}", file=sys.stderr)
+
+
 def _clear_pending_approvals(pinyin):
     pending = os.path.join(_workspace_root(), "pending-approvals")
     removed = []
@@ -433,6 +461,11 @@ def cmd_attach(pinyin, lobster_json_path):
         print(
             f"[update-workflow] attach approval_id={data['approval_id']} → {path}",
             file=sys.stderr,
+        )
+        _backfill_pending_token(
+            pinyin,
+            data.get("resume_token"),
+            data.get("current_step"),
         )
     else:
         data["approval_id"] = None

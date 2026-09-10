@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
-"""360 反馈可视化看板：从 aggregated-data.json 取数，渲染四视角雷达对比图，
-输出单文件自包含 HTML（report.html）。所有数字直取聚合数据，不重新计算。"""
+"""历史裸脚本。现行 Pipeline 禁止调用。"""
+import sys
+print(
+    "❌ 这是课程早期裸脚本（绑死根目录 JSON、写死 7 份判定），已停用。\n"
+    "   现行：bash skills/generating-360-dashboard/scripts/build_dashboard.sh "
+    "<person_dir> [--publish] [--force]",
+    file=sys.stderr,
+)
+sys.exit(2)
 
-import json
-import os
-import base64
-import io
+import json  # noqa: E402
+import os  # noqa: E402
+import base64  # noqa: E402
+import io  # noqa: E402
 import hashlib
 import math
 

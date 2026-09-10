@@ -1,0 +1,69 @@
+{
+  "id": "rokid-openclaw-bridge",
+  "channels": [
+    "rokid-openclaw-bridge"
+  ],
+  "contracts": {
+    "tools": [
+      "take_photo",
+      "take_navigation",
+      "control_calendar",
+      "notify_agent_off"
+    ]
+  },
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "linkCode": {
+        "type": "string",
+        "default": "",
+        "description": "Link code for WebSocket authentication"
+      },
+      "linkSecret": {
+        "type": "string",
+        "default": "",
+        "description": "Link secret for WebSocket authentication"
+      }
+    },
+    "required": ["linkCode", "linkSecret"],
+    "additionalProperties": false
+  },
+  "channelConfigs": {
+    "rokid-openclaw-bridge": {
+      "schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "accounts": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "linkCode": {
+                  "type": "string",
+                  "description": "Link code for WebSocket authentication"
+                },
+                "linkSecret": {
+                  "type": "string",
+                  "description": "Link secret for WebSocket authentication"
+                }
+              },
+              "required": ["linkCode", "linkSecret"]
+            }
+          }
+        }
+      }
+    }
+  }
+}

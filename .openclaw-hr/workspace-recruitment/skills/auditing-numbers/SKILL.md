@@ -34,7 +34,7 @@ metadata:
 对一份评分结果 + 该候选人的原简历，跑回核脚本：
 
 ```bash
-node skills/auditing-numbers/scripts/audit_numbers.js <评分结果json> <候选人原简历md> [修正后输出json]
+bash scripts/recruitment-run.sh node skills/auditing-numbers/scripts/audit_numbers.js <评分结果json> <候选人原简历md> [修正后输出json]
 ```
 
 脚本分四步：

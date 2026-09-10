@@ -1,6 +1,6 @@
 ---
 name: explaining-similarity
-description: Turn a talent-pool search result into HR-readable explanations of why each retrieved candidate is similar to the anchor. Use this skill right after searching-talent-pool produces a ranked result, when a recruiter needs to understand "why is this person like Zhang Lei" rather than just see a number. The dimension similarity scores are computed upstream and passed through verbatim — the LLM only organizes wording, it never re-ranks or invents scores, which prevents number drift. Reads the search-result JSON that searching-talent-pool writes; it does not perform retrieval itself.
+description: Turn a talent-pool search result into HR-readable explanations of why each retrieved candidate is similar to the anchor. Use this skill right after searching-talent-pool produces a ranked result, when a recruiter needs to understand why a person is like the anchor (e.g. 员工1) rather than just see a number. The dimension similarity scores are computed upstream and passed through verbatim — the LLM only organizes wording, it never re-ranks or invents scores. Never invent names or scores. Reads the search-result JSON that searching-talent-pool writes; it does not perform retrieval itself.
 metadata:
   openclaw:
     requires:
@@ -23,7 +23,7 @@ metadata:
 ## 工作流程
 
 ```bash
-python3 skills/explaining-similarity/scripts/explain_similarity.py --search talent-pool/search-员工1.json
+bash scripts/recruitment-run.sh python3 skills/explaining-similarity/scripts/explain_similarity.py --search talent-pool/search-员工1.json
 ```
 
 `--search` 指向 `searching-talent-pool` 落盘的检索结果 JSON。脚本对 Top N 每个候选人调 LLM 生成 2-3 句解释，带解释的结果落盘 `talent-pool/search-员工1-explained.json`，同时在终端打印。

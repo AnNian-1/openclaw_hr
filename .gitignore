@@ -148,6 +148,7 @@ Thumbs.db
 
 # nested git / runtime in router workspace
 .openclaw-hr/workspace-router/.git/
+.openclaw-hr/rokid-plugin/.git/
 .openclaw-hr/workspace-router/memory/
 .openclaw-hr/workspace-router/.openclaw/
 .openclaw-hr/workspace-router/media/

@@ -17,7 +17,8 @@ case "$cmd" in
       --outdir "$ROOT/training-materials/$theme"
     ;;
   *)
-    echo "usage: scripts/training-run.sh generate [--theme 主题] [--force] [--only 05,06] | self-check [主题]" >&2
+    echo "usage: scripts/training-run.sh generate [--theme 主题] [--force] [--only 08|评估反馈表|05,06] | self-check [主题]" >&2
+    echo "  点名生成：用户点名才出对应物料；未点名不要省略 --only 去跑全套 8 份。" >&2
     exit 2
     ;;
 esac

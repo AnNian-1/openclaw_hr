@@ -31,7 +31,7 @@ CLI:
   out.json           转写 + 分离结果输出路径
   --device           auto (默认, torch.cuda.is_available 自动选择)
                      / cpu / cuda:0
-  --cache            MODELSCOPE 缓存目录 (默认 ~/.openclaw-hr/workspace-recruitment/models)
+  --cache            MODELSCOPE 缓存目录（默认本 workspace 的 models/，即 $OPENCLAW_STATE_DIR/workspace-recruitment/models）
                      → 该目录下须有 iic/speech_* 的 4 个模型 (VAD/PUNC/Paraformer-zh/CAM++)
                      → 第一次运行会自动下, 之后命中本地缓存
   --batch-size-s     流式切段时长, 默认 10s (FunASR 内部按此切段送推理)

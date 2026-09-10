@@ -1,14 +1,9 @@
 #!/bin/bash
 # ============================================================
-# 招聘子 Agent · HR 一天三场景端到端演示
-#   把 Lesson 2-1 §7 端到端实战的三场景命令收成一个可一键运行的脚本。
-#   场景一 批量筛简历 + 候选人画像 / 场景二 人才库语义检索 / 场景三 面试纪要
-# 用法：
-#   bash demo-recruitment-day.sh
-# 前置条件：
-#   - ~/.openclaw-hr/ 已配好 recruitment 子 Agent（见 §2-§6）
-#   - faster-whisper 已装在 ~/.openclaw-hr/venv-asr
-#   - ~/.openclaw-hr/env.sh 里有 DEEPSEEK_API_KEY
+# 招聘子 Agent · HR 一天三场景端到端演示（课程遗留，路径已过时）
+# 本仓 profile 在 /opt/openclaw-hr/.openclaw-hr/，主模型是小米 mimo，
+# ASR 走 FunASR 且本机未补测。不要按下面 ~/.openclaw-hr / faster-whisper / DeepSeek 原样跑。
+# 现行入口：bash scripts/recruitment-run.sh / bash scripts/fetch-mail.sh
 # ============================================================
 set -e
 cd ~/.openclaw-hr/workspace-recruitment

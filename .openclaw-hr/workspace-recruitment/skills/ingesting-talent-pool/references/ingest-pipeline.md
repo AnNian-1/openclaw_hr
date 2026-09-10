@@ -19,7 +19,7 @@ HR 手里的历史候选人通常躺在 Excel 或 ATS 里，是「死数据」�
 
 入库脚本 `ingest_talent_pool.py` 分两个阶段，可以分别重跑：
 
-- **阶段 A · parse（结构化抽取）**：把每份 markdown 简历交给 DeepSeek，抽成统一的 JSON 结构——姓名、目标岗位、教育（学校/专业/学历/毕业年份）、工作经历（公司/职位/起止时间/行业）、工作年限、技能列表、自我评价。其中 tech 类 7 份直接复用 C-2 评分阶段已抽好的 `scoring/results/ranking-后端开发.json`（同一份数据不重复花 API 调用），其余 21 份调 DeepSeek。每抽完一份立即落盘 `parsed-all.json`。
+- **阶段 A · parse（结构化抽取）**：把每份 `inbox/resume-*.md` 交给抽取 LLM（默认 mimo / `XIAOMI_API_KEY`，脚本可回退 DeepSeek），抽成统一 JSON。若存在 `scoring/results/ranking-后端开发.json` 可复用已抽字段。每抽完一份立即落盘 `parsed-all.json`。本仓不是课程 28 份。
 - **阶段 B · embed（向量化）**：把结构化数据按「教育 / 经历 / 技能 / 行业」分段拼成维度化文本，外加一段整份摘要文本，全部送 SiliconFlow（默认 `Qwen/Qwen3-Embedding-0.6B`，请求带 `dimensions=1024`）转成向量，落盘 `talent-pool.json`。SiliconFlow 单条 ≤512 token，JD/长文本不要走 DashScope v3 的 6000 字分支。
 
 CLI：`python3 ingest_talent_pool.py parse|embed|all` —— `parse` 只抽取、`embed` 只向量化、`all` 两阶段都做。
@@ -46,7 +46,7 @@ CLI：`python3 ingest_talent_pool.py parse|embed|all` —— `parse` 只抽取�
 
 入库要真把几十份数据跑通，必须处理两个稳健性细节：
 
-- **每抽一份立即落盘**：28 份简历调 DeepSeek 抽取，每份耗时几十秒到上百秒。`stage_parse()` 每抽完一份就 `json.dump` 写一次 `parsed-all.json`——进程中途挂了，下次 `ingest_talent_pool.py parse` 直接从断点续跑，已抽过的「跳过」，不重复消耗 API。
+- **每抽一份立即落盘**：`stage_parse()` 每抽完一份就写一次 `parsed-all.json`——进程中途挂了，下次 `parse` 从断点续跑，已抽过的跳过，不重复消耗 API。
 - **prompt 里的 JSON schema 不用 `str.format()`**：`PARSE_PROMPT_HEAD` 含大量 `{` `}`（JSON 字段说明），脚本用字符串拼接而非 `.format()`——`.format()` 会把花括号当占位符报 `KeyError`。这是「prompt 含结构化示例」时的通用坑。
 
 ## 6. 入库产物结构

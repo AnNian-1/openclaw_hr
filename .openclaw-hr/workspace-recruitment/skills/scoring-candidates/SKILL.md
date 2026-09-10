@@ -33,7 +33,7 @@ metadata:
 ### 单份评分
 
 ```bash
-node skills/scoring-candidates/scripts/score_candidate.js <脱敏候选人json> <JD-md> [输出json]
+bash scripts/recruitment-run.sh node skills/scoring-candidates/scripts/score_candidate.js <脱敏候选人json> <JD-md> [输出json]
 ```
 
 调大模型按 8 维度打分，产出综合匹配分 + 评级 + 评分理由 + 亮点 + 顾虑 + 硬伤。退出码 0 = 成功，1 = 评分失败（大模型多次重试仍不可用），2 = 文件/用法问题。
@@ -41,7 +41,7 @@ node skills/scoring-candidates/scripts/score_candidate.js <脱敏候选人json> 
 ### 批量评分 + 排序
 
 ```bash
-node skills/scoring-candidates/scripts/batch_rank.js <JD-md> <脱敏候选人json目录> [输出json] [文件名前缀] [--force] [--stale-only] [--merge-only] [--limit N] [--max-seconds N]
+bash scripts/recruitment-run.sh node skills/scoring-candidates/scripts/batch_rank.js <JD-md> <脱敏候选人json目录> [输出json] [文件名前缀] [--force] [--stale-only] [--merge-only] [--limit N] [--max-seconds N]
 ```
 
 默认**增量**：每人对应 `scoring/score-<stem>.json`（含 `scorer_version`、JD/clean 内容 hash）。命中则 skip LLM。改评分规则时 bump `score_candidate.js` 里的 `SCORER_VERSION`，旧分失效。

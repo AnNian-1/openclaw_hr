@@ -29,20 +29,24 @@
 
 ## 3. review 的数据从哪来
 
-review 报告里的「入职准备 5 节点状态」不是 review 脚本自己造的，是从入职审批工作流（`running-onboarding-workflow` Skill）落盘的 `stub-state/` 真实状态文件读出来的：
+| 数据 | 真相源 | 本 Skill |
+|------|--------|----------|
+| 花名册 + 五部门准备节点 | HCM `GET /api/candidates` | 只读；不可用 exit 5 |
+| 试用期跟进 | 本机 `review-state/reviews.json` | 查询催办；回填只走 CLI `review-store.sh record` |
 
-- `stub-state/contract.json` → 合同节点状态
-- `stub-state/account.json` → IT 账号节点状态
-- `stub-state/device.json` → 设备节点状态
-- `stub-state/buddy.json` → Buddy 节点状态
-- `stub-state/training.json` → 培训节点状态
+某个 HCM 节点未返回时，状态显示「未就绪」，不编造「已完成」。
 
-某个节点的 JSON 文件不存在时，状态显示「未就绪」——说明这名员工的入职工作流还没跑到产出该节点的步骤。review 如实读出来，HR 才知道这名新人卡在哪。
+**不要**再写或依赖 `review-<姓名>-day<N>.json`。看板读的是同一份 `reviews.json`。本机 `stub-state/<pinyin>/*.json` 只是 HCM 快照，不是 review 的五节点真相源。
 
-review 自己的产出落盘到 workspace 根的 `review-state/review-<姓名>-day<N>.json`，结构是 `candidate / day / focus / reviewedAt / status` 五字段。这个文件是入职进度看板（`generating-onboarding-dashboard` Skill）的数据源。
+开通条件：HCM **五**节点均为 `completed`，才由 `sync-reviews-if-ready.sh` ensure + 挂 Cron。查询脚本在未开通时返回 `action=not_armed`，**不会**偷偷 ensure。
 
 ## 4. Cron 触发与本 Skill 的边界
 
-这个 Skill 只负责"被触发后跑一次 review"。**Cron 任务的注册是另一回事**——它是调度配置，用 `openclaw cron add` 做，要指定 schedule（在入职后第 7/30/60/90 天触发）、绑定 onboarding Agent、`--no-deliver`（HR 隔离 profile 没配聊天 channel，不加这个参数 Cron 任务跑完会因投递失败而报 error）。
+这个 Skill 只负责「被触发后跑一次 review / 催办」。**Cron 任务的注册是另一回事**：
 
-调度配置不进 Skill 的原因：Cron schedule 是"什么时候跑"，会随每个新员工的入职日期变；Skill 是"跑的时候做什么"，对所有员工一致。把可变的调度和不变的执行分开。
+- 开通入口：lobster `complete` 或 HR 显式执行 `sync-reviews-if-ready.sh`（内部才调 `schedule-onboarding-reviews.sh`）。
+- **查询进度和看板刷新只读，不挂 Cron。**
+- 调度用 `--at` 一次性任务（入职日 +7/30/60/90），不要写成周期 `--cron`。
+- 本仓 Cron 投递策略以现行 `cron/jobs.json` 为准；不要为了对齐课程去改 yaml / 飞书 bindings。
+
+把「可变的调度」和「不变的执行」分开：Skill 不负责 `cron add`。

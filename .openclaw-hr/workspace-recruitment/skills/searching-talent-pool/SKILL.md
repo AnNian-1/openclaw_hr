@@ -1,6 +1,6 @@
 ---
 name: searching-talent-pool
-description: Search the talent-pool vector store for candidates most similar to a given anchor — either an existing candidate ("find more people like Zhang Lei") or a job description. Use this skill when a business request needs similar candidates retrieved from an already-built talent pool. Returns a ranked Top N with per-dimension similarity (education, experience, skills, industry), all computed by real vector cosine similarity, never by LLM ranking. An optional keyword-search comparison shows why vector search beats literal keyword matching. Requires the pool to exist first (ingesting-talent-pool); explaining why candidates are similar is a separate skill (explaining-similarity).
+description: Search the talent-pool vector store for candidates most similar to a given anchor — either an existing pool candidate (e.g. 员工1) or a job description. Use this skill when a business request needs similar candidates retrieved from an already-built talent pool. Returns a ranked Top N with per-dimension similarity (education, experience, skills, industry), all computed by real vector cosine similarity, never by LLM ranking. Never invent names outside POOL_NAMES. Requires the pool to exist first (ingesting-talent-pool); explaining why candidates are similar is a separate skill (explaining-similarity).
 metadata:
   openclaw:
     requires:
@@ -23,10 +23,10 @@ metadata:
 
 ## 工作流程
 
-### 按候选人检索（「再来一个像张三的」）
+### 按候选人检索（「再来一个像员工1的」）
 
 ```bash
-python3 skills/searching-talent-pool/scripts/search_talent_pool.py --like 员工1 --topn 5
+bash scripts/recruitment-run.sh python3 skills/searching-talent-pool/scripts/search_talent_pool.py --like 员工1 --topn 5
 ```
 
 锚点是库里已有的某个候选人，返回与他最相似的 Top N。
@@ -34,7 +34,7 @@ python3 skills/searching-talent-pool/scripts/search_talent_pool.py --like 员工
 ### 按 JD 检索
 
 ```bash
-python3 skills/searching-talent-pool/scripts/search_talent_pool.py --jd <JD文件路径> --topn 5
+bash scripts/recruitment-run.sh python3 skills/searching-talent-pool/scripts/search_talent_pool.py --jd <JD文件路径> --topn 5
 ```
 
 锚点是一段职位描述文本，现算它的向量，返回最匹配的候选人。
@@ -42,7 +42,7 @@ python3 skills/searching-talent-pool/scripts/search_talent_pool.py --jd <JD文�
 ### 加关键词检索对照
 
 ```bash
-python3 skills/searching-talent-pool/scripts/search_talent_pool.py --like 员工1 --topn 5 --compare-keyword
+bash scripts/recruitment-run.sh python3 skills/searching-talent-pool/scripts/search_talent_pool.py --like 员工1 --topn 5 --compare-keyword
 ```
 
 `--compare-keyword` 额外跑一遍朴素关键词检索，并打印差异分析——用来说清「为什么向量检索能找到关键词搜不到的相似的人」。

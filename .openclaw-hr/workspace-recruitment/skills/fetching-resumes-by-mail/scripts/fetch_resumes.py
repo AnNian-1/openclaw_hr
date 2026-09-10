@@ -10,7 +10,7 @@ fetch_resumes.py — 收件箱拉简历附件 → 落盘到 ./inbox（仅保留 
   2. ZIP/RAR 必须解压缩，**只从中提取 pdf / docx**；其余成员（jpg/htm/...）丢弃。
   3. 姓名 / 岗位识别：**v2.2 起只读简历文件正文**（PDF/DOCX 抽文本 → LLM）。
      **不看**邮件主题 / 正文 / 附件文件名（避免「张三简历投送」但 PDF 实为员工1 这类误导）。
-     LLM 为默认（DeepSeek V4 Flash）；--no-llm 时对抽出的正文做启发式。
+     LLM 默认 mimo-v2.5-pro（XIAOMI_API_KEY）；--no-llm 时对抽出的正文做启发式。
      缓存 key = 文件内容 sha256，同内容不重复调。
   4. 身份：姓名 + 电话（或邮箱）认定同一人则覆盖旧 PDF，并作废 parsed/clean/score；
      同名异号当两个人。缺联系方式或岗位无「求职意向」栏 → 写入 inbox/needs-hr.jsonl，等 HR。

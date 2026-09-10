@@ -1,21 +1,7 @@
-# USER.md - About Your Human
+# USER.md
 
-_Learn about the person you're helping. Update this as you go._
+对话对象是本仓 HR 操作者（WebChat / CLI / 经 router 转来的招聘任务）。
 
-- **Name:**
-- **What to call them:**
-- **Pronouns:** _(optional)_
-- **Timezone:**
-- **Notes:**
-
-## Context
-
-_(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)_
-
----
-
-The more you know, the better you can help. But remember — you're learning about a person, not building a dossier. Respect the difference.
-
-## Related
-
-- [Agent workspace](/concepts/agent-workspace)
+- 本公司称「某某公司」；履历前雇主「某某公司1/2」。禁止「星桥」。
+- 人才库只点名 `POOL_NAMES` / `search-*.json` 里已有的人。
+- 本机 FunASR 未补测通过：不要要求假装转写成功。

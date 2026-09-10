@@ -28,24 +28,28 @@ Skill 的完整用法看各自的 `SKILL.md`，这里是速查。
 - **什么时候用**：一名新员工确定录用、要走入职审批时。
 - **数据来源**：HCM GET 花名册与节点；本地 `workflow.json` 管审批门。
 - **调用要点**：
-  - 启动：`run-onboarding.sh start <姓名> <拼音> <岗位> <薪资>`。合同节点未开始则退出 6，催部门后重试。
-  - 推进：`run-onboarding.sh resume <resumeToken> yes|no`。
+  - 启动：`bash skills/running-onboarding-workflow/scripts/run-onboarding.sh start <姓名> <拼音> <岗位> <薪资>`。合同节点未开始则退出 6，催部门后重试。
+  - 推进：`bash skills/running-onboarding-workflow/scripts/run-onboarding.sh resume <resumeToken> yes|no`。
   - halt 时的 `resumeToken` 必须原样留存。材料 pending 时不要建议批准。
   - 两道门批完 ≠ 试用期跟进已挂；须五节点 `completed`。
 
 ### querying-onboarding-status —— 入职状态查询
 
-- **做什么**：查询某新员工的入职状态（花名册 + 五部门节点来自 HCM，审批门来自本地 workflow.json）。
-- **什么时候用**：HR 问「某人入职到哪一步了」时。
-- **数据来源**：花名册与五部门节点 → HCM API；审批门/resumeToken → 本机 `workflow.json`。
-- **调用要点**：`query-onboarding-status.sh <姓名> [pinyin]`。只读 HCM + 本地 workflow / review 表，**不**注册 Cron。HCM 不可达时 exit 5。
+- **做什么**：查询某新员工（或整批）的入职状态。花名册 + 五部门节点来自 HCM，审批门 / resumeToken 来自本地 `workflow.json`，halt 快照来自 `pending-approvals/`。
+- **什么时候用**：HR 问「某人入职到哪一步了」「这批新人都到哪了」时。
+- **数据来源**：花名册与五部门节点 → HCM API；审批门 / resumeToken → 本机 `workflow.json`；halt 对比 → `pending-approvals/`。
+- **调用要点**：
+  - 单人：`bash skills/querying-onboarding-status/scripts/query-onboarding-status.sh <姓名> [pinyin]`（例：`员工1` / `yuangong1`）
+  - 整批：`bash skills/querying-onboarding-status/scripts/query-onboarding-status.sh --all`（只准念 JSON 里的 name）
+  - **本 Skill 只查询，不批准 / 拒绝。** 拿到 token 后仍须人走 `bash skills/running-onboarding-workflow/scripts/run-onboarding.sh resume <token> yes|no`。
+  - halt ≥ 3 天只催办，不自动 resume。只读，**不**注册 Cron。HCM 不可达 exit 5。
 
 ### running-onboarding-review —— 入职跟进 review
 
 - **做什么**：按入职天数（7/30/60/90 天）查询入职跟进 review 状态，生成报告供通知 HR/主管。
 - **什么时候用**：Cron 定时任务到点触发时；或需要手动查某员工某天的跟进状态时。
 - **数据来源**：花名册与五部门节点 → HCM API（只读）；跟进 completed → 本机 `review-state/reviews.json`。
-- **调用要点**：`onboarding-review.sh <姓名> <入职天数> [pinyin]` 只查询催办；五节点未齐时 `action=not_armed`，**不会**偷偷 ensure。HR 回填：`review-store.sh record ... --outcome ok|watch|risk|skipped`。开通跟进用 `sync-reviews-if-ready.sh`（勿直接 `schedule-onboarding-reviews.sh`，以免未全绿就挂 Cron）。
+- **调用要点**：`bash skills/running-onboarding-review/scripts/onboarding-review.sh <姓名> <入职天数> [pinyin]` 只查询催办；五节点未齐时 `action=not_armed`，**不会**偷偷 ensure。HR 回填：`bash skills/running-onboarding-review/scripts/review-store.sh record ... --outcome ok|watch|risk|skipped`。开通跟进用 `bash skills/running-onboarding-review/scripts/sync-reviews-if-ready.sh`（勿直接 `schedule-onboarding-reviews.sh`，以免未全绿就挂 Cron）。根目录 `review-system/` 是旧入口，不要用。
 
 ### generating-onboarding-dashboard —— 入职进度看板
 
@@ -59,6 +63,7 @@ Skill 的完整用法看各自的 `SKILL.md`，这里是速查。
 
 ## 本地环境特定信息
 
-- 审批门状态和 resumeToken 仍在 `stub-state/<pinyin>/workflow.json`（Lobster 工作流落盘）。
-- `pending-approvals/` 目录存审批门暂停快照。
+- 审批门状态和 resumeToken 在 `stub-state/<pinyin>/workflow.json`（Lobster 落盘；halt 时 attach 回填）。
+- `pending-approvals/<pinyin>-<gate>.json` 存 halt 快照 + 回填后的 `resume_token`（查询优先读这里，不扫 lobster 内部目录）。
 - 两个 `hcm_api.py` 副本（workflow 和 review 各一份）为只读客户端，不含写入方法。
+- 真源工作流文件：`skills/running-onboarding-workflow/scripts/hr-onboarding.lobster`。根目录 `workflows/hr-onboarding.lobster` 是课程早期裸跑副本，不要用。

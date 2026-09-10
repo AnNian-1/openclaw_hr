@@ -30,7 +30,7 @@ metadata:
 对一份候选人画像 JSON，跑过滤脚本——它物理删除敏感字段并做合规自检：
 
 ```bash
-node skills/filtering-sensitive-fields/scripts/filter_sensitive.js profiles/<候选人>.json scoring/clean-<候选人>.json
+bash scripts/recruitment-run.sh node skills/filtering-sensitive-fields/scripts/filter_sensitive.js profiles/<候选人>.json scoring/clean-<候选人>.json
 ```
 
 脚本做三件事：
