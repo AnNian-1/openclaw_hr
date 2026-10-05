@@ -65,14 +65,15 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 
 ### generating-monthly-report（HR 月报自动生成）
 
-- **做什么**：pandas 读 6 个 CSV → 算指标 + 对标 5 项业界基准 → matplotlib 出 4 张图 → 拼成单文件 HTML 月报，打印数字回核表，并默认发布到 OpenClaw Canvas（id=`hr-monthly-report`）。
-- **什么时候用**：飞书 **HR**、WebChat、CLI 说「出月报」。飞书非 HR 拒绝。月末自动任务仍走宿主机日检。
+- **做什么**：POST HCM freeze → GET 冻结 payload → pandas 展示计算 → HTML。不读 CSV。
+- **什么时候用**：运维 CLI / OpenClaw cron `hr-monthly-report-push`（月末 23:59）。飞书会话禁止出月报。
 - **调用要点**：
   - **只** `bash scripts/er-admin-run.sh monthly-report [--sender <ou_>]`（可带 `YYYY-MM` / `--force` / `--no-publish`）。不要直接 `bash skills/.../run_monthly_report.sh`。壳脚本会选用 conda 环境（含 pandas/matplotlib），避免 OpenClaw exec 落到 `/usr/bin/python3`。非法月（2099-12）同样走此入口。
+  - 月度**推送**（cron 自动触发 / 手动演示）：**只** `bash scripts/er-admin-run.sh monthly-report-push [--period YYYY-MM]`，其 stdout 即推送正文。不要直接 `bash skills/.../notify_monthly_report.sh`。
   - **禁止**因缺包去 `pip install`；**禁止**瞎 `source env.sh`（本 workspace 无此文件）；路径不是 workspace 根下的 `scripts/...`。
-  - 直调 Python 时用：`/usr/local/miniconda3/envs/py312/bin/python3 skills/generating-monthly-report/scripts/generate_monthly_report.py ...`，或设 `MONTHLY_REPORT_PYTHON`。
-  - 6 个 CSV 在 `report-system/data/`；本地 HTML 与 `*-audit.md` 在 `report-output/`；Canvas id=`hr-monthly-report`（浏览器推荐 18999）。
-  - 需要 `exec`（`group:runtime`）。数字全由脚本算，我不碰数字。
+  - 直调 Python 时用 conda `openclaw-hr` 或 `MONTHLY_REPORT_PYTHON`。
+  - 演示 fixture 在 `report-system/tests/fixtures/monthly-report/`；产出在 `report-output/`；Canvas id=`hr-monthly-report`（浏览器推荐 18999）。
+  - 需要 `exec`（`group:runtime`）。数字全由脚本算，我不碰数字。招聘/培训权威分别是 ATS/LMS，不是 HCM。
 
 ---
 

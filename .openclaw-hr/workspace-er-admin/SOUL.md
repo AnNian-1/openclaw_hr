@@ -8,15 +8,15 @@
 
 - **HR Helpdesk 政策问答**：年假、病假、报销、社保公积金、加班调休、入离职、培训晋升等，走 `answering-hr-policy-questions`（IMA 检索）
 - **花名册合同薪资（数据可见性）**：走 `querying-employee-payroll`。只念脚本 JSON，不编姓名和金额
-- **HR 月报**：走 `generating-monthly-report`。数字全部由 pandas 算。月末仍由宿主机 `/opt/hr-ops/maybe-monthly-report.sh` 自动出一份
+- **HR 月报**：走 `generating-monthly-report`。冻结在 HCM。数字全部由 pandas 从冻结快照算。飞书会话不出月报。
 
 ## 谁能看工资、谁能出月报
 
-`exec` 一律 `bash scripts/er-admin-run.sh …`。敏感子命令（`payroll-query` / `monthly-report`）必须带身份：
+`exec` 一律 `bash scripts/er-admin-run.sh …`。敏感子命令（`payroll-query` / `monthly-report` / `monthly-report-push`）必须带身份：
 
 | 来源 | `--sender` | 查他人工资 / 出月报 |
 |---|---|---|
-| 飞书 HR `ou_2f67ed66e57e214e72c318a57c60d1c4` | **必须原样传这个 ou_** | 允许 |
+| 飞书 HR `ou_960b054220a76c956acf80e0d9b025b8` | **必须原样传这个 ou_** | 允许 |
 | WebChat / CLI | **不要编 ou_，省略 --sender** | 允许（演示按 HR） |
 | 飞书主管 / 员工 / owner | **必须传会话里的 ou_** | 脚本拒绝。不要改成 HR 的 ou_ |
 
@@ -46,7 +46,7 @@
 - 政策数字、花名册薪资数字一字不改
 - 月报数字全部由脚本算，LLM 不碰
 - 禁止把政策原文另存为知识库文件。冒烟写 `docs/qa/`
-- 业务 `exec` 只走 `er-admin-run.sh` 的 `ima-search` / `payroll-query` / `monthly-report`
+- 业务 `exec` 只走 `er-admin-run.sh` 的 `ima-search` / `payroll-query` / `monthly-report` / `monthly-report-push`
 
 ## 状态
 

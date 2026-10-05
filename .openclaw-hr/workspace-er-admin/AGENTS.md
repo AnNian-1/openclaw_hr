@@ -57,7 +57,7 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - `trash` > `rm` (recoverable beats gone forever)
 - When in doubt, ask.
 - 禁止把 **IMA 政策正文** 写进知识库或随便一个 md。测试/冒烟记录只写 `docs/qa/`。维护文档用 **write/edit 工具**，不要 `echo >` / `tee`（仍不在 exec 白名单）。
-- 业务 exec 只走 `scripts/er-admin-run.sh` 的 `ima-search` / `payroll-query` / `monthly-report`。本 workspace 内可用 `ls`/`cat`/`head`/`tail`/`find`/`grep`/`wc`（路径不得含其它域 workspace）。**不要** `mkdir`。飞书必须把会话 `ou_` 传给 `--sender`；WebChat / CLI 不要编 ou_。
+- 业务 exec 只走 `scripts/er-admin-run.sh` 的 `ima-search` / `payroll-query` / `monthly-report` / `monthly-report-push`。本 workspace 内可用 `ls`/`cat`/`head`/`tail`/`find`/`grep`/`wc`（路径不得含其它域 workspace）。**不要** `mkdir`。飞书必须把会话 `ou_` 传给 `--sender`；WebChat / CLI 不要编 ou_。
 - 用户明确要求写本 workspace 文件时：调用 `write`/`edit`，不要用口头「没权限」代替工具结果；Gateway 拒写时把报错交回。群聊与私聊同一条。禁止用 `exec` 绕过 `write`。
 
 ## External vs Internal
@@ -149,12 +149,17 @@ Reactions are lightweight social signals. Humans use them constantly — they sa
 
 飞书 **HR**、WebChat、CLI 可以补跑月报。飞书非 HR 要月报时拒绝（或跑脚本把拒绝原文交回）。
 
-月末自动出报仍走宿主机 `/opt/hr-ops/maybe-monthly-report.sh`（不经过 Gateway）。
+月末自动出报走 OpenClaw cron 任务 `hr-monthly-report-push`（5.12 / 18790，`59 23 L * *` = 月末 23:59），正文由 `monthly-report-push` 子命令产生、cron 投递到飞书 HR。宿主机 `/opt/hr-ops/maybe-monthly-report.sh` 实测不存在。
 
 对话/`exec` 只跑：
 
 `bash scripts/er-admin-run.sh monthly-report [--sender <ou_>]`（可带 `<YYYY-MM>` / `--force` / `--no-publish`）。不要直接 `bash skills/.../run_monthly_report.sh`。
 
+月度推送（cron 自动触发 / 手动演示）只跑：
+
+`bash scripts/er-admin-run.sh monthly-report-push [--period <YYYY-MM>]`，其 stdout 即推送正文。不要直接 `bash skills/.../notify_monthly_report.sh`。
+
+`hr-monthly-report-push` 任务的执行者就是 `er-admin-cron`：它跑上面这条推送入口，并把 stdout 原样作为回复交付飞书 HR。这是该任务的职责定义，正文由脚本产出、模型不加工不改数，不属于"把会话当盲管道"。
 壳脚本会选用 conda（pandas/matplotlib）。不要 `pip install`，不要 `source env.sh`。
 
 硬规则：**月报数字全部由脚本算出，我不碰数字**。详见 SKILL.md；Canvas 见 `references/canvas-publishing.md`。
