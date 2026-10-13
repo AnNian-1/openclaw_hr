@@ -4,7 +4,7 @@
 _oc_env="${OPENCLAW_CONDA_ENV:-openclaw-hr}"
 for _oc_bin in \
   "${HOME}/miniconda3/envs/${_oc_env}/bin" \
-  "/home/hr/miniconda3/envs/${_oc_env}/bin" \
+  "/usr/local/miniconda3/envs/${_oc_env}/bin" \
   "/usr/local/miniconda3/envs/${_oc_env}/bin"
 do
   if [ -x "${_oc_bin}/python3" ]; then

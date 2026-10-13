@@ -18,7 +18,7 @@ for pid in Path("/proc").iterdir():
             found_proc = True
 print("proc_found", found_proc)
 
-roots = [Path("/home/annian"), Path("/root"), Path("/home/hr")]
+roots = [Path("/home/annian"), Path("/root"), Path("/opt/openclaw-hr")]
 hits = []
 for root in roots:
     if not root.exists():

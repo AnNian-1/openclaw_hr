@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # 把 Miniconda 装到 ~/miniconda3，并创建 conda 环境 openclaw-hr（不含 funasr_me）。
 set -euo pipefail
-PREFIX="/home/hr/miniconda3"
-PROFILE="/home/hr/.openclaw-hr"
+PREFIX="/usr/local/miniconda3"
+PROFILE="/opt/openclaw-hr/.openclaw-hr"
 ARCH="$(uname -m)"
 case "$ARCH" in
   x86_64) FN="Miniconda3-latest-Linux-x86_64.sh" ;;
@@ -47,7 +47,7 @@ ENVPY="${PREFIX}/envs/openclaw-hr/bin/python3"
 "$ENVPY" -m pip install -r "${PROFILE}/hcm/backend/requirements.txt"
 bash "${PROFILE}/scripts/ensure-rar-tools.sh"
 
-if ! grep -q 'miniconda3/bin/conda' /home/hr/.bashrc 2>/dev/null; then
+if ! grep -q 'miniconda3/bin/conda' /opt/openclaw-hr/.bashrc 2>/dev/null; then
   "$CONDA" init bash
 fi
 

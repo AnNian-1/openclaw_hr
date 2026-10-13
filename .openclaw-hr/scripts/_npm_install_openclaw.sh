@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
-NODE22=/home/annian/.nvm/versions/node/v22.23.1/bin
+NODE22=/opt/openclaw-hr/.local/node/node-22/bin
 export PATH="${NODE22}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 export npm_config_fund=false
 unset NPM_CONFIG_PREFIX 2>/dev/null || true
-PROFILE=/home/hr/.openclaw-hr
+PROFILE=/opt/openclaw-hr/.openclaw-hr
 
 echo "[node] $(command -v node) $(node -v)"
 echo "[npm] $(command -v npm) $(npm -v)"

@@ -31,7 +31,7 @@ if [ ! -x "${OPENCLAW_HR_BIN}" ]; then
 fi
 
 if ! command -v node >/dev/null 2>&1; then
-  echo "[fail] 未找到 node（需要 ≥ 22.16）。已试 ~/.local/node/node-22 、 /home/hr/.local/node/node-22 、 /opt/node/node-22" >&2
+  echo "[fail] 未找到 node（需要 ≥ 22.16）。已试 ~/.local/node/node-22 、 /opt/openclaw-hr/.local/node/node-22 、 /opt/node/node-22" >&2
   exit 1
 fi
 

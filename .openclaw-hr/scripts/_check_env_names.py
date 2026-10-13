@@ -1,6 +1,6 @@
 from pathlib import Path
 
-text = Path("/home/hr/.openclaw-hr/env.sh").read_text()
+text = Path("/opt/openclaw-hr/.openclaw-hr/env.sh").read_text()
 watch = {"OPENCLAW_STATE_DIR", "OPENCLAW_CONFIG_PATH", "OPENCLAW_HR_BIN", "PATH"}
 for line in text.splitlines():
     s = line.strip()

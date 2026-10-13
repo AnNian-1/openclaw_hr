@@ -26,11 +26,11 @@ mkdir -p "${LOG_DIR}"
 
 if ! command -v uvicorn >/dev/null 2>&1; then
   echo "[fail] 未找到 uvicorn。需要 conda 环境 openclaw-hr。" >&2
-  echo "  已试: \$HOME/miniconda3 、 /home/hr/miniconda3 、 /usr/local/miniconda3" >&2
+  echo "  已试: \$HOME/miniconda3 、 /usr/local/miniconda3 、 /usr/local/miniconda3" >&2
   exit 1
 fi
 if ! command -v npm >/dev/null 2>&1; then
-  echo "[fail] 未找到 npm / Node 22。已试 ~/.local/node/node-22 、 /home/hr/.local/node/node-22 、 /opt/node/node-22" >&2
+  echo "[fail] 未找到 npm / Node 22。已试 ~/.local/node/node-22 、 /opt/openclaw-hr/.local/node/node-22 、 /opt/node/node-22" >&2
   exit 1
 fi
 

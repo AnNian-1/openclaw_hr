@@ -9,7 +9,7 @@ from pathlib import Path
 import sys
 
 self = Path(sys.argv[1]).resolve()
-root = Path("/home/hr")
+root = Path("/opt/openclaw-hr")
 skip_dir_names = {
     ".git",
     "node_modules",
@@ -30,8 +30,8 @@ text_suffixes = {
 old_wsl = "/home/" + "yhwz/openclaw-hr"
 old_opt = "/opt/" + "openclaw-hr"
 replacements = [
-    (old_wsl, "/home/hr"),
-    (old_opt, "/home/hr"),
+    (old_wsl, "/opt/openclaw-hr"),
+    (old_opt, "/opt/openclaw-hr"),
 ]
 changed = []
 for p in root.rglob("*"):

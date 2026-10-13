@@ -2,7 +2,7 @@
 # 按本机常见落点探测，不要写死 Annian nvm / 云主机 /opt。
 for _n22 in \
   "${HOME}/.local/node/node-22/bin" \
-  "/home/hr/.local/node/node-22/bin" \
+  "/opt/openclaw-hr/.local/node/node-22/bin" \
   "/opt/node/node-22/bin"
 do
   if [ -x "${_n22}/node" ]; then
