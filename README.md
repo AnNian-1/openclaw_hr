@@ -5,6 +5,7 @@
 - **人怎么读、怎么跑**：[docs/项目说明.md](docs/项目说明.md)
 - **文档地图**：[docs/README.md](docs/README.md)
 - **换机器 / 编码 Agent**：[`.openclaw-hr/docs/云迁移与记忆交接.md`](.openclaw-hr/docs/云迁移与记忆交接.md)
-- **远程**：https://github.com/yhwz131/openclaw （`main`）
+- **远程（本仓库）**：https://github.com/AnNian-1/openclaw_hr （`main`）
+- **上游（原项目）**：https://github.com/yhwz131/openclaw （`main`）
 
 钉 OpenClaw **2026.5.12**。密钥只放在 gitignore 的 `.openclaw-hr/env.sh`，不要提交。
