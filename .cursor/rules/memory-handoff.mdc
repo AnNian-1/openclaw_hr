@@ -9,7 +9,7 @@ alwaysApply: true
 
 `.openclaw-hr/docs/云迁移与记忆交接.md`
 
-人读总览：`docs/项目说明.md`。冲突时以 `openclaw.yaml`、各域 `SOUL.md`、项目说明为准，不要用课程 README 的 DeepSeek 主模型或对 router 出月报。
+人读总览：`docs/项目说明.md`。冲突时以 `openclaw.yaml`、各域 `SOUL.md`、项目说明为准。现行对话主模型是 **`deepseek/deepseek-v4-flash`**（不是小米）。月报唯一取数是 **HCM**：先 `POST /api/reports/monthly/{YYYY-MM}/freeze`，再只读冻结快照。CSV 仅 demo seed。飞书 / router 不出月报。
 
 开场先读交接文，再改 yaml / 造测试人 / 启动进程。
 
@@ -19,8 +19,8 @@ alwaysApply: true
 - **禁止编造**花名册、绩效 S/A/B/C、人才库真人。夹具不是生产数据。默认人才库非夹具主要是员工1。
 - **ASR 跳过**直到换机补测。做梦已开（每天 22:00 `Asia/Shanghai`，`storage.mode: separate`）；改时间只改 `dreaming.frequency` 后重启 Gateway。不要 `memory promote --apply`。
 - 飞书绑 **er-admin**（不是 router）。Router 用 `sessions_spawn`。飞书 **禁止出月报**（月报只 `er-admin-cron`）。
-- HR 测试号 `ou_2f67ed66…` 可 write；主管/员工/`*` deny write。
+- HR 测试号 `ou_960b0542…` 可 write；主管/员工/`*` deny write。
 - 密钥只在 `env.sh`。Canvas 反代配置不要写 Gateway token。
-- **HCM ≠ 入职看板。** HCM 是人力资源管理系统（花名册 + 五部门准备节点，无 7/30/60/90），不要叫「入职管理看板」。入职进度看板是 Canvas `onboarding-dashboard`（HR 监督面，含试用期跟进）。
+- **HCM ≠ 入职看板。** HCM 是人力资源管理系统（花名册 + 五部门准备节点 + 日常事实表，无 7/30/60/90）。侧栏「月报数据」只读冻结快照。入职进度看板是 Canvas `onboarding-dashboard`。
 - 未要求则不要启动 Gateway/HCM/Canvas，不要 force-push。
 - 不要编辑 `.cursor/plans/`。不要把 `_ref/`、会话、sqlite、冒烟落盘当源码提交。

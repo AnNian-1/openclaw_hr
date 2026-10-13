@@ -181,7 +181,7 @@
         "enabled": true
       },
       "xiaomi": {
-        "enabled": true
+        "enabled": false
       },
       "memory-core": {
         "enabled": true,
@@ -197,7 +197,7 @@
         }
       },
       "rokid-openclaw-bridge": {
-        "enabled": true,
+        "enabled": false,
         "config": {
           "linkCode": "5906",
           "linkSecret": ""
@@ -205,15 +205,13 @@
       }
     },
     "load": {
-      "paths": [
-        "/opt/openclaw-hr/.openclaw-hr/rokid-plugin"
-      ]
+      "paths": []
     }
   },
   "channels": {
     "feishu": {
       "enabled": true,
-      "appId": "cli_aadf585d2ffc9cc4",
+      "appId": "cli_aae31b6be778dcb5",
       "appSecret": {
         "source": "env",
         "provider": "default",
@@ -225,10 +223,50 @@
       "groupPolicy": "allowlist",
       "requireMention": true,
       "groupAllowFrom": [
-        "oc_65551edeef1db539a87122dd4833663d"
+        "oc_65551edeef1db539a87122dd4833663d",
+        "oc_0e384a77509ed45b2cf90314ec4652ff",
+        "oc_5bea213fd602d51f1e319616949ff652"
       ],
       "groups": {
         "*": {
+          "tools": {
+            "allow": [
+              "exec",
+              "read",
+              "write",
+              "edit",
+              "apply_patch"
+            ],
+            "deny": [
+              "browser",
+              "cron",
+              "sessions_spawn",
+              "sessions_yield"
+            ]
+          }
+        },
+        "oc_5bea213fd602d51f1e319616949ff652": {
+          "enabled": true,
+          "requireMention": true,
+          "tools": {
+            "allow": [
+              "exec",
+              "read",
+              "write",
+              "edit",
+              "apply_patch"
+            ],
+            "deny": [
+              "browser",
+              "cron",
+              "sessions_spawn",
+              "sessions_yield"
+            ]
+          }
+        },
+        "oc_0e384a77509ed45b2cf90314ec4652ff": {
+          "enabled": true,
+          "requireMention": true,
           "tools": {
             "allow": [
               "exec",
@@ -267,7 +305,7 @@
       }
     },
     "rokid-openclaw-bridge": {
-      "enabled": true,
+      "enabled": false,
       "accounts": {
         "5906": {
           "linkCode": "5906",
@@ -317,7 +355,7 @@
       ]
     },
     "toolsBySender": {
-      "id:ou_2f67ed66e57e214e72c318a57c60d1c4": {
+      "id:ou_960b054220a76c956acf80e0d9b025b8": {
         "allow": [
           "*"
         ]
@@ -525,7 +563,7 @@
             "workspaceOnly": true
           },
           "toolsBySender": {
-            "channel:feishu:ou_2f67ed66e57e214e72c318a57c60d1c4": {
+            "channel:feishu:ou_960b054220a76c956acf80e0d9b025b8": {
               "allow": [
                 "exec",
                 "read",
@@ -657,7 +695,7 @@
     "defaults": {
       "timeoutSeconds": 1800,
       "memorySearch": {
-        "enabled": true,
+        "enabled": false,
         "provider": "openai",
         "model": "Qwen/Qwen3-Embedding-0.6B",
         "remote": {
@@ -670,11 +708,7 @@
         }
       },
       "model": {
-        "primary": "xiaomi/mimo-v2.5-pro",
-        "fallbacks": []
-      },
-      "imageModel": {
-        "primary": "volcengine/doubao-seed-2.1-turbo",
+        "primary": "deepseek/deepseek-v4-flash",
         "fallbacks": []
       },
       "subagents": {
@@ -685,8 +719,7 @@
         "runTimeoutSeconds": 1800
       },
       "models": {
-        "volcengine/deepseek-v4-flash-ark": {},
-        "xiaomi/mimo-v2.5-pro": {}
+        "deepseek/deepseek-v4-flash": {}
       }
     }
   },
@@ -769,60 +802,6 @@
               "text"
             ],
             "contextWindow": 131072
-          }
-        ]
-      },
-      "xiaomi": {
-        "baseUrl": "https://token-plan-cn.xiaomimimo.com/v1",
-        "apiKey": {
-          "source": "env",
-          "provider": "default",
-          "id": "XIAOMI_API_KEY"
-        },
-        "models": [
-          {
-            "id": "mimo-v2.5-pro",
-            "name": "Xiaomi MiMo V2.5 Pro",
-            "api": "openai-completions",
-            "reasoning": true,
-            "input": [
-              "text"
-            ],
-            "contextWindow": 1048576,
-            "maxTokens": 32000
-          }
-        ]
-      },
-      "volcengine": {
-        "baseUrl": "https://ark.cn-beijing.volces.com/api/plan/v3",
-        "apiKey": {
-          "source": "env",
-          "provider": "default",
-          "id": "VOLCANO_DEEPSEEK_API_KEY"
-        },
-        "models": [
-          {
-            "id": "deepseek-v4-flash-ark",
-            "name": "火山方舟 DeepSeek V4 Flash",
-            "api": "openai-completions",
-            "reasoning": false,
-            "input": [
-              "text"
-            ],
-            "contextWindow": 128000,
-            "maxTokens": 32000
-          },
-          {
-            "id": "doubao-seed-2.1-turbo",
-            "name": "火山方舟 Doubao Seed 2.1 Turbo",
-            "api": "openai-completions",
-            "reasoning": false,
-            "input": [
-              "text",
-              "image"
-            ],
-            "contextWindow": 256000,
-            "maxTokens": 32000
           }
         ]
       }

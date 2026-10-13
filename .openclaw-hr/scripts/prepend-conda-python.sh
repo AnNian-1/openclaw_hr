@@ -2,8 +2,14 @@
 # 默认 openclaw-hr。转写请用 funasr_me（numpy<2 / torch），不要混进这个环境。
 # 用法: OPENCLAW_CONDA_ENV=openclaw-hr source this file
 _oc_env="${OPENCLAW_CONDA_ENV:-openclaw-hr}"
-_oc_bin="${HOME}/miniconda3/envs/${_oc_env}/bin"
-if [ -x "${_oc_bin}/python3" ]; then
-  export PATH="${_oc_bin}:${PATH}"
-fi
+for _oc_bin in \
+  "${HOME}/miniconda3/envs/${_oc_env}/bin" \
+  "/home/hr/miniconda3/envs/${_oc_env}/bin" \
+  "/usr/local/miniconda3/envs/${_oc_env}/bin"
+do
+  if [ -x "${_oc_bin}/python3" ]; then
+    export PATH="${_oc_bin}:${PATH}"
+    break
+  fi
+done
 unset _oc_env _oc_bin

@@ -16,7 +16,7 @@ metadata:
 ## 何时用
 
 - WebChat / CLI：「员工1工资多少」「花名册里谁拿多少」
-- 飞书 **HR**（`ou_2f67ed66e57e214e72c318a57c60d1c4`）问别人的合同薪资
+- 飞书 **HR**（`ou_960b054220a76c956acf80e0d9b025b8`）问别人的合同薪资
 - 不要用本 Skill 回答政策（走 `answering-hr-policy-questions`）
 - 不要用本 Skill 出月报（走 `generating-monthly-report`）
 
@@ -26,7 +26,7 @@ metadata:
 
 ```bash
 # 飞书 HR
-bash scripts/er-admin-run.sh payroll-query --sender ou_2f67ed66e57e214e72c318a57c60d1c4 --name 员工1
+bash scripts/er-admin-run.sh payroll-query --sender ou_960b054220a76c956acf80e0d9b025b8 --name 员工1
 
 # WebChat / CLI
 bash scripts/er-admin-run.sh payroll-query --name 员工1

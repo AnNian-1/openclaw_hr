@@ -1,29 +1,23 @@
 """FastAPI application entry point."""
 
-import json
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from database import engine, Base
-from routers import candidates
+from routers import candidates, reports, nodes
 from websocket import manager
-from sqlalchemy import inspect, text
+from schema_migrate import migrate_schema
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Create database tables on startup; drop leftover reviews table."""
-    Base.metadata.create_all(bind=engine)
-    inspector = inspect(engine)
-    if "reviews" in inspector.get_table_names():
-        with engine.begin() as conn:
-            conn.execute(text("DROP TABLE IF EXISTS reviews"))
+    """建表，并丢掉旧月度宽表 / 整包 payload_json。"""
+    migrate_schema()
     yield
 
 
 app = FastAPI(
     title="HCM 入职管理系统",
-    description="模拟 HCM 数据源 — 各部门填写入职准备数据，小慧 GET 只读查询",
+    description="HCM：花名册、入职准备节点、日常业务事实与只读冻结月报。月报数字由事实计算后写入主题快照。",
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -39,6 +33,8 @@ app.add_middleware(
 
 # Register REST routers
 app.include_router(candidates.router)
+app.include_router(reports.router)
+app.include_router(nodes.router)
 
 
 @app.websocket("/ws/dashboard")

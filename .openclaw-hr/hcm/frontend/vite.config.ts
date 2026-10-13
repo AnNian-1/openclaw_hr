@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     // 0.0.0.0：公网 / 端口映射打到 eth0，绑 127.0.0.1 会接不上
     host: '0.0.0.0',
-    port: 5173,
+    port: 5174,
     strictPort: true,
     allowedHosts: true,
     proxy: {

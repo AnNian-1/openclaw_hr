@@ -6,9 +6,11 @@ import { NODE_LABELS } from '../types'
 import DepartmentTab from './DepartmentTab.vue'
 import CandidateCard from './CandidateCard.vue'
 import NewCandidateDialog from './NewCandidateDialog.vue'
+import MonthlyReportPage from './MonthlyReportPage.vue'
 
 const store = useCandidatesStore()
 const showNewDialog = ref(false)
+const monthlyPage = ref<{ reload: () => Promise<void> } | null>(null)
 
 onMounted(() => {
   store.fetchCandidates()
@@ -22,6 +24,14 @@ async function handleCreate(data: { name: string; pinyin: string; role: string; 
   await store.createCandidate(data)
   showNewDialog.value = false
 }
+
+function handleRefresh() {
+  if (store.appSection === 'monthly') {
+    monthlyPage.value?.reload()
+  } else {
+    store.fetchCandidates()
+  }
+}
 </script>
 
 <template>
@@ -29,12 +39,13 @@ async function handleCreate(data: { name: string; pinyin: string; role: string; 
     <header class="app-header">
       <h1>HCM 人力资源管理系统</h1>
       <div class="header-meta">
-        <span class="dept-label">
+        <span v-if="store.appSection === 'monthly'" class="dept-label">月报数据 · HCM 冻结快照</span>
+        <span v-else class="dept-label">
           {{ store.currentDeptConfig.icon }} {{ store.currentDeptConfig.label }}
           · {{ NODE_LABELS[store.currentDeptConfig.nodeType] }}
         </span>
-        <button class="add-btn" @click="showNewDialog = true">➕ 新建候选人</button>
-        <button class="refresh-btn" @click="store.fetchCandidates()">🔄 刷新</button>
+        <button v-if="store.appSection !== 'monthly'" class="add-btn" @click="showNewDialog = true">➕ 新建候选人</button>
+        <button class="refresh-btn" @click="handleRefresh">🔄 刷新</button>
       </div>
     </header>
 
@@ -42,19 +53,23 @@ async function handleCreate(data: { name: string; pinyin: string; role: string; 
       <DepartmentTab />
 
       <main class="kanban-board">
-        <div v-if="store.loading" class="loading">加载中...</div>
+        <MonthlyReportPage v-if="store.appSection === 'monthly'" ref="monthlyPage" />
 
-        <div v-else-if="store.candidates.length === 0" class="empty">
-          暂无候选人数据，请先运行 <code>seed.py</code> 导入数据
-        </div>
+        <template v-else>
+          <div v-if="store.loading" class="loading">加载中...</div>
 
-        <div v-else class="cards-grid">
-          <CandidateCard
-            v-for="c in store.candidates"
-            :key="c.id"
-            :candidate="c"
-          />
-        </div>
+          <div v-else-if="store.candidates.length === 0" class="empty">
+            暂无候选人数据，请先运行 <code>seed.py</code> 导入数据
+          </div>
+
+          <div v-else class="cards-grid">
+            <CandidateCard
+              v-for="c in store.candidates"
+              :key="c.id"
+              :candidate="c"
+            />
+          </div>
+        </template>
       </main>
     </div>
 

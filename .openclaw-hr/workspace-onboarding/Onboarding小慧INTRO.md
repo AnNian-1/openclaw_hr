@@ -266,7 +266,7 @@
 
 **外部系统：**
 
-- **HCM**（Vue `:5173` + FastAPI `:8000`）—— 花名册与五部门节点的唯一写入面。小慧只 GET（`GET /api/candidates`）。HCM 不可用时查询/启动/review/看板明确失败（exit 5），不用 stub 冒充。
+- **HCM**（Vue `:5174` + FastAPI `:8000`）—— 花名册与五部门节点的唯一写入面。小慧只 GET（`GET /api/candidates`）。HCM 不可用时查询/启动/review/看板明确失败（exit 5），不用 stub 冒充。
 - **Lobster** —— 工作流引擎，执行 `hr-onboarding.lobster`；resumeToken 按 `{kind, stateKey}` base64 编码（`_encode_resume_token`）。
 - **OpenClaw Canvas** —— 看板发布目标（`canvas/documents/` 目录，18999 反代访问）。
 - 不接真实企业 IT / 合同系统——那是各部门在 HCM 里的工作。

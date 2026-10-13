@@ -12,7 +12,7 @@
 
 ## 一、这是什么
 
-星型调度：WebChat → `router` → `sessions_spawn` 到五域。飞书私聊/群聊直达 `er-admin`。HCM 是独立应用（`:8000` / `:5173`），不是 Agent。
+星型调度：WebChat → `router` → `sessions_spawn` 到五域。飞书私聊/群聊直达 `er-admin`。HCM 是独立应用（`:8000` / `:5174`），不是 Agent。
 
 | Agent | 角色 |
 |-------|------|

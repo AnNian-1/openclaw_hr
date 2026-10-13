@@ -21,6 +21,8 @@ export interface Candidate {
   nodes: PrepNode[]
 }
 
+export type AppSection = 'onboarding' | 'monthly'
+
 export type Department = 'hr' | 'it' | 'admin' | 'training' | 'buddy'
 
 export interface DepartmentConfig {

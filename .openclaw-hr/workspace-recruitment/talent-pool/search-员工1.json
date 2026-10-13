@@ -3,7 +3,7 @@
   "query_type": "candidate",
   "topn": 5,
   "insufficient": false,
-  "matchable": 6,
+  "matchable": 7,
   "pool_names": [
     "员工5",
     "员工7",
@@ -11,35 +11,36 @@
     "员工2",
     "员工3",
     "员工4",
-    "员工6"
+    "员工6",
+    "面试者1"
   ],
   "results": [
     {
       "rank": 1,
-      "id": "resume-tech-员工2-后端开发",
-      "name": "员工2",
-      "category": "tech",
-      "target_position": "后端开发工程师（Java/Go）",
-      "similarity": 0.8449,
-      "dim_similarity": {
-        "education": 0.6555,
-        "experience": 0.8263,
-        "skills": 0.7058,
-        "industry": 0.7002
-      }
-    },
-    {
-      "rank": 2,
       "id": "resume-tech-员工3-后端开发",
       "name": "员工3",
       "category": "tech",
       "target_position": "后端开发工程师",
-      "similarity": 0.838,
+      "similarity": 0.8386,
       "dim_similarity": {
         "education": 0.8949,
-        "experience": 0.7939,
-        "skills": 0.7263,
-        "industry": 0.6393
+        "experience": 0.8193,
+        "skills": 0.7264,
+        "industry": 0.6364
+      }
+    },
+    {
+      "rank": 2,
+      "id": "resume-tech-员工2-后端开发",
+      "name": "员工2",
+      "category": "tech",
+      "target_position": "后端开发工程师（Java/Go）",
+      "similarity": 0.8323,
+      "dim_similarity": {
+        "education": 0.6555,
+        "experience": 0.8017,
+        "skills": 0.7043,
+        "industry": 0.6983
       }
     },
     {
@@ -48,12 +49,12 @@
       "name": "员工6",
       "category": "tech",
       "target_position": "后端开发工程师",
-      "similarity": 0.7638,
+      "similarity": 0.769,
       "dim_similarity": {
         "education": 0.6615,
-        "experience": 0.7625,
-        "skills": 0.6633,
-        "industry": 0.5314
+        "experience": 0.7828,
+        "skills": 0.6627,
+        "industry": 0.5306
       }
     },
     {
@@ -62,12 +63,12 @@
       "name": "员工4",
       "category": "tech",
       "target_position": "前端开发工程师",
-      "similarity": 0.7025,
+      "similarity": 0.6893,
       "dim_similarity": {
         "education": 0.5734,
-        "experience": 0.7496,
-        "skills": 0.4343,
-        "industry": 0.7823
+        "experience": 0.668,
+        "skills": 0.4321,
+        "industry": 0.782
       }
     },
     {
@@ -76,12 +77,12 @@
       "name": "员工7",
       "category": "product",
       "target_position": "产品经理",
-      "similarity": 0.632,
+      "similarity": 0.6134,
       "dim_similarity": {
-        "education": 0.5847,
-        "experience": 0.5145,
-        "skills": 0.4723,
-        "industry": 0.584
+        "education": 0.5852,
+        "experience": 0.5534,
+        "skills": 0.473,
+        "industry": 0.5849
       }
     }
   ]

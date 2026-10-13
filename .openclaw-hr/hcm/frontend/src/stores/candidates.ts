@@ -1,13 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
-import type { Candidate, Department, DepartmentConfig, PrepNode } from '../types'
+import type { Candidate, Department, DepartmentConfig, PrepNode, AppSection } from '../types'
 import { DEPARTMENTS } from '../types'
 
 export const useCandidatesStore = defineStore('candidates', () => {
   const candidates = ref<Candidate[]>([])
   const loading = ref(false)
   const currentDepartment = ref<Department>('hr')
+  const appSection = ref<AppSection>('onboarding')
   const selectedCandidateId = ref<number | null>(null)
 
   const currentDeptConfig = computed<DepartmentConfig>(() =>
@@ -91,6 +92,11 @@ export const useCandidatesStore = defineStore('candidates', () => {
 
   function setDepartment(dept: Department) {
     currentDepartment.value = dept
+    appSection.value = 'onboarding'
+  }
+
+  function showMonthlyReport() {
+    appSection.value = 'monthly'
   }
 
   function selectCandidate(id: number | null) {
@@ -101,6 +107,7 @@ export const useCandidatesStore = defineStore('candidates', () => {
     candidates,
     loading,
     currentDepartment,
+    appSection,
     currentDeptConfig,
     selectedCandidateId,
     selectedCandidate,
@@ -110,6 +117,7 @@ export const useCandidatesStore = defineStore('candidates', () => {
     updateCandidate,
     handleWSEvent,
     setDepartment,
+    showMonthlyReport,
     selectCandidate,
   }
 })

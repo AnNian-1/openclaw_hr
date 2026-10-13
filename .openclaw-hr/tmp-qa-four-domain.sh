@@ -156,7 +156,7 @@ fi
 
 # O-01 docs
 code=$(curl -sS -o /dev/null -w '%{http_code}' http://localhost:8000/docs || echo 000)
-code2=$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:5173/ || echo 000)
+code2=$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:5174/ || echo 000)
 rec "O-01 docs=$code frontend=$code2"
 
 echo "==== scripts done $(date -Is) ===="

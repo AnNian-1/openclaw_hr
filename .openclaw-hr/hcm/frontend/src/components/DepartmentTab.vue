@@ -27,7 +27,7 @@ const deptItems = computed(() =>
     <button
       v-for="dept in deptItems"
       :key="dept.key"
-      :class="['dept-item', { active: store.currentDepartment === dept.key }]"
+      :class="['dept-item', { active: store.appSection === 'onboarding' && store.currentDepartment === dept.key }]"
       @click="store.setDepartment(dept.key)"
     >
       <span class="dept-icon">{{ dept.icon }}</span>
@@ -36,6 +36,18 @@ const deptItems = computed(() =>
         <span class="dept-hint">{{ dept.nodeLabel }}</span>
       </div>
       <span v-if="dept.pending > 0" class="dept-badge">{{ dept.pending }}</span>
+    </button>
+
+    <div class="sidebar-title sidebar-title-gap">报表</div>
+    <button
+      :class="['dept-item', { active: store.appSection === 'monthly' }]"
+      @click="store.showMonthlyReport()"
+    >
+      <span class="dept-icon">📊</span>
+      <div class="dept-info">
+        <span class="dept-name">月报数据</span>
+        <span class="dept-hint">HCM 冻结快照</span>
+      </div>
     </button>
   </aside>
 </template>
@@ -59,6 +71,10 @@ const deptItems = computed(() =>
   text-transform: uppercase;
   letter-spacing: 1px;
   padding: 0 8px 8px;
+}
+
+.sidebar-title-gap {
+  padding-top: 16px;
 }
 
 .dept-item {

@@ -1,0 +1,21 @@
+# 权限分级说明（注释，不参与运行）
+# 工具面以 config/openclaw.yaml 的 toolsBySender 为准。
+# 花名册薪资 / 对话出月报以 scripts/hr-data-access.sh 为准：
+#   允许：飞书 HR、无 sender（WebChat / CLI）
+#   拒绝：下面主管 / 员工 / owner
+
+# 高 · HR
+admin:
+  - "ou_960b054220a76c956acf80e0d9b025b8"
+
+hr_staff:
+  - "ou_960b054220a76c956acf80e0d9b025b8"
+
+# 中 · 部门主管
+manager:
+  - "ou_85759e2571f33307b6fc7b265060d5c1"
+  - "ou_bc349a34419627acea1d5c304a9e8e0b"
+
+# 低 · 普通员工 / owner
+# ou_66cfc2fa5b3142c6b232fc9114fc7b94
+# ou_a8cf75f38e774b2c1a5c79117004d965

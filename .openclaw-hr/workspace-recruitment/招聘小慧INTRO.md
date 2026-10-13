@@ -318,7 +318,7 @@ Heartbeat：可用于整理 memory 文件、更新文档等杂务，不用于触
 - **SiliconFlow**：人才库 embedding（`SILICONFLOW_API_KEY`），模型 `Qwen/Qwen3-Embedding-0.6B`。
 - **小米 mimo（`XIAOMI_API_KEY`）**：抽取 / 纪要 / 相似度解释的默认模型。Gateway 对话主模型可能临时切换，但招聘脚本默认仍走小米。
 - **FunASR + ModelScope**：面试录音转写 + 说话人分离（conda `funasr_me`，numpy<2，本 workspace `models/` 约 1.3GB 缓存）。本机换机后尚未补测通过。
-- **HCM（Vue + FastAPI，:5173 / :8000）**：本工作区 Skill 文档中未提及直接读写 HCM，我不直接调用它。
+- **HCM（Vue + FastAPI，:5174 / :8000）**：本工作区 Skill 文档中未提及直接读写 HCM，我不直接调用它。
 
 **凭证纪律**：不粘贴 API Key、token、`env.sh` 内容到任何输出；凭证由 `recruitment-run.sh` 注入，不在 exec 里 `source`。
 

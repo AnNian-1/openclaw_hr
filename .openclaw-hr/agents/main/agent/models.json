@@ -2,7 +2,7 @@
   "providers": {
     "deepseek": {
       "baseUrl": "https://api.deepseek.com",
-      "apiKey": "DEEPSEEK_API_KEY",
+      "api": "openai-completions",
       "models": [
         {
           "id": "deepseek-v4-pro",
@@ -38,11 +38,12 @@
             "cacheWrite": 0
           }
         }
-      ]
+      ],
+      "apiKey": "DEEPSEEK_API_KEY"
     },
     "qwen": {
       "baseUrl": "https://llm-5ipvwnjovosmatzx.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
-      "apiKey": "DASHSCOPE_API_KEY",
+      "api": "openai-completions",
       "models": [
         {
           "id": "qwen-max",
@@ -62,87 +63,203 @@
           ],
           "contextWindow": 131072
         }
-      ]
+      ],
+      "apiKey": "DASHSCOPE_API_KEY"
     },
     "volcengine": {
-      "baseUrl": "https://ark.cn-beijing.volces.com/api/plan/v3",
-      "apiKey": "VOLCANO_DEEPSEEK_API_KEY",
+      "baseUrl": "https://ark.cn-beijing.volces.com/api/v3",
+      "api": "openai-completions",
       "models": [
         {
-          "id": "deepseek-v4-flash-ark",
-          "name": "火山方舟 DeepSeek V4 Flash",
-          "api": "openai-completions",
-          "reasoning": false,
-          "input": [
-            "text"
-          ],
-          "contextWindow": 128000,
-          "maxTokens": 32000
-        },
-        {
-          "id": "doubao-seed-2.1-turbo",
-          "name": "火山方舟 Doubao Seed 2.1 Turbo",
-          "api": "openai-completions",
+          "id": "doubao-seed-code-preview-251028",
+          "name": "doubao-seed-code-preview-251028",
           "reasoning": false,
           "input": [
             "text",
             "image"
           ],
+          "cost": {
+            "input": 0.0001,
+            "output": 0.0002,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
           "contextWindow": 256000,
-          "maxTokens": 32000
+          "maxTokens": 4096
+        },
+        {
+          "id": "doubao-seed-1-8-251228",
+          "name": "Doubao Seed 1.8",
+          "reasoning": false,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 0.0001,
+            "output": 0.0002,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "contextWindow": 256000,
+          "maxTokens": 4096
+        },
+        {
+          "id": "kimi-k2-5-260127",
+          "name": "Kimi K2.5",
+          "reasoning": false,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 0.0001,
+            "output": 0.0002,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "contextWindow": 256000,
+          "maxTokens": 4096
+        },
+        {
+          "id": "glm-4-7-251222",
+          "name": "GLM 4.7",
+          "reasoning": false,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 0.0001,
+            "output": 0.0002,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "contextWindow": 200000,
+          "maxTokens": 4096
+        },
+        {
+          "id": "deepseek-v3-2-251201",
+          "name": "DeepSeek V3.2",
+          "reasoning": false,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 0.0001,
+            "output": 0.0002,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "contextWindow": 128000,
+          "maxTokens": 4096
         }
-      ]
+      ],
+      "apiKey": "VOLCANO_ENGINE_API_KEY"
     },
     "volcengine-plan": {
       "baseUrl": "https://ark.cn-beijing.volces.com/api/coding/v3",
       "api": "openai-completions",
       "models": [
         {
-          "id": "deepseek-v4-flash-ark",
-          "name": "火山方舟 DeepSeek V4 Flash",
-          "api": "openai-completions",
+          "id": "ark-code-latest",
+          "name": "Ark Coding Plan",
           "reasoning": false,
           "input": [
             "text"
           ],
-          "contextWindow": 128000,
-          "maxTokens": 32000
+          "cost": {
+            "input": 0.0001,
+            "output": 0.0002,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "contextWindow": 256000,
+          "maxTokens": 4096
         },
         {
-          "id": "doubao-seed-2.1-turbo",
-          "name": "火山方舟 Doubao Seed 2.1 Turbo",
-          "api": "openai-completions",
+          "id": "doubao-seed-code",
+          "name": "Doubao Seed Code",
           "reasoning": false,
-          "input": [
-            "text",
-            "image"
-          ],
-          "contextWindow": 256000,
-          "maxTokens": 32000
-        }
-      ],
-      "apiKey": "VOLCANO_DEEPSEEK_API_KEY"
-    },
-    "github-copilot": {
-      "baseUrl": "https://api.individual.githubcopilot.com",
-      "models": []
-    },
-    "xiaomi": {
-      "baseUrl": "https://token-plan-cn.xiaomimimo.com/v1",
-      "apiKey": "XIAOMI_API_KEY",
-      "models": [
-        {
-          "id": "mimo-v2.5-pro",
-          "name": "Xiaomi MiMo V2.5 Pro",
-          "api": "openai-completions",
-          "reasoning": true,
           "input": [
             "text"
           ],
-          "contextWindow": 1048576,
-          "maxTokens": 32000
+          "cost": {
+            "input": 0.0001,
+            "output": 0.0002,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "contextWindow": 256000,
+          "maxTokens": 4096
+        },
+        {
+          "id": "glm-4.7",
+          "name": "GLM 4.7 Coding",
+          "reasoning": false,
+          "input": [
+            "text"
+          ],
+          "cost": {
+            "input": 0.0001,
+            "output": 0.0002,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "contextWindow": 200000,
+          "maxTokens": 4096
+        },
+        {
+          "id": "kimi-k2-thinking",
+          "name": "Kimi K2 Thinking",
+          "reasoning": false,
+          "input": [
+            "text"
+          ],
+          "cost": {
+            "input": 0.0001,
+            "output": 0.0002,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "contextWindow": 256000,
+          "maxTokens": 4096
+        },
+        {
+          "id": "kimi-k2.5",
+          "name": "Kimi K2.5 Coding",
+          "reasoning": false,
+          "input": [
+            "text"
+          ],
+          "cost": {
+            "input": 0.0001,
+            "output": 0.0002,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "contextWindow": 256000,
+          "maxTokens": 4096
+        },
+        {
+          "id": "doubao-seed-code-preview-251028",
+          "name": "Doubao Seed Code Preview",
+          "reasoning": false,
+          "input": [
+            "text"
+          ],
+          "cost": {
+            "input": 0.0001,
+            "output": 0.0002,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "contextWindow": 256000,
+          "maxTokens": 4096
         }
-      ]
+      ],
+      "apiKey": "VOLCANO_ENGINE_API_KEY"
     }
   }
 }

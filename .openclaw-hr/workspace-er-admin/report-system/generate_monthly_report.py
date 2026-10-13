@@ -2,18 +2,16 @@
 # -*- coding: utf-8 -*-
 """
 HR 月报自动生成 Pipeline
-读 6 个 CSV -> pandas 算指标 -> 对标业界基准 -> matplotlib 图表 -> HTML 图文月报
-
-用法:
-  python3 generate_monthly_report.py [目标月份 YYYY-MM] [--publish] [--force]
-不传月份则取 CSV 里最新一个月。
+默认读 HCM 已冻结月报 GET /api/reports/monthly/{month}
+-> pandas 只做展示计算 -> 对标业界基准 -> matplotlib -> HTML。
+必须传入 YYYY-MM。不读 CSV，不计算冻结口径。
 --publish: 生成后发布到 OpenClaw Canvas（id=hr-monthly-report）
 --force:   覆盖已有 Canvas 文档（仅与 --publish 联用；Cron/重出月报时必带）
 
 设计原则(C-2 数字回核教训):
-  所有展示数字都由 pandas 从 CSV 确定性算出, 不经过任何 LLM 自由文本。
+  所有展示数字都由 pandas 从 HCM（或 CSV）确定性算出, 不经过任何 LLM 自由文本。
   脚本末尾把"数字回核表"落盘到 report-output/hr-monthly-report-<月>-audit.md,
-  并同步打印到终端, 把每个进 HTML 的数字和 CSV 原值并排列出, 供人工核对。
+  并同步打印到终端, 把每个进 HTML 的数字和原值并排列出, 供人工核对。
 """
 import argparse
 import sys
@@ -111,31 +109,44 @@ def _setup_chinese_font():
 
 _setup_chinese_font()
 
-# 数据目录定位: 脚本可能在 report-system/ 下, 也可能在 Skill 的 scripts/ 下,
-# 不能假设脚本相对位置。从脚本所在目录逐级向上找含 report-system/data/ 的目录
-# (即 er-admin workspace 根), 找不到则回退到脚本同级 data/。
-def _locate_dirs():
+# 产出目录：er-admin workspace 的 report-output/
+def _locate_out():
     here = os.path.dirname(os.path.abspath(__file__))
-    # 回退1: 脚本同级有 data/ (脚本仍放在 report-system/ 下的旧布局)
-    sib = os.path.join(here, "data")
-    if os.path.isdir(sib):
-        return sib, os.path.join(os.path.dirname(here), "report-output")
-    # 主路径: 向上逐级找 report-system/data/
     cur = here
-    for _ in range(6):  # 最多上溯 6 级, 足够覆盖 skills/<name>/scripts/ 这种深度
-        cand = os.path.join(cur, "report-system", "data")
-        if os.path.isdir(cand):
-            ws_root = cur
-            return cand, os.path.join(ws_root, "report-output")
+    for _ in range(8):
+        if os.path.isdir(os.path.join(cur, "report-system")):
+            return os.path.join(cur, "report-output")
         parent = os.path.dirname(cur)
         if parent == cur:
             break
         cur = parent
-    # 兜底: 仍按旧布局假设, 让后续 read_csv 报清晰的 FileNotFound
-    return sib, os.path.join(os.path.dirname(here), "report-output")
+    return os.path.join(os.path.dirname(here), "report-output")
 
-DATA, OUT = _locate_dirs()
+OUT = _locate_out()
 os.makedirs(OUT, exist_ok=True)
+
+
+def _ensure_fetch_helper():
+    here = os.path.dirname(os.path.abspath(__file__))
+    search = [here]
+    cur = here
+    for _ in range(6):
+        search.append(os.path.join(cur, "report-system"))
+        parent = os.path.dirname(cur)
+        if parent == cur:
+            break
+        cur = parent
+    for d in search:
+        if os.path.isfile(os.path.join(d, "fetch_hcm_report_frames.py")):
+            if d not in sys.path:
+                sys.path.insert(0, d)
+            return
+    print("[ERROR] 找不到 fetch_hcm_report_frames.py", file=sys.stderr)
+    sys.exit(1)
+
+
+_ensure_fetch_helper()
+from fetch_hcm_report_frames import load_six_frames  # noqa: E402
 
 # ---- 业界基准 (来源: 业界标准) ----
 BENCHMARK = {
@@ -170,9 +181,7 @@ def _parse_args(argv=None):
     )
     p.add_argument(
         "month",
-        nargs="?",
-        default=None,
-        help="目标月份 YYYY-MM；省略则取 CSV 最新月",
+        help="目标月份 YYYY-MM（必填，须与 HCM 冻结 period 一致）",
     )
     p.add_argument(
         "--publish",
@@ -183,6 +192,11 @@ def _parse_args(argv=None):
         "--force",
         action="store_true",
         help="覆盖已有 Canvas 文档（仅与 --publish 联用）",
+    )
+    p.add_argument(
+        "--hcm-url",
+        default=os.environ.get("HCM_API_BASE", "http://127.0.0.1:8000"),
+        help="HCM 根 URL，默认 http://127.0.0.1:8000",
     )
     return p.parse_args(argv)
 
@@ -206,13 +220,14 @@ def _publish_html(html_path: str, force: bool) -> int:
 def main(argv=None):
     args = _parse_args(argv)
 
-    # ---- 读 6 个 CSV ----
-    funnel = pd.read_csv(os.path.join(DATA, "recruitment-funnel.csv"))
-    positions = pd.read_csv(os.path.join(DATA, "positions-progress.csv"))
-    retention = pd.read_csv(os.path.join(DATA, "onboarding-retention.csv"))
-    training = pd.read_csv(os.path.join(DATA, "training-completion.csv"))
-    cost = pd.read_csv(os.path.join(DATA, "hiring-cost.csv"))
-    attrition = pd.read_csv(os.path.join(DATA, "attrition.csv"))
+    # ---- 只读 HCM 冻结快照 ----
+    frames, meta = load_six_frames(hcm_base=args.hcm_url, month=args.month)
+    funnel = frames["funnel"]
+    positions = frames["positions"]
+    retention = frames["retention"]
+    training = frames["training"]
+    cost = frames["cost"]
+    attrition = frames["attrition"]
 
     # ---- 目标月份 ----
     target = args.month if args.month else funnel["月份"].iloc[-1]
@@ -220,6 +235,29 @@ def main(argv=None):
     if target not in months:
         print(f"[ERROR] 月份 {target} 不在数据范围 {months[0]}~{months[-1]}")
         sys.exit(1)
+
+    THEME_NODE = {
+        "recruitment-funnel.csv": "HCM 招聘节点 recruitment_funnel",
+        "positions-progress.csv": "HCM 招聘节点 positions_progress",
+        "onboarding-retention.csv": "HCM 入职节点 onboarding_retention",
+        "training-completion.csv": "HCM 培训节点 training_completion",
+        "hiring-cost.csv": "HCM 招聘成本节点 hiring_cost",
+        "attrition.csv": "HCM 离职节点 attrition",
+    }
+    mv = (meta or {}).get("metric_version") or "unknown"
+    run_id = (meta or {}).get("report_run_id") or ""
+    frozen_at = (meta or {}).get("frozen_at") or ""
+
+    def src(filename, extra=""):
+        node = THEME_NODE.get(filename, "HCM 业务节点")
+        bit = f"HCM freeze report_run_id={run_id} metric_version={mv} {node} period={target}"
+        return f"{bit} {extra}".strip() if extra else bit
+
+    origin_label = f"HCM 冻结快照 {run_id}"
+    footer_src = (
+        f"HCM 冻结月报 source=HCM report_run_id={run_id} frozen_at={frozen_at}。"
+        "招聘/入职/培训/成本/离职均来自 HCM 业务节点，不是外部 Adapter 或 CSV。"
+    )
 
     fr = funnel[funnel["月份"] == target].iloc[0]
     cr = cost[cost["月份"] == target].iloc[0]
@@ -233,11 +271,11 @@ def main(argv=None):
     stages = ["投递数", "初筛通过", "面试", "Offer", "入职"]
     funnel_vals = [int(fr[s]) for s in stages]
     for s in stages:
-        audit.append((f"漏斗-{s}", str(int(fr[s])), f"recruitment-funnel.csv {target}行 {s}列"))
+        audit.append((f"漏斗-{s}", str(int(fr[s])), src("recruitment-funnel.csv", f"{target}行 {s}列")))
     i2o = pct(fr["面试转Offer率"])
     offer_accept = pct(fr["Offer接受率"])
-    audit.append(("面试转Offer率", f"{i2o}%", f"recruitment-funnel.csv {target}行"))
-    audit.append(("Offer接受率", f"{offer_accept}%", f"recruitment-funnel.csv {target}行"))
+    audit.append(("面试转Offer率", f"{i2o}%", src("recruitment-funnel.csv", f"{target}行")))
+    audit.append(("Offer接受率", f"{offer_accept}%", src("recruitment-funnel.csv", f"{target}行")))
 
     # ===== 岗位进度 =====
     total_hc = int(positions["HC"].sum())
@@ -245,29 +283,29 @@ def main(argv=None):
     total_open = int(positions["在招中"].sum())
     fill_rate = round(total_filled / total_hc * 100, 1)
     done_cnt = int((positions["招聘状态"] == "已完成").sum())
-    audit.append(("岗位总HC", str(total_hc), "positions-progress.csv HC列求和"))
-    audit.append(("已入职合计", str(total_filled), "positions-progress.csv 已入职列求和"))
+    audit.append(("岗位总HC", str(total_hc), src("positions-progress.csv", "HC列求和")))
+    audit.append(("已入职合计", str(total_filled), src("positions-progress.csv", "已入职列求和")))
     audit.append(("整体到位率", f"{fill_rate}%", "已入职合计/岗位总HC"))
 
     # ===== 入职留存 =====
     onboard_cnt = int(rr["入职人数"])
     pass_cnt = int(rr["试用期通过"])
     leave45_raw = str(rr["45天内离职率"])
-    audit.append(("本月入职人数", str(onboard_cnt), f"onboarding-retention.csv {target}行"))
-    audit.append(("45天内离职率", leave45_raw, f"onboarding-retention.csv {target}行"))
+    audit.append(("本月入职人数", str(onboard_cnt), src("onboarding-retention.csv", f"{target}行")))
+    audit.append(("45天内离职率", leave45_raw, src("onboarding-retention.csv", f"{target}行")))
 
     # ===== 培训 =====
     train_rate = pct(tr["完成率"])
     train_sat = float(tr["培训满意度"])
-    audit.append(("培训完成率", f"{train_rate}%", f"training-completion.csv {target}行"))
-    audit.append(("培训满意度", str(train_sat), f"training-completion.csv {target}行"))
+    audit.append(("培训完成率", f"{train_rate}%", src("training-completion.csv", f"{target}行")))
+    audit.append(("培训满意度", str(train_sat), src("training-completion.csv", f"{target}行")))
 
     # ===== 成本 =====
     cost_per_hire = int(cr["人均招聘成本"])
     tth = int(cr["平均TimeToHire天数"])
     channel_fee = int(cr["招聘渠道费用"])
-    audit.append(("人均招聘成本", f"{cost_per_hire}元", f"hiring-cost.csv {target}行"))
-    audit.append(("TimeToHire", f"{tth}天", f"hiring-cost.csv {target}行"))
+    audit.append(("人均招聘成本", f"{cost_per_hire}元", src("hiring-cost.csv", f"{target}行")))
+    audit.append(("TimeToHire", f"{tth}天", src("hiring-cost.csv", f"{target}行")))
 
     # ===== 离职 =====
     leave_total = int(ar["离职总人数"])
@@ -276,8 +314,8 @@ def main(argv=None):
     reasons = {"薪资": int(ar["薪资原因"]), "发展": int(ar["发展原因"]),
                "管理": int(ar["管理原因"]), "家庭": int(ar["家庭原因"]),
                "不胜任": int(ar["不胜任"])}
-    audit.append(("离职总人数", str(leave_total), f"attrition.csv {target}行"))
-    audit.append(("月离职率", monthly_attr, f"attrition.csv {target}行"))
+    audit.append(("离职总人数", str(leave_total), src("attrition.csv", f"{target}行")))
+    audit.append(("月离职率", monthly_attr, src("attrition.csv", f"{target}行")))
 
     # ============ 图表 ============
     charts = {}
@@ -491,9 +529,9 @@ def main(argv=None):
       {max(reasons, key=reasons.get)}原因为主——HR 需重点关注该方向的保留措施。</div>
 
     <div class="ft">
-      本报告由行政子 Agent「小慧」通过 OpenClaw Cron 定时任务自动生成。<br>
-      数据来源：{COMPANY} HR 月度历史数据 6 个 CSV（招聘漏斗 / 岗位进度 / 入职留存 /
-      培训完成 / 招聘成本 / 离职）。所有数字由 pandas 脚本确定性计算，未经 LLM 改写。<br>
+      本报告由行政子 Agent「小慧」通过宿主机月末日检脚本自动生成。<br>
+      数据来源：{footer_src}<br>
+      所有数字由 pandas 脚本确定性计算，未经 LLM 改写。<br>
       报告月份 {target}　·　生成时间 {gen_time}
     </div>
   </div>
@@ -510,11 +548,14 @@ def main(argv=None):
         f"# HR 月报数字回核表 · {target}",
         "",
         f"- 公司：{COMPANY}",
+        f"- 数据来源：{origin_label}",
         f"- 报告 HTML：`hr-monthly-report-{target}.html`",
         f"- 生成时间：{gen_time}",
+        f"- metric_version：{mv}",
+        f"- report_run_id：{run_id or 'n/a'}",
         f"- 回核项数：{len(audit)}",
         "",
-        "| 指标 | 进 HTML 的值 | CSV / 算式来源 |",
+        "| 指标 | 进 HTML 的值 | metric_version / source_system / 算式 |",
         "|---|---|---|",
     ]
     for name, val, src in audit:
@@ -523,7 +564,7 @@ def main(argv=None):
         "",
         "## 回核结论",
         "",
-        f"以上 {len(audit)} 个数字均由 pandas 直接读取/计算自 CSV，"
+        f"以上 {len(audit)} 个数字均由 pandas 直接读取/计算自 {origin_label}，"
         "全程无 LLM 参与数值生成，可逐条复核。",
         "",
     ])
@@ -535,12 +576,12 @@ def main(argv=None):
     print(f"数字回核表已落盘: {audit_path}")
     print(f"报告月份: {target}  |  图表 4 张  |  对标指标 {len(bench_rows)} 项")
     print("=" * 64)
-    print("【数字回核表】每个进入 HTML 的数字 vs CSV 原始来源:")
+    print("【数字回核表】每个进入 HTML 的数字 vs 冻结 mart / fixture:")
     print("-" * 64)
     for name, val, src in audit:
         print(f"  {name:<14} = {val:<10} <- {src}")
     print("-" * 64)
-    print(f"回核结论: 以上 {len(audit)} 个数字均由 pandas 直接读取/计算自 CSV,")
+    print(f"回核结论: 以上 {len(audit)} 个数字均由 pandas 直接读取/计算自 {origin_label},")
     print("          全程无 LLM 参与数值生成,可逐条复核。")
     print("=" * 64)
 

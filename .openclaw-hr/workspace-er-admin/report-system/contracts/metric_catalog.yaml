@@ -1,0 +1,31 @@
+metric_version: "2026.09-hcm-v1"
+period_type: calendar_month
+timezone: Asia/Shanghai
+source: HCM
+fallback: none
+
+metrics:
+  recruiting_funnel:
+    owner: 招聘 HR
+    formula: HCM 招聘节点 recruitment_funnel
+    source: hcm
+  positions_progress:
+    owner: 招聘 HR
+    formula: HCM 招聘节点 positions_progress 当期快照
+    source: hcm
+  onboarding_retention:
+    owner: HRBP
+    formula: HCM 入职节点 onboarding_retention
+    source: hcm
+  training_completion_rate:
+    owner: 培训负责人
+    formula: HCM 培训节点 training_completion
+    source: hcm
+  hiring_cost:
+    owner: 招聘 HR / HR 财务
+    formula: HCM 招聘成本节点 hiring_cost
+    source: hcm
+  attrition_count:
+    owner: HR
+    formula: HCM 离职节点 attrition
+    source: hcm

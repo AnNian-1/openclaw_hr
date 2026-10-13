@@ -195,7 +195,7 @@ def ssh_status() -> dict:
 def services() -> dict:
     paths = {
         "hcm-backend": (8000, "/api/health"),
-        "hcm-frontend": (5173, "/"),
+        "hcm-frontend": (5174, "/"),
         "gateway": (18790, "/health"),
         "canvas": (18999, "/__openclaw__/healthz"),
     }

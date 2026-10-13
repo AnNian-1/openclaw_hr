@@ -118,12 +118,7 @@
                   +------------------------+     | openclaw-|     | monthly- |
                         |                        | hr)      |     | report)  |
                         v                        +----------+     +----------+
-              读 report-system/data/ 下 6 CSV:
-              attrition.csv, hiring-cost.csv,
-              onboarding-retention.csv,
-              positions-progress.csv,
-              recruitment-funnel.csv,
-              training-completion.csv
+              先 POST HCM freeze，再读冻结快照；唯一来源 HCM。
 ```
 
 **逐步说明：**
