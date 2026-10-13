@@ -1,7 +1,7 @@
 {
   "version": 1,
   "socket": {
-    "path": "/home/yhwz/openclaw-hr/.openclaw-hr/exec-approvals.sock",
+    "path": "/opt/openclaw-hr/.openclaw-hr/exec-approvals.sock",
     "token": "MRkdoQbPOCVWmF8eW91wnSw-DiYMIeHI"
   },
   "defaults": {},
@@ -13,11 +13,18 @@
       "autoAllowSkills": false,
       "allowlist": [
         {
-          "pattern": "/home/yhwz/openclaw-hr/.openclaw-hr/workspace-recruitment/scripts/recruitment-run.sh"
+          "pattern": "/opt/openclaw-hr/.openclaw-hr/workspace-recruitment/scripts/recruitment-run.sh"
         },
         {
           "pattern": "bash",
           "argPattern": "recruitment-run\\.sh"
+        },
+        {
+          "pattern": "bash",
+          "argPattern": "fetch-mail\\.sh"
+        },
+        {
+          "pattern": "/opt/openclaw-hr/.openclaw-hr/workspace-recruitment/scripts/fetch-mail.sh"
         },
         {
           "pattern": "python3",
@@ -36,7 +43,11 @@
       "autoAllowSkills": false,
       "allowlist": [
         {
-          "pattern": "/home/yhwz/openclaw-hr/.openclaw-hr/workspace-er-admin/scripts/er-admin-run.sh"
+          "pattern": "/opt/openclaw-hr/.openclaw-hr/workspace-er-admin/scripts/er-admin-run.sh"
+        },
+        {
+          "pattern": "bash",
+          "argPattern": "er-admin-run\\.sh"
         }
       ]
     }
