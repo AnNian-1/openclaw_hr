@@ -40,7 +40,17 @@ PID_FILE="${PROFILE}/gateway.pid"
 LOG_FILE="${PROFILE}/logs/gateway.log"
 
 listener_pid() {
-  ss -lptn "sport = :${PORT}" 2>/dev/null | grep -oE 'pid=[0-9]+' | head -1 | cut -d= -f2
+  # 云机精简镜像没有 ss/lsof/netstat，退回按进程名反查（setsid -f 拿不到 $!）。
+  # 两条分支都显式 return 0：本脚本是 set -euo pipefail，管道非零会顺着命令替换把
+  # 整个脚本中止 —— 旧版就是因此在云端「gateway 明明起来了却报退出码 1」。
+  if command -v ss >/dev/null 2>&1; then
+    ss -lptn "sport = :${PORT}" 2>/dev/null | grep -oE 'pid=[0-9]+' | head -1 | cut -d= -f2
+    return 0
+  fi
+  # 必须用 -x 精确匹配 comm：pgrep -f openclaw 会误伤（HCM 各进程与调用方 shell
+  # 的 cmdline 里都含 /opt/openclaw-hr）。
+  pgrep -x openclaw 2>/dev/null | head -1
+  return 0
 }
 
 health_ok() {
